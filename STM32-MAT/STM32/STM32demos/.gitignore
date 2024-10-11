@@ -1,0 +1,10 @@
+CodeGeneration
+*.script
+*.extSettings
+*.mxproject
+**/Inc
+**/Src
+**/Drivers
+**/MDK-ARM
+**/EWARM
+

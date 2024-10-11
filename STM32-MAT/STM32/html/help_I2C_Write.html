@@ -1,0 +1,300 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>I2C Write</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-06-07"><meta name="DC.source" content="help_I2C_Write.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>I2C Write</h1><!--introduction--><p>Model used to generate an I2C transmit procedure by an STM32 MCU, based on the HAL library.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#2">S-Function</a></li><li><a href="#4">I2C Write Block Interface</a></li><li><a href="#6">I2C Name</a></li><li><a href="#8">I2C Mode</a></li><li><a href="#10">Target Address</a></li><li><a href="#12">Target Register</a></li><li><a href="#14">Buffer Size</a></li><li><a href="#16">Timeout</a></li><li><a href="#18">Enable Input</a></li><li><a href="#20">Example using DMA in both TX and RX mode</a></li><li><a href="#22">Results and performance</a></li><li><a href="#23">First transmission (Read from 0xA0 at 0x02)</a></li><li><a href="#24">Second transmission (Write to 0xA0 at 0x02)</a></li></ul></div><p>
+<A NAME="ANCRES"> </A>
+</p><h2 id="2">S-Function</h2><p><i>Nb Input:</i>  <b>1</b></p><p><i>Nb Output:</i> <b>0</b></p><p><img vspace="5" hspace="5" src="I2C_Write/Block.PNG" alt=""> </p><p>Displayed on the model :</p><div><ol><li><i>I2Cx</i> : Name of the I2C channel used.</li><li><i>MASTER/SLAVE</i> : Mode of the device.</li><li><i>IT/DMA_RX,DMA_TX,DMA_RX_TX/POLLING</i> : Data management of the IP</li><li><i>Target_Adress</i> : Address of the target/source in decimal format</li><li><i>S Function name</i> : Model Name</li></ol></div><h2 id="4">I2C Write Block Interface</h2><p>Main interface of the I2C_Write model.</p><p><img vspace="5" hspace="5" src="I2C_Write/Interface.PNG" alt=""> </p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="6">I2C Name</h2><p>Pop up list where available I2C channel configured by STM32CubeMX  are displayed.</p><p><img vspace="5" hspace="5" src="I2C_Write/i2cx.PNG" alt=""> </p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="8">I2C Mode</h2><p>Pop up list where I2C mode is configurable.</p><p><img vspace="5" hspace="5" src="I2C_Write/DeviceMode.PNG" alt=""> </p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="10">Target Address</h2><p>Available on the Data sheet on the interfaced sensor, or configured by software when two MCU are interfaced, the Target Address needs to be sent to the target, or known by the source.</p><p><img vspace="5" hspace="5" src="I2C_Write/TargetAdress.PNG" alt=""> </p><p>IMPORTANT : Target Address can be stored in decimal format or hexadecimal format. In the latter case, it is converted and displayed into decimal format for compatibility purpose.</p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="12">Target Register</h2><p>This field concerns the address the user wants to write specifically at in the sensor memory.</p><p><img vspace="5" hspace="5" src="I2C_Write/TargetRegister.PNG" alt=""> </p><p>IMPORTANT : Target Address can be stored in decimal format or hexadecimal format. In the latter case, it is converted and displayed into decimal format for compatibility purpose.</p><h2 id="14">Buffer Size</h2><p>This value fits automatically the size of the buffer to be sent. If the "Enable_Input" mode is activated, then the buffer_size is not set automatically, and must therefore be set up manually.</p><p><img vspace="5" hspace="5" src="I2C_Write/BufferSize.PNG" alt=""> </p><p>IMPORTANT : The buffer size parameter is in integer format.</p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="16">Timeout</h2><p>The timeout is set by the user depending on the type of sensor used in the application.</p><p><img vspace="5" hspace="5" src="I2C_Write/Timeout.PNG" alt=""> </p><p>IMPORTANT : The timeout is in integer format, and in milliseconds.</p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="18">Enable Input</h2><p>This option allows the user to get the write buffer from another buffer for data to be processed beforehand.</p><p>When "On", the "Enable_Input" parameter forces the system to process data from another blockset. The "Data" field is therefore not usable.</p><p><img vspace="5" hspace="5" src="I2C_Write/EnableInputOff.PNG" alt=""> </p><p><img vspace="5" hspace="5" src="I2C_Write/EnableInputOn.PNG" alt=""> </p><p>IMPORTANT :</p><div><ol><li>In case "Enable_Input" is "Off" and "Target_Register" is not empty, the model processes the buffer in order to put the "Target_Register" at index 0, and then the rest of the buffer from index 1 to the end.</li><li>The compatibility between an I2C read and I2C write buffers is met. (<i>see the example below</i>)</li></ol></div><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="20">Example using DMA in both TX and RX mode</h2><p>This example is based on STM32F429i Discovery Kit and a STM32CubeMX configuration file available in the example folder. It is also given in the I2C_Write model help file. The sensor used here for test/debugging purposes is a <i>MikroE RTC CLICK</i> which integrates a PCF8583P,which is a a clock and calendar chip, based on a 2048 bit static CMOS1 RAM organized as 256 words by 8 bits. The ref. manual can be downloaded freely <a href="http://www.nxp.com/documents/data_sheet/PCF8583.pdf">here</a>.</p><p><img vspace="5" hspace="5" src="I2C_Write/F4_I2C_Master_IWDG.PNG" alt=""> </p><p>IMPORTANT :</p><div><ol><li>The I2C_Read and I2C_Write model/S-Functions/Procedures are functions to be considered as basic write/read procedures respecting the i2c norm. It is to say that the user will have to design a model including several I2C write and read models in order to respect the protocol imposed by the sensor used in the application, as shown in this example.</li><li>This example implies a 4-wire connection between the board and the sensor, where GND, 3.3V, SDA and SCL from the chip are respectively connected to GND, 3V, PB9 and PB6 on the STM32F429i Discovery Kit as configured by STM32CubeMX.</li><li>In order to have the blocksets processed in the right order, you must set up priorities for each block decreasingly (except for the configuration block).</li></ol></div><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><p><a href="matlab:open_system('F4_I2C_Master_IWDG')">Click to open example F4_I2C_Master_IWDG</a></p><p>This example reads the time from the sensor, et sends it back as a write on the sensor. The protocol, as explained in the ref. manual of the sensor is as followed :</p><div><ol><li>First the target address is sent, followed by the target register we want to read from. The I2C then reads the data sent from the target device. The buffer is redirected from the read buffer to the write buffer.</li><li>Then a first write sends the target address and the target register we want to write at, and a second write operation sends the buffer with the actual time. Note that in this case, when a zero is written in at the address of the seconds, it is considered a reset at this address, so the clock does not continue to increment.</li><li>This example is only for demonstration, and can not be taken into account for optimal applications. Another example delivered with  the WWDG module library is based on this example, but with the use of a watchdog.</li></ol></div><h2 id="22">Results and performance</h2><p>This part is giving the results obtained on the oscilloscope with this example, in order to give a basis for debugging further applications using this library.</p><h2 id="23">First transmission (Read from 0xA0 at 0x02)</h2><p><img vspace="5" hspace="5" src="I2C_Read/TestReceive.PNG" alt=""> </p><h2 id="24">Second transmission (Write to 0xA0 at 0x02)</h2><p><img vspace="5" hspace="5" src="I2C_Read/TestSend.PNG" alt=""> </p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% I2C Write
+% Model used to generate an I2C transmit procedure by an STM32 MCU, based
+% on the HAL library.
+%
+%%
+%
+% <html>
+% <A NAME="ANCRES"> </A>
+% </html>
+%
+%% S-Function
+% _Nb Input:_  *1*
+%
+% _Nb Output:_ *0*
+%
+%%
+%
+% <<I2C_Write/Block.PNG>>
+%
+% Displayed on the model :
+%
+% # _I2Cx_ : Name of the I2C channel used.
+% # _MASTER/SLAVE_ : Mode of the device.
+% # _IT/DMA_RX,DMA_TX,DMA_RX_TX/POLLING_ : Data management of the IP
+% # _Target_Adress_ : Address of the target/source in decimal format
+% # _S Function name_ : Model Name
+%
+%
+%
+%% I2C Write Block Interface
+% Main interface of the I2C_Write model.
+%%
+%
+% <<I2C_Write/Interface.PNG>>
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+
+%% I2C Name
+% Pop up list where available I2C channel configured by STM32CubeMX  are
+% displayed.
+%%
+%
+%
+% <<I2C_Write/i2cx.PNG>>
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%% I2C Mode
+% Pop up list where I2C mode is configurable.
+%%
+%
+%
+% <<I2C_Write/DeviceMode.PNG>>
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+
+%% Target Address
+% Available on the Data sheet on the interfaced sensor, or configured by
+% software when two MCU are interfaced, the Target Address needs to be
+% sent to the target, or known by the source.
+%%
+%
+%
+% <<I2C_Write/TargetAdress.PNG>>
+%
+% IMPORTANT : Target Address can be stored in decimal format or hexadecimal
+% format. In the latter case, it is converted and displayed into decimal
+% format for compatibility purpose.
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%% Target Register
+% This field concerns the address the user wants to write specifically at in
+% the sensor memory.
+%
+%%
+%
+% <<I2C_Write/TargetRegister.PNG>>
+%
+% IMPORTANT : Target Address can be stored in decimal format or hexadecimal
+% format. In the latter case, it is converted and displayed into decimal
+% format for compatibility purpose.
+
+%% Buffer Size
+% This value fits automatically the size of the buffer to be sent. If the
+% "Enable_Input" mode is activated, then the buffer_size is not set
+% automatically, and must therefore be set up manually.
+%%
+%
+% <<I2C_Write/BufferSize.PNG>>
+%
+% IMPORTANT : The buffer size parameter is in integer format.
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%% Timeout
+% The timeout is set by the user depending on the type of sensor used in
+% the application.
+%%
+%
+% <<I2C_Write/Timeout.PNG>>
+%
+% IMPORTANT : The timeout is in integer format, and in milliseconds.
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%% Enable Input
+% This option allows the user to get the write buffer from another
+% buffer for data to be processed beforehand.
+%%
+% When "On", the "Enable_Input" parameter forces the system to process data
+% from another blockset. The "Data" field is therefore not usable.
+%
+% <<I2C_Write/EnableInputOff.PNG>>
+%
+% <<I2C_Write/EnableInputOn.PNG>>
+%
+% IMPORTANT :
+%
+% # In case "Enable_Input" is "Off" and "Target_Register" is not empty, the
+% model processes the buffer in order to put the "Target_Register" at index
+% 0, and then the rest of the buffer from index 1 to the end.
+% # The compatibility between an I2C read and I2C write
+% buffers is met. (_see the example below_)
+%
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+
+
+
+%% Example using DMA in both TX and RX mode
+%
+% This example is based on STM32F429i Discovery Kit and a STM32CubeMX
+% configuration file available in the example folder. It is also given in
+% the I2C_Write model help file.
+% The sensor used here for test/debugging purposes is a _MikroE RTC CLICK_
+% which integrates a PCF8583P,which is a a clock and calendar chip, based
+% on a 2048 bit static CMOS1 RAM organized as 256 words by 8 bits.
+% The ref. manual can be downloaded freely
+% <http://www.nxp.com/documents/data_sheet/PCF8583.pdf here>.
+%
+%%
+%
+% <<I2C_Write/F4_I2C_Master_IWDG.PNG>>
+%
+% IMPORTANT :
+%
+% # The I2C_Read and I2C_Write model/S-Functions/Procedures are functions
+% to be considered as basic write/read procedures respecting the i2c norm.
+% It is to say that the user will have to design a model including several
+% I2C write and read models in order to respect the protocol imposed by the
+% sensor used in the application, as shown in this example.
+% # This example implies a 4-wire connection between the board and the
+% sensor, where GND, 3.3V, SDA and SCL from the chip are respectively
+% connected to GND, 3V, PB9 and PB6 on the STM32F429i Discovery Kit as
+% configured by STM32CubeMX.
+% # In order to have the blocksets processed in the right order, you must
+% set up priorities for each block decreasingly (except for the
+% configuration block).
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+% <matlab:open_system('F4_I2C_Master_IWDG') Click to open example F4_I2C_Master_IWDG>
+%
+%
+% This example reads the time from the sensor, et sends it back as a write
+% on the sensor. The protocol, as explained in the ref. manual of the
+% sensor is as followed :
+%
+% # First the target address is sent, followed by the target register we
+% want to read from. The I2C then reads the data sent from the target device.
+% The buffer is redirected from the read buffer to the write buffer.
+% # Then a first write sends the target address and the target register we
+% want to write at, and a second write operation sends the buffer with the
+% actual time. Note that in this case, when a zero is written in at the
+% address of the seconds, it is considered a reset at this address, so the
+% clock does not continue to increment.
+% # This example is only for demonstration, and can not be taken into
+% account for optimal applications. Another example delivered with  the
+% WWDG module library is based on this example, but with the use of a
+% watchdog.
+
+%% Results and performance
+%
+% This part is giving the results obtained on the oscilloscope with this
+% example, in order to give a basis for debugging further applications
+% using this library.
+%
+%% First transmission (Read from 0xA0 at 0x02)
+% <<I2C_Read/TestReceive.PNG>>
+%% Second transmission (Write to 0xA0 at 0x02)
+% <<I2C_Read/TestSend.PNG>>
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+##### SOURCE END #####
+--></body></html>

@@ -1,0 +1,170 @@
+%% Abstract: Data_Copy
+%%    STM32Fxxx Data_Copy to get/set data buffer
+%%
+%% Copyright 1990-2009 The MathWorks, Inc.
+
+%assign CodeFormat = "Embedded-C"
+%implements Data_Copy  "C"
+
+%if !EXISTS(::InsertIncludesToDataCp)
+    %assign ::InsertIncludesToDataCp  = TLC_TRUE
+%endif 
+%if !EXISTS(::InsertIncludesFromDataCp)
+    %assign ::InsertIncludesFromDataCp  = TLC_TRUE
+%endif 
+
+%% *************************************************************************************
+%% ******************      Function : Start        *************************************
+%% ************************************************************************************* 
+%function Start(block,system) Output 
+        %assign SRC =  SFcnParamSettings.SRC
+        %assign DST =  SFcnParamSettings.DST
+        %assign OffsetIn =  SFcnParamSettings.OffsetIn
+        %assign OffsetVal =  SFcnParamSettings.OffsetVal
+        %assign SizeIn =  SFcnParamSettings.SizeIn
+        %assign SizeVal =  SFcnParamSettings.SizeVal
+        %assign DataType =  SFcnParamSettings.DataType  
+        %assign SrcPt =  SFcnParamSettings.SrcPt 
+        %assign DstPt =  SFcnParamSettings.DstPt 
+%endfunction	
+
+
+
+%% *************************************************************************************
+%% ******************      Function : BlockInstanceSetup       *************************
+%% ************************************************************************************* 
+
+    %function BlockInstanceSetup(block, system) void
+        %%model.c and model.h files
+        %%création des fichiers .c et .h pour le général
+        %assign SrcBaseName = LibGetMdlSrcBaseName()
+        %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+        %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+        %%model_MEM.h and model_MEM.c files
+        %%création des fichiers .c et .h pour le Data_Copy
+        %assign SrcBaseName_MEM = "%<SrcBaseName>_MEM"
+        %assign modelH_MEM      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_MEM)
+        %assign modelC_MEM      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_MEM)
+
+       
+        %if EXISTS(::InsertIncludesToDataCp) && (::InsertIncludesToDataCp == TLC_TRUE)
+            %assign ::InsertIncludesToDataCp    = TLC_FALSE		
+            %openfile SAI_Buf
+				#include "%<SrcBaseName>.h"
+				#include "%<SrcBaseName_MEM>.h"
+            %closefile SAI_Buf
+            %%on dit dans quel fichier on veut mettre la donnée
+            %<LibSetSourceFileSection(modelC_MEM,"Includes",SAI_Buf)>
+        %endif
+        %%AND Include model_MEM.h to model.c
+        %if EXISTS(::InsertIncludesFromDataCp) && (::InsertIncludesFromDataCp == TLC_TRUE)
+            %assign ::InsertIncludesFromDataCp    = TLC_FALSE		
+            %openfile SAI_Buf
+				#include "%<SrcBaseName_MEM>.h"
+            %closefile SAI_Buf
+            %<LibSetSourceFileSection(modelH,"Includes",SAI_Buf)>
+            
+			%openfile SAI_Buf
+				#include "STM32_Config.h"
+            %closefile SAI_Buf
+            %<LibSetSourceFileSection(modelH_MEM,"Includes",SAI_Buf)>						
+        %endif
+    %endfunction
+
+
+%% *************************************************************************************
+%% ******************      Function Outputs        *************************************
+%% *************************************************************************************
+    %function Outputs(block, system) Output
+        %%model.c and model.h files
+        %assign SrcBaseName = LibGetMdlSrcBaseName()
+        %%model_MEM.h and model_MEM.c files
+        %assign SrcBaseName_MEM = "%<SrcBaseName>_MEM"
+        %assign modelH_MEM      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_MEM)
+        %assign modelC_MEM      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_MEM)
+
+        %assign SRC =  SFcnParamSettings.SRC
+        %assign DST =  SFcnParamSettings.DST
+        %assign OffsetIn =  SFcnParamSettings.OffsetIn
+        %assign OffsetVal =  SFcnParamSettings.OffsetVal
+        %assign SizeIn =  SFcnParamSettings.SizeIn
+        %assign SizeVal =  SFcnParamSettings.SizeVal
+        %assign DataType =  SFcnParamSettings.DataType  
+        %assign SrcPt =  SFcnParamSettings.SrcPt 
+        %assign DstPt =  SFcnParamSettings.DstPt 
+        %assign SrcPt = FEVAL("uint8",%<SrcPt>)
+        %assign DstPt = FEVAL("uint8",%<DstPt>)
+		
+        %if (ISEQUAL(OffsetIn, "on"))
+            %assign OffsetInputVal = LibBlockInputSignal(2, "", "", 0)
+            %assign OffsetInt16 = FEVAL("int16",%<OffsetInputVal>)
+            %if (%<OffsetInt16> < 0)
+            /* !!!! Offset value must be positive ===> forced to 0 !!!! */    
+            %assign OffsetVal = 0
+            %else       
+            %assign OffsetVal = %<OffsetInt16>
+            %endif
+            %if (ISEQUAL(SizeIn, "on"))
+                %assign SizeInputVal = LibBlockInputSignal(3, "", "", 0)
+                %assign SizeInt16 = FEVAL("int16",%<SizeInputVal>)
+                %if (%<SizeInt16> < 0)
+                /* !!!! Nb value must be positive ===> forced to 0 !!!! */    
+                %assign SizeVal = 0
+                %else       
+                %assign SizeVal = %<SizeInt16>
+                %endif
+            %endif
+        %elseif (ISEQUAL(SizeIn, "on"))
+            %assign SizeInputVal = LibBlockInputSignal(2, "", "", 0)
+            %assign SizeInt16 = FEVAL("int16",%<SizeInputVal>)
+            %if (%<SizeInt16> < 0)
+            /* !!!! Nb value must be positive ===> forced to 0 !!!! */    
+            %assign SizeVal = 0
+            %else       
+            %assign SizeVal = %<SizeInt16>
+            %endif
+        %endif
+
+
+        %if %<SrcPt> == 1
+            %assign uSrc = LibBlockInputSignal( 0, "", "", 0)
+        %else
+            %assign uSrc = LibBlockInputSignalAddr( 0, "", "", 0)
+        %endif
+        
+        %if %<DstPt> == 1
+            %assign uDst = LibBlockInputSignal( 1, "", "", 0)
+        %else
+            %if %<OffsetVal> == 0
+              %assign uDst = LibBlockInputSignalAddr( 1, "", "", 0)
+            %else
+              %assign uDst = LibBlockInputSignalAddr( 1, "OffsetVal", "", 0)
+            %endif
+        %endif
+        
+        %if (ISEQUAL(DataType, "32 bits"))
+            %assign sizeofData = "sizeof(uint32_T)"
+        %elseif (ISEQUAL(DataType, "16 bits"))
+            %assign sizeofData = "sizeof(uint16_T)"
+        %elseif (ISEQUAL(DataType, "8 bits"))
+            %assign sizeofData = "sizeof(uint8_T)"
+        %endif
+
+
+        %if %<OffsetVal> == 0
+             memcpy( \
+                (void*)(%<uDst>), \
+                (void*)(%<uSrc>), \
+                (uint16_T)(%<SizeVal>*%<sizeofData>));
+        %else
+            {
+             int OffsetVal = %<OffsetVal>;
+             memcpy( \
+                (void*)(%<uDst>), \
+                (void*)(%<uSrc>), \
+                (uint16_T)(%<SizeVal>*%<sizeofData>));
+            }
+        %endif
+        
+   %endfunction   
+%% [EOF] Data_Copy.tlc

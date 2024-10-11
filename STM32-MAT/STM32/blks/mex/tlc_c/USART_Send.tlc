@@ -1,0 +1,545 @@
+%% Abstract: USART Send
+%%    Send data to selected USART
+%%    Generated code is based on STM32 HAL Library files.
+%%
+%assign CodeFormat = "Embedded-C"
+%implements USART_Send "C"
+
+%if !EXISTS(::InsertSERIAL_TX)
+    %assign ::InsertSERIAL_TX = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertUSART_TX_Callback)
+    %assign ::InsertUSART_TX_Callback = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertUART_TX_Callback)
+    %assign ::InsertUART_TX_Callback = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertIncludesToUSART)
+    %assign ::InsertIncludesToUSART = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertIncludesFromUSART)
+    %assign ::InsertIncludesFromUSART = TLC_TRUE
+%endif
+
+
+%% Code for SERIAL send initialization:
+%function Start(block,system) Output
+    %assign USART_name = SFcnParamSettings.USART_name
+    %% Initialization is done once only per USART
+    %if !EXISTS(::%<USART_name>_TX_START)
+        %assign ::%<USART_name>_TX_START = TLC_TRUE
+
+        %openfile USART_Buf
+        /* %<USART_name> initialization for send. */
+        %<USART_name>_Tx_Initialization();
+        %closefile USART_Buf
+        %<LibMdlStartCustomCode(USART_Buf,"execution")>
+    %endif
+%endfunction
+
+
+%% Code for USART SEND configuration call:
+%function BlockInstanceSetup(block, system) void
+    %%model.c and model.h files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+    %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+
+    %%model_USART.h and model_USART.c files
+    %assign SrcBaseName_USART = "%<SrcBaseName>_USART"
+    %assign modelH_USART      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_USART)
+    %assign modelC_USART      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_USART)
+
+    %%Include model.h to model_USART.c
+    %if EXISTS(::InsertIncludesToUSART) && (::InsertIncludesToUSART == TLC_TRUE)
+        %assign ::InsertIncludesToUSART = TLC_FALSE
+        %openfile USART_Buf
+            #include "%<SrcBaseName>.h"
+            #include "%<SrcBaseName_USART>.h"
+            #include "main.h"
+
+        %closefile USART_Buf
+        %<LibSetSourceFileSection(modelC_USART,"Includes",USART_Buf)>
+    %endif
+
+    %%Include model_USART.h to model.c
+    %if EXISTS(::InsertIncludesFromUSART) && (::InsertIncludesFromUSART == TLC_TRUE)
+        %assign ::InsertIncludesFromUSART = TLC_FALSE
+        %openfile USART_Buf
+            #include "%<SrcBaseName_USART>.h"
+        %closefile USART_Buf
+        %<LibSetSourceFileSection(modelH,"Includes",USART_Buf)>
+
+        %openfile USART_Buf
+            #include "STM32_Config.h"
+        %closefile USART_Buf
+        %<LibSetSourceFileSection(modelH_USART,"Includes",USART_Buf)>
+    %endif
+
+    %assign USART_name = SFcnParamSettings.USART_name
+    %assign Buff_size = SFcnParamSettings.Buff_size
+    %assign nbUsart = SFcnParamSettings.nbUsart
+    %assign usartMode = SFcnParamSettings.usartMode
+    %assign usartDma_Rx = SFcnParamSettings.usartDma_Rx
+    %assign usartDma_Tx = SFcnParamSettings.usartDma_Tx
+    %assign usartIt = SFcnParamSettings.usartIt
+    %assign usartNum = IDNUM("%<USART_name>")[1]
+    %%warning "---------->usartNum: %<usartNum>"
+
+    %if EXISTS(::InsertSERIAL_TX) && (::InsertSERIAL_TX == TLC_TRUE)
+        %assign ::InsertSERIAL_TX = TLC_FALSE
+        %openfile USART_Buf
+       /**
+        * @brief USART Tx State structures definition
+        */
+        typedef enum {
+          SERIAL_TX_ON  = 0x00, /*!< Tx serial communication started. */
+          SERIAL_TX_OK  = 0x01, /*!< Tx serial communication terminated. */
+          SERIAL_TX_OFF = 0x02  /*!< Tx serial communication stopped. */
+        } SERIAL_TxStatusTypeDef;
+
+       /**
+        * @brief SERIAL data information
+        */
+        typedef struct SERIAL_TxConf {
+         uint16_t nb2Send;         /*!< Nb of char to send*/
+         uint16_t nbSent;          /*!< Nb sent char*/
+         uint16_t nbMsgLost;       /*!< Nb lost msg (not enough space in ring buffer)*/
+         uint16_t buffSize;        /*!< Size of send ring buffer*/
+         uint8_t* pTx_BuffStart;   /*!< point to ring buffer*/
+         uint8_t* pTx_BuffEnd;     /*!< point to end ring buffer*/
+         uint8_t* pTx_W;           /*!< point to free space*/
+         uint8_t* pTx_R;           /*!< point to char to send*/
+         void (* CopyData)(struct SERIAL_TxConf* pConf, uint8_t* pSrc, uint16_t dataLength);
+         void (* SendData)(struct SERIAL_TxConf* pConf);
+         __IO SERIAL_TxStatusTypeDef txStatus;     /*!< Usart send communication status.*/
+         __IO uint8_t txLock;      /*!< lock data access */
+        } SERIAL_TxConfTypeDef;
+        %closefile USART_Buf
+        %<LibSetSourceFileSection(modelH_USART,"Typedefs",USART_Buf)>
+
+        %openfile USART_Buf
+        void TX_CopyData(struct SERIAL_TxConf*, uint8_t*, uint16_t);
+        %closefile USART_Buf
+        %<LibSetSourceFileSection(modelH_USART,"Functions",USART_Buf)>
+
+        %openfile USART_Buf
+        /* Number of USART/UART configured for send. */
+        uint16_t G_SERIAL_TX_Count = 0;
+        /* Array of USART/UART send data information. */
+        SERIAL_TxConfTypeDef* G_SERIAL_TX_Conf[%<nbUsart>];
+        void* G_SERIAL_TX_Handler[%<nbUsart>];
+        %closefile USART_Buf
+        %<LibSetSourceFileSection(modelC_USART,"Declarations",USART_Buf)>
+
+        %openfile USART_Buf
+        /*******************************************************************************
+         * Function Name  : TX_CopyData
+         * Description    : Copy msg to send to ring buffer (if possible)
+         * Input          : pointer to data to send , length(number) of data to send and
+         *                  ring buffer context
+         *******************************************************************************/
+         void TX_CopyData(struct SERIAL_TxConf* pConf, uint8_t* pSrc, uint16_t dataLength)
+         {
+           uint16_t msgSize = 0;
+           uint16_t idx;
+
+           /* Copy msg to send to ring buffer */
+           for(idx = 0; idx < dataLength; idx++) {
+             if((pConf->pTx_W == pConf->pTx_R) && (pConf->nb2Send!=0))
+               break; /* Ring Buffer is full. */
+
+             *pConf->pTx_W++ = *pSrc++;
+             msgSize++;
+
+             if(pConf->pTx_W == pConf->pTx_R)
+               break; /* Ring Buffer is full. */
+
+             if(pConf->pTx_W == pConf->pTx_BuffEnd) {
+               /* Revolve buffer. */
+               pConf->pTx_W = pConf->pTx_BuffStart;
+             }
+           }
+
+           /* Update number of data to send. */
+           /* Access locked. */
+           pConf->txLock = 1;
+
+           pConf->nb2Send += msgSize;
+
+           /* If end of send interrupt mode arrived during last instruction. */
+           if(pConf->txLock == 2)
+             pConf->nb2Send -= pConf->nbSent;
+
+           /* Unlock access. */
+           pConf->txLock = 0;
+
+           if(msgSize < dataLength)
+             pConf->nbMsgLost++; /* Message not all sent. */
+         }
+        %closefile USART_Buf
+        %<LibSetSourceFileSection(modelC_USART,"Functions",USART_Buf)>
+    %endif
+
+    %if (ISEQUAL(usartMode, "Synchronous"))
+        %if EXISTS(::InsertUSART_TX_Callback) && (::InsertUSART_TX_Callback == TLC_TRUE)
+            %assign ::InsertUSART_TX_Callback = TLC_FALSE
+            %openfile USART_Buf
+           /**
+            * @brief  Tx Transfer completed callback.
+            * @param  husart Pointer to a USART_HandleTypeDef structure that contains
+            *                the configuration information for the specified USART module.
+            * @retval None
+            */
+            void HAL_USART_TxCpltCallback(USART_HandleTypeDef *husart)
+            {
+              SERIAL_TxConfTypeDef* pConf = G_SERIAL_TX_Conf[0];
+              USART_HandleTypeDef* pHandler = (USART_HandleTypeDef*)G_SERIAL_TX_Handler[0];
+
+              %if(nbUsart > 1)
+              {
+                uint16_t idx = 0;
+                for(idx = 0; idx < %<nbUsart>; idx++) {
+                  pHandler = (USART_HandleTypeDef*)G_SERIAL_TX_Handler[idx];
+                  if(pHandler == husart) {
+                    pConf = G_SERIAL_TX_Conf[idx];
+                    break;
+                  }
+                }
+              }
+              %endif
+
+              if(pHandler == husart) {
+                pConf->txStatus = SERIAL_TX_OK;
+                pConf->pTx_R += pConf->nbSent;
+                if(pConf->pTx_R >= pConf->pTx_BuffEnd) {
+                  pConf->pTx_R = pConf->pTx_BuffStart;
+                }
+                if(pConf->txLock == 0) {
+                  pConf->nb2Send -= pConf->nbSent;
+                } else {
+                  pConf->txLock = 2;
+                }
+              }
+            }
+            %closefile USART_Buf
+            %<LibSetSourceFileSection(modelC_USART,"Functions",USART_Buf)>
+        %endif
+    %else
+        %if EXISTS(::InsertUART_TX_Callback) && (::InsertUART_TX_Callback == TLC_TRUE)
+            %assign ::InsertUART_TX_Callback = TLC_FALSE
+            %openfile USART_Buf
+            /**
+             * @brief Tx Transfer completed callback.
+             * @param huart UART handle.
+             * @retval None
+             */
+            void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+            {
+              SERIAL_TxConfTypeDef* pConf = G_SERIAL_TX_Conf[0];
+              UART_HandleTypeDef* pHandler = (UART_HandleTypeDef*)G_SERIAL_TX_Handler[0];
+
+              %if(nbUsart > 1)
+              {
+                uint16_t idx = 0;
+                for(idx = 0;idx < %<nbUsart>;idx++) {
+                  pHandler = (UART_HandleTypeDef*)G_SERIAL_TX_Handler[idx];
+                  if(pHandler == huart) {
+                    pConf = G_SERIAL_TX_Conf[idx];
+                    break;
+                  }
+                }
+              }
+              %endif
+
+              if(pHandler == huart) {
+                pConf->txStatus = SERIAL_TX_OK;
+                pConf->pTx_R += pConf->nbSent;
+                if(pConf->pTx_R >= pConf->pTx_BuffEnd) {
+                  pConf->pTx_R = pConf->pTx_BuffStart;
+                }
+                if(pConf->txLock == 0) {
+                  pConf->nb2Send -= pConf->nbSent;
+                } else {
+                  pConf->txLock = 2;
+                }
+              }
+            }
+            %closefile USART_Buf
+            %<LibSetSourceFileSection(modelC_USART,"Functions",USART_Buf)>
+        %endif
+    %endif
+
+    %if !EXISTS(::%<USART_name>_InsertSERIAL_TX)
+        %assign ::%<USART_name>_InsertSERIAL_TX = TLC_TRUE
+
+        %openfile USART_Buf
+        %if (ISEQUAL(usartIt, "on") == TLC_FALSE && ISEQUAL(usartDma_Tx, "on") == TLC_FALSE )
+        /* %<USART_name> Tx polling timeout value. Number of Solver loop. (can be changed)*/
+        uint32_t G_%<USART_name>_TxPollTimeOut = 10;
+        %endif
+        %closefile USART_Buf
+        %<LibSetSourceFileSection(modelC_USART,"Definitions",USART_Buf)>
+
+        %openfile USART_Buf
+        %if (ISEQUAL(usartIt, "on") == TLC_FALSE && ISEQUAL(usartDma_Tx, "on") == TLC_FALSE )
+        /* %<USART_name> Tx polling timeout value. Number of Solver loop. (can be changed)*/
+        extern uint32_t G_%<USART_name>_TxPollTimeOut;
+        %endif
+        %closefile USART_Buf
+        %<LibSetSourceFileSection(modelH_USART,"Declarations",USART_Buf)>
+
+        %openfile USART_Buf
+        /* %<USART_name> ring data send buffer. */
+        static uint8_t %<USART_name>_TxDataBuffer[%<Buff_size>];
+
+        /* %<USART_name> send data structure information. */
+        SERIAL_TxConfTypeDef %<USART_name>_TxConf;
+        %closefile USART_Buf
+        %<LibSetSourceFileSection(modelC_USART,"Declarations",USART_Buf)>
+
+        %% Code for required USART external definition: in model_USART.c file
+        %openfile USART_Buf
+        /* %<USART_name> HAL handler. */
+        %if (ISEQUAL(usartMode, "Synchronous"))
+        extern USART_HandleTypeDef husart%<usartNum>;
+        %%test for DMA handler
+        %if (ISEQUAL(usartDma_Rx, "on"))
+        extern DMA_HandleTypeDef hdma_usart%<usartNum>_rx;
+        %endif
+        %if (ISEQUAL(usartDma_Tx, "on"))
+        extern DMA_HandleTypeDef hdma_usart%<usartNum>_tx;
+        %endif
+        %else
+        extern UART_HandleTypeDef huart%<usartNum>;
+        %%test for DMA handler
+        %if (ISEQUAL(usartDma_Rx, "on"))
+        extern DMA_HandleTypeDef hdma_uart%<usartNum>_rx;
+        %endif
+        %if (ISEQUAL(usartDma_Tx, "on"))
+        extern DMA_HandleTypeDef hdma_uart%<usartNum>_tx;
+        %endif
+        %endif
+        /* %<USART_name> send configuration. */
+        extern SERIAL_TxConfTypeDef %<USART_name>_TxConf;
+        %closefile USART_Buf
+        %<LibSetSourceFileSection(modelH_USART,"Declarations",USART_Buf)>
+
+        %openfile USART_Buf
+        /* %<USART_name>_TX_SendData declaration. */
+        void %<USART_name>_TX_SendData(struct SERIAL_TxConf*);
+        %closefile USART_Buf
+        %<LibSetSourceFileSection(modelH_USART,"Functions",USART_Buf)>
+    %endif
+
+   
+
+    %if !EXISTS(::%<USART_name>_TX_SendData)
+        %assign ::%<USART_name>_TX_SendData = TLC_TRUE
+        %openfile USART_Buf
+        /*******************************************************************************
+        * Function Name  : %<USART_name>_TX_SendData
+        * Description    : Send ring buffer management
+        * Input          : Ring buffer context
+        *******************************************************************************/
+        void %<USART_name>_TX_SendData(struct SERIAL_TxConf* pConf)
+        {
+          uint16_t msgSize;
+
+          /* If USART is not already running and data to send */
+          if((pConf->txStatus != SERIAL_TX_ON) && pConf->nb2Send) {
+            pConf->txStatus = SERIAL_TX_ON;
+            msgSize = (uint32_t)pConf->pTx_BuffEnd - (uint32_t)pConf->pTx_R;
+
+            /* Send all msg or end of ring buffer */
+            if(pConf->nb2Send <= msgSize) {
+              pConf->nbSent = pConf->nb2Send;
+            %if (ISEQUAL(usartMode, "Synchronous"))
+              %if (ISEQUAL(usartDma_Tx, "on"))
+              /* %<USART_name> DMA send mode*/
+              HAL_USART_Transmit_DMA(&husart%<usartNum>, pConf->pTx_R, pConf->nb2Send);
+              %elseif (ISEQUAL(usartIt, "on"))
+              /* %<USART_name> interrupt send mode*/
+              HAL_USART_Transmit_IT(&husart%<usartNum>, pConf->pTx_R, pConf->nb2Send);
+              %else
+              /* %<USART_name> polling send mode. */
+              HAL_USART_Transmit(&husart%<usartNum>, pConf->pTx_R, pConf->nb2Send, G_%<USART_name>_TxPollTimeOut);
+              /* Update info. Always consider data has been sent. */
+              pConf->txStatus = SERIAL_TX_OK;
+              pConf->pTx_R += pConf->nbSent;
+              if(pConf->pTx_R >= pConf->pTx_BuffEnd) {
+                pConf->pTx_R = pConf->pTx_BuffStart;
+              }
+              pConf->nb2Send -= pConf->nbSent;
+              %endif
+
+            %else
+              %if (ISEQUAL(usartDma_Tx, "on"))
+              /* %<USART_name> DMA send mode*/
+              HAL_UART_Transmit_DMA(&huart%<usartNum>, pConf->pTx_R, pConf->nb2Send);
+              %elseif (ISEQUAL(usartIt, "on"))
+              /* %<USART_name> interrupt send mode*/
+              HAL_UART_Transmit_IT(&huart%<usartNum>, pConf->pTx_R, pConf->nb2Send);
+              %else
+              /* %<USART_name> polling send mode*/
+              HAL_UART_Transmit(&huart%<usartNum>, pConf->pTx_R, pConf->nb2Send, G_%<USART_name>_TxPollTimeOut);
+              /* Update info. Always consider data has been sent*/
+              pConf->txStatus = SERIAL_TX_OK;
+              pConf->pTx_R += pConf->nbSent;
+              if(pConf->pTx_R >= pConf->pTx_BuffEnd) {
+                pConf->pTx_R = pConf->pTx_BuffStart;
+              }
+              pConf->nb2Send -= pConf->nbSent;
+              %endif
+            %endif
+            }
+            else {
+              pConf->nbSent = msgSize;
+            %if (ISEQUAL(usartMode, "Synchronous"))
+              %if (ISEQUAL(usartDma_Tx, "on"))
+              /* %<USART_name> DMA send mode*/
+              HAL_USART_Transmit_DMA(&husart%<usartNum>, pConf->pTx_R, msgSize);
+              %elseif (ISEQUAL(usartIt, "on"))
+              /* %<USART_name> interrupt send mode*/
+              HAL_USART_Transmit_IT(&husart%<usartNum>, pConf->pTx_R, msgSize);
+              %else
+              /* %<USART_name> polling send mode*/
+              HAL_USART_Transmit(&husart%<usartNum>, pConf->pTx_R, msgSize, G_%<USART_name>_TxPollTimeOut);
+              /* Update info. Always consider data has been sent*/
+              pConf->txStatus = SERIAL_TX_OK;
+              pConf->pTx_R += pConf->nbSent;
+              if(pConf->pTx_R >= pConf->pTx_BuffEnd) {
+              pConf->pTx_R = pConf->pTx_BuffStart;
+            }
+            pConf->nb2Send -= pConf->nbSent;
+              %endif
+            %else
+              %if (ISEQUAL(usartDma_Tx, "on"))
+            /* %<USART_name> DMA send mode*/
+            HAL_UART_Transmit_DMA(&huart%<usartNum>, pConf->pTx_R, msgSize);
+              %elseif (ISEQUAL(usartIt, "on"))
+            /* %<USART_name> interrupt send mode*/
+            HAL_UART_Transmit_IT(&huart%<usartNum>, pConf->pTx_R, msgSize);
+              %else
+            /* %<USART_name> polling send mode*/
+            HAL_UART_Transmit(&huart%<usartNum>, pConf->pTx_R, msgSize, G_%<USART_name>_TxPollTimeOut);
+            /* Update info. Always consider data has been sent*/
+            pConf->txStatus = SERIAL_TX_OK;
+            pConf->pTx_R += pConf->nbSent;
+            if(pConf->pTx_R >= pConf->pTx_BuffEnd) {
+            pConf->pTx_R = pConf->pTx_BuffStart;
+            }
+            pConf->nb2Send -= pConf->nbSent;
+              %endif
+            %endif
+           }
+         }
+        }
+        %closefile USART_Buf
+        %<LibSetSourceFileSection(modelC_USART,"Functions",USART_Buf)>
+    %endif
+
+    %% Initialization is defined once only per UART/USART device
+    %if !EXISTS(::%<USART_name>_TX_INIT)
+        %assign ::%<USART_name>_TX_INIT = TLC_TRUE
+
+        %openfile USART_Buf
+        /* %<USART_name>_Tx_Initialization declaration. */
+        void %<USART_name>_Tx_Initialization(void);
+        %closefile USART_Buf
+        %<LibSetSourceFileSection(modelH_USART,"Defines",USART_Buf)>
+
+        %openfile USART_Buf
+        /*******************************************************************************
+        * Function Name  : %<USART_name>_Tx_Initialization
+        * Description    : Send Initialization of %<USART_name>
+        * Input          : -
+        *******************************************************************************/
+        void %<USART_name>_Tx_Initialization(void)
+        {
+          /* Store %<USART_name> send configuration and its handler. */
+
+          /* Initialize ring buffer information. */
+          %<USART_name>_TxConf.nb2Send = 0;
+          %<USART_name>_TxConf.nbSent = 0;
+          %<USART_name>_TxConf.nbMsgLost = 0;
+          %<USART_name>_TxConf.buffSize = %<Buff_size>;
+          %<USART_name>_TxConf.pTx_BuffStart = &%<USART_name>_TxDataBuffer[0];
+          %<USART_name>_TxConf.pTx_BuffEnd = &%<USART_name>_TxDataBuffer[%<Buff_size>];
+          %<USART_name>_TxConf.pTx_W = %<USART_name>_TxDataBuffer;
+          %<USART_name>_TxConf.pTx_R = %<USART_name>_TxDataBuffer;
+          %<USART_name>_TxConf.CopyData = TX_CopyData;
+          %<USART_name>_TxConf.SendData = %<USART_name>_TX_SendData;
+          %<USART_name>_TxConf.txStatus = SERIAL_TX_OFF;
+          %<USART_name>_TxConf.txLock = 0;
+ 
+          /* Register this %<USART_name> in global configuration stores. */
+          G_SERIAL_TX_Conf[G_SERIAL_TX_Count] = &%<USART_name>_TxConf;
+          %if (ISEQUAL(usartMode, "Synchronous"))
+          G_SERIAL_TX_Handler[G_SERIAL_TX_Count] = (void*)&husart%<usartNum>;
+          %else
+          G_SERIAL_TX_Handler[G_SERIAL_TX_Count] = (void*)&huart%<usartNum>;
+          %endif
+
+          %if(nbUsart > 1)
+          G_SERIAL_TX_Count++;
+          %endif
+        }
+        %closefile USART_Buf
+        %<LibSetSourceFileSection(modelC_USART,"Functions",USART_Buf)>
+    %endif
+%endfunction
+
+
+%% Function: Outputs ==========================================
+%% Abstract:
+%% USART_Send input value depending on pin config
+%%
+%function Outputs(block, system) Output
+    %assign USART_name = SFcnParamSettings.USART_name
+    %assign Buff_size = SFcnParamSettings.Buff_size
+    %assign nbUsart = SFcnParamSettings.nbUsart
+    %assign usartMode = SFcnParamSettings.usartMode
+    %assign usartDma_Rx = SFcnParamSettings.usartDma_Rx
+    %assign usartDma_Tx = SFcnParamSettings.usartDma_Tx
+    %assign usartIt = SFcnParamSettings.usartIt
+    %assign usartNum = IDNUM("%<USART_name>")[1]
+
+    %%block Output
+    %assign NbSent = LibBlockOutputSignal(0, "", "", 0)
+    %assign Nb2Send = LibBlockInputSignal(0, "", "", 0)
+    %assign uAddr = LibBlockInputSignal(1, "", "", 0)
+
+   { 
+     if(%<Nb2Send> != 0) {
+       %% /* Wait for end of current send data*/
+       %% while(%<USART_name>_TxConf.txStatus == SERIAL_TX_ON);
+       /* Copy data to send. */
+       TX_CopyData(&%<USART_name>_TxConf, (uint8_t*)%<uAddr>, (uint16_t)%<Nb2Send>);
+     }
+
+    %%RP        %if !EXISTS(::%<USART_name>_InsertTxSendUSART)
+    %assign ::%<USART_name>_InsertTxSendUSART = TLC_TRUE
+
+     if(%<USART_name>_TxConf.nb2Send){
+       %<NbSent> = 0;
+       %<USART_name>_TX_SendData(&%<USART_name>_TxConf);
+     }
+     if(%<USART_name>_TxConf.txStatus != SERIAL_TX_ON){
+       %<NbSent> = %<USART_name>_TxConf.nbSent;
+     }
+
+    %if (ISEQUAL(usartDma_Tx, "on"))
+    %elseif(ISEQUAL(usartIt, "on"))
+    %else
+     %<USART_name>_TxConf.txStatus = SERIAL_TX_OFF;
+    %endif
+  }
+
+%endfunction
+
+%% [EOF] USART_Send.tlc

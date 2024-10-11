@@ -1,0 +1,656 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Readme</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-19"><meta name="DC.source" content="Readme.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Readme</h1><!--introduction--><p>
+<A NAME="ANCRES"> </A>
+</p><p><b>COPYRIGHT 2014 STMicroelectronics</b></p><p>Licensed under MCD-ST Liberty SW License Agreement V2, (the "License").</p><p>
+<a href="MCD-ST Liberty SW License Agreement V2.pdf" target="_blank">Read MCD-ST Liberty SW License Agreement V2.pdf</a>
+</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Package Description</a></li><li><a href="#2">Product version</a></li><li><a href="#3">Package installation</a></li><li><a href="#5">Package Overview</a></li><li><a href="#6"><i>blks</i></a></li><li><a href="#7"><i>CRL</i></a></li><li><a href="#8"><i>html</i></a></li><li><a href="#9"><i>pil</i></a></li><li><a href="#10"><i>rtw</i></a></li><li><a href="#11"><i>script</i></a></li><li><a href="#12"><i>util</i></a></li><li><a href="#13"><i>STM32demos</i></a></li><li><a href="#14">Configuration &amp; Settings</a></li><li><a href="#15">Demonstration settings (<i>if installed path is not C:\Matlab\STM32</i>)</a></li><li><a href="#16">Step by step application</a></li><li><a href="#17">Known problems and solutions</a></li></ul></div><h2 id="1">Package Description</h2><p>This package contains all necessary files to quickly deploy application models in MATLAB&reg; and Simulink to STM32 MCU.</p><p>Specific files included in the distribution are Simulink blockset libraries for STM32 peripherals, Embedded Coder STM32 configuration files (STM32.tmf and STM32.tlc), and PIL serial rtiostream and profiling functionalities.</p><h2 id="2">Product version</h2><p>STM32 Embedded Target has been developed for <b>MATLAB&reg; R2018b version</b>.</p><p>MathWorks products required:</p><p>
+<ul>
+<li>MATLAB&reg; and MATLAB&reg; Coder</li>
+<li>Simulink and Simulink Coder</li>
+<li>Embedded Coder</li>
+</ul>
+</p><p><b>The process from code generation to programing STM32 MCU is fully automated and requires :</b></p><p>
+<dd><b>STM32CubeMx 5.6.0</b>
+<a href="http://www.st.com/web/catalog/tools/FM147/CL1794/SC961/SS1533/PF259242?s_searchtype=partnumber" target="_blank">(STM32CubeMx)</a></dd>
+</p><p>and one of three following listed toolchains:</p><p>
+<dd><b>EWARM V8.22.2</b> or more
+<a href="http://www.iar.com/" target="_blank">(IAR)</a></dd>
+</p><p>
+<dd><b>Keil MDK V5.20</b> or more
+<a href="http://www.keil.com/" target="_blank">(ARM)</a></dd>
+</p><p>
+<dd><b>STM32CubeIDE 1.2.0</b> or more
+<a href="http://www.st.com/en/development-tools/stm32cubeide.html" target="_blank">(STM32CubeIDE)</a></dd>
+</p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="3">Package installation</h2><p>STM32 Embedded Target functionalities are available as soon as <b>STM32</b> product folder and subfolders are added to the MATLAB&reg; path.</p><p>Type <b>pathtool</b> in the <b>MATLAB&reg; Command Window</b> and follow the stages below to settle the product.</p><div><ol><li>Click <b>Add with subfolders...</b> button of "Set Path" window.</li><li>Select <b>STM32</b> folder (It contains this Readme file)</li><li>Click <b>OK</b></li><li>Click <b>Save</b> button and close "Set Path" window</li></ol></div><p><b>STM32 Embedded Target capabilities and functionalities are available now.</b></p><p><img vspace="5" hspace="5" src="html\Img\pathtool.PNG" alt=""> </p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+<A NAME="package"> </A>
+</p><h2 id="5">Package Overview</h2><p>The contents of the <b>STM32 Embedded Target</b> package are the following one.</p><p>
+<ul>
+<li><A HREF="#blks">blks</A>: Simulink blockset library</li>
+<li><A HREF="#CRL">CRL</A>: Code Replacement Libraries for sin/cos math functions.</li>
+<li><A HREF="#html">html</A>: HTML help files for Simulink blockset library</li>
+<li><A HREF="#pil">pil</A>: PIL setting files and STM32 RtioStream</li>
+<li><A HREF="#rtw">rtw</A>: Embedded Coder STM32 configuration files</li>
+<li><A HREF="#script">script</A>: Settings and configuration MATLAB&reg; scripts.</li>
+<li><A HREF="#util">util</A>: Utilities MATLAB&reg; scripts.</li>
+<li><A HREF="#STM32demos">STM32demos</A>: Simulink models for demo and test</li>
+</ul>
+</p><p>
+<A NAME="blks"> </A>
+</p><h2 id="6"><i>blks</i></h2><p>Simulink blockset libraries specific files for STM32 peripherals.</p><p>
+<ul>
+<li><b>logo</b> repository contains ST.bmp file logo visible on every Simulink peripheral models. cube.png used during STM32CubeMx processing.</li>
+<li><b>masks</b> repository contains Simulink peripheral models parameters callback script.</li>
+<li><b>mex</b> repository contains mexw64 files for Simulink peripheral models</li>
+</ul>
+<A HREF="#package"><p align="left"> back </p></A>
+<A NAME="CRL"> </A>
+</p><h2 id="7"><i>CRL</i></h2><p><b>C</b> ode <b>R</b> eplacement <b>L</b> ibrary for sin and cos math functions. sin/cos used with Motor control example. <b><i>STM32\STM32demos\MotorControl\FOC\MotorControl.slx</i></b></p><p>
+<A HREF="#package"><p align="left"> back </p></A>
+<A NAME="html"> </A>
+</p><h2 id="8"><i>html</i></h2><p>HTML and snapshots for Simulink peripheral models help description.</p><p>
+<A HREF="#package"><p align="left"> back </p></A>
+<A NAME="pil"> </A>
+</p><h2 id="9"><i>pil</i></h2><p>
+<ul>
+<li><b>+stm32pil</b> repository contains STM32 configuration files for PIL and profiling functionalities.</li>
+<li><b>stm32SerialRtiostream</b> repository contains "C" source driver files for PIL communication between STM32 board and PC.</li>
+</ul>
+When you press <b>RUN</b>, some popup windows are displayed in order to set
+parameters :<br>
+<li>STM32 MCU used for PIL.</li>
+<dd>Default Maximum frequency value is set too. It is taken into account for
+<b>executionProfile</b> information. (Enter, executionProfile.report command to
+view PIL execution time)</dd>
+</p><p><img vspace="5" hspace="5" src="html\Img\MCU.PNG" alt=""> </p><p>
+<li>PC communication port and parameters used for PIL must be set.</li>
+<dd>Default initialization communication timeout and receive communication timeout are set to <b>10sec</b>
+(Take care if breakpoint is set during PIL debug)</dd>
+</p><p><img vspace="5" hspace="5" src="html\Img\COM_PORT.PNG" alt=""> </p><p>
+<li>USART speed communication parameters are same as PC communication parameters.</li>
+<dd>Usart name, RX/Tx port(pin) used must be set.</dd><br>
+<dd>Default buffer used for reception is set to 128bytes.</dd>
+</p><p><img vspace="5" hspace="5" src="html\Img\USART.PNG" alt=""> </p><p>
+<li>As <b>STM32CubeMX</b> generates project, you have to select Toolchain and version used.</li>
+<dd>Available toolchain are:</dd>
+<dd><b>EWARM</b></dd>
+<dd><b>MDK-ARM</b></dd>
+<dd><b>others</b></dd>
+<dd>When "others" is selected, Version string parameter contains both toolchain name and version.</dd>
+</p><p><img vspace="5" hspace="5" src="html\Img\Toolchain_Select.PNG" alt=""> </p><p>
+<li><b>STM32CubeMX</b> generates and opens project selected IDE.</li>
+<dd>You have to set some parameters as described in <A HREF="#Known problems and solutions">Known problems and solutions</A>.</dd>
+<dd>Build, Download and Run application.</dd>
+<dd>Then press continue to start PIL communication.</dd>
+</p><p><img vspace="5" hspace="5" src="html\Img\PIL_Start.PNG" alt=""> </p><p>
+<A HREF="#package"><p align="left"> back </p></A>
+<A NAME="rtw"> </A>
+</p><h2 id="10"><i>rtw</i></h2><p>
+<b>rtw</b> repository contains Embedded Coder STM32 configuration
+files:<br>
+<ul>
+<li><b>STM32.tmf</b> <b>t</b>emplate <b>m</b>ake <b>f</b>ile for building a PC-based
+stand-alone embedded real-time version of Simulink model.</li>
+<li><b>STM32.tlc</b> System target file used to define STM32
+option parameters.</li>
+</ul>
+<A HREF="#package"><p align="left"> back </p></A>
+<A NAME="script"> </A>
+</p><h2 id="11"><i>script</i></h2><p>Set of script files used to automatically initialize STM32 configuration model or used for RTW build process.</p><p>
+<A HREF="#package"><p align="left"> back </p></A>
+<A NAME="util"> </A>
+</p><h2 id="12"><i>util</i></h2><p>Set of MATLAB&reg; script files used to retrieve selected STM32CubeMx configuration information for configured peripherals.</p><p>
+<A HREF="#package"><p align="left"> back </p></A>
+<A NAME="STM32demos"> </A>
+</p><h2 id="13"><i>STM32demos</i></h2><p>This repository contains PIL demonstration Simulink models and STM32 peripheral test Simulink models.</p><p>
+<ul>
+<li><b>Pil</b> contains typical IIR filtering example to verify and profile STM32 execution
+results versus Simulink simulation behavior using PIL testing.</li>
+<li><b>Test</b> contains STM32 peripherals model examples.<br>
+Dedicated to demonstrate build applications STM32 target.<br>
+<b>Not for PIL</b></li>
+<li><b>CodeGeneration</b> It is recommended to use this working directory as MATLAB&reg; "Current Folder" to run STM32 Simulink application model.<br>
+It is not mandatory to set MATLAB&reg; "Current Folder" to <b>THIS</b> particular STM32\STM32demos\CodeGeneration<br>
+but MATLAB&reg; "Current Folder" <b>end path should be CodeGeneration.</b></li>
+<li><b>External Mode</b> contains model examples where STM32 application is running,you can modify Simulink model parameters but cannot modify STM32 configuration on this mode.
+</li>
+</ul>
+<A HREF="#package"><p align="left"> back </p></A>
+</p><h2 id="14">Configuration &amp; Settings</h2><p>
+As soon as <b>STM32</b> product folder and subfolders has been added to
+the MATLAB&reg; path:
+<ul>
+<li>STM32 peripherals Simulink library is available.</li>
+<li>stm32.tlc system target file is available from Simulink model configuration, Code Generation, Target selection.</li>
+</ul>
+Code Generation, STM32 Options have to be set. <br>
+<br>
+Crucial information are saved as STM32 group preferences.<br>
+Command is <b>getpref('STM32')</b> from MATLAB&reg; "Command Window" to
+see following STM32 defined preferences:<br>
+<ul>
+<li><b>COMPort:</b> PC communication port name used for PIL.</li>
+<li><b>COMSpeed:</b> PC and USART communication speed used for PIL.</li>
+<li><b>COMDataLen:</b> PC and USART communication data length.</li>
+<li><b>COMParity:</b> PC and USART communication parity.</li>
+<li><b>COMStopBit:</b> PC and USART communication number of stop bit.</li>
+<li><b>COMFlowControl:</b> PC and USART communication with or without flow control.</li>
+<li><b>COMTimeOut:</b> Communication timeout.</li>
+<li><b>stm32RootPath:</b> Installed path. (short 8.3 limited name) </li>
+<li><b>stm32FullRootPath:</b> Installed path. (long name without limitation) </li>
+<li><b>stm32CubeMxVersion:</b> The STM32CubeMx version in usage, i.e 5.6000. </li>
+<li><b>stm32CubeMxPath:</b> STM32CubeMx installation path.</li>
+<li><b>mainCustomizationMode:</b> with 0 for none, 1 for 'normal', 2 for 'processor-in-the-loop', 3 for 'external'</li>
+<li><b>stm32_SYS_Timebase_Source:</b> 'TIMx' or 'SysTick'</li>
+</ul>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="15">Demonstration settings (<i>if installed path is not C:\Matlab\STM32</i>)</h2><p>The provided STM32demos have been saved with <b>C:\Matlab\STM32</b> installed path.</p><p>If installed path is changed, "Configuration Parameters" must be updated for the model:</p><div><ol><li>&#8220;Configuration Parameters"&gt;"Code Generation"&gt;"STM32 Options"</li><li>Click "Update install path" button and "OK" to save.</li></ol></div><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><p>
+<A NAME="Step by step application"> </A>
+</p><h2 id="16">Step by step application</h2><p>
+STM32 package must have been added to MATLAB(R) path as described from
+<A HREF="#ANCRES">"Package installation"</A>.
+</p><p>Open a new Simulink model.</p><p>Open its "Model Configuration Parameters" window and select STM32.tlc from "Code Generation&gt;System target file".</p><p><img vspace="5" hspace="5" src="html\Img\StepByStep1.PNG" alt=""> </p><p>From "Code Generation&gt;STM32 Options" :</p><div><ol><li>Click "Download Application"</li><li>Enter "STM32CubeMX installation path" or click "STM32CubeMX Path update" to automatically update path to STM32CubeMX.exe installed program.</li><li>Click "OK" to terminate model configuration.</li></ol></div><p><img vspace="5" hspace="5" src="html\Img\StepByStep2.PNG" alt=""> </p><p>Drag and drop STM32_Config blockset from Simulink Library Browser, Target Support Package - STM32 Adapter to your model.</p><p>Open STM32_Config Block Parameters window to select STM32 configuration.</p><p><img vspace="5" hspace="5" src="html\Img\StepByStep3.PNG" alt=""> </p><p>STM32CubeMX must be used to configure STM32 and you must select an ioc configuration file.</p><p>You can select any existing configuration file or create a new one.</p><div><ol><li>Click Select STM32 configuration file button to select ioc configuration file you want to use as STM32 configuration for your application.</li><li>Select tab "New ioc file" and click "Start STM32CubeMX configuration tool" button to open STM32CubeMX and create a new ioc file.</li><li>Select tab "Browse for ioc file" and click "Start STM32CubeMX configuration tool" button to select an existing ioc file and automatically open STM32CubeMX to modify this file.</li><li>Select tab "Current ioc file" and click "Start STM32CubeMX configuration tool" button to automatically open STM32CubeMX to modify selected file.</li></ol></div><p>MCU Name parameter is updated with STM32 name configured in current ioc file.</p><p><img vspace="5" hspace="5" src="html\Img\StepByStep4.PNG" alt=""> </p><p>Then, peripheral blockset can be used only for configured peripherals. For instance, if ADC1 and ADC3 are configured using STM32CubeMX, only ADC1 and ADC3 will be available from ADC blockset menu.</p><p><img vspace="5" hspace="5" src="html\Img\StepByStep5.PNG" alt=""> </p><p>When you build model, "C" code is generated for your application and STM32CubeMX is called to generate project. (IDE not visible)</p><p><b>Regarding PIL processing :</b> <b>As peripheral blockset are not used for PIL, STM32_Config blockset must NOT be used too.</b></p><p>STM32CubeMX is called in order you can set MCU clock and generate PIL project.</p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><p>
+<A NAME="Known problems and solutions"> </A>
+</p><h2 id="17">Known problems and solutions</h2><p>Depending on STM32CubeMX version, you may have to do some of following "project settings" to avoid problems during build/load of generated project.</p><p>
+<ul>
+<li>For all toolchain:</li><br>
+<dd>Remove <b>' Configuration'</b> at the end of generated executable name.</dd>
+</ul>
+</p><p><img vspace="5" hspace="5" src="html\Img\Proj_ExeName.PNG" alt=""> </p><p>
+<ul>
+<li>For <b>Discovery</b> or <b>Nucleo</b> boards:</li><br>
+<dd>It is mandatory to set <b>SW</b> (not JTAG) for Debug Adapter port communication.</dd>
+</ul>
+</p><p><img vspace="5" hspace="5" src="html\Img\Proj_SW.PNG" alt=""> </p><p>
+<ul>
+<li>For <b>KEIL V5</b> toolchain:</li><br>
+<dd>Flash loader is not set so it must be added to project settings.</dd>
+</ul>
+</p><p><img vspace="5" hspace="5" src="html\Img\Proj_FlashLoad.PNG" alt=""> </p><p><img vspace="5" hspace="5" src="html\Img\Proj_Define.PNG" alt=""> </p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Readme
+%
+% <html>
+% <A NAME="ANCRES"> </A>
+% </html>
+%
+% *COPYRIGHT 2014 STMicroelectronics*
+%
+% Licensed under MCD-ST Liberty SW License Agreement V2, (the "License").
+%
+% <html>
+% <a href="MCD-ST Liberty SW License Agreement V2.pdf" target="_blank">Read MCD-ST Liberty SW License Agreement V2.pdf</a>
+% </html>
+%
+%% Package Description
+% This package contains all necessary files to quickly deploy application
+% models in MATLAB(R) and Simulink to STM32 MCU.
+%
+% Specific files included in the distribution are Simulink blockset 
+% libraries for STM32 peripherals, Embedded Coder STM32 configuration
+% files (STM32.tmf and STM32.tlc), and PIL serial rtiostream 
+% and profiling functionalities.
+%
+%% Product version
+% STM32 Embedded Target has been developed for *MATLAB(R) R2018b version*.
+%
+% MathWorks products required:
+%
+% <html>
+% <ul>
+% <li>MATLAB&reg; and MATLAB&reg; Coder</li>
+% <li>Simulink and Simulink Coder</li>
+% <li>Embedded Coder</li>
+% </ul>
+% </html>
+%
+% *The process from code generation to programing STM32 MCU is fully 
+% automated and requires :*
+%
+% <html>
+% <dd><b>STM32CubeMx 5.6.0</b>
+% <a href="http://www.st.com/web/catalog/tools/FM147/CL1794/SC961/SS1533/PF259242?s_searchtype=partnumber" target="_blank">(STM32CubeMx)</a></dd>
+% </html>
+%
+% and one of three following listed toolchains:
+%
+% <html>
+% <dd><b>EWARM V8.22.2</b> or more
+% <a href="http://www.iar.com/" target="_blank">(IAR)</a></dd>
+% </html>
+%
+% <html>
+% <dd><b>Keil MDK V5.20</b> or more
+% <a href="http://www.keil.com/" target="_blank">(ARM)</a></dd>
+% </html>
+%
+% <html>
+% <dd><b>STM32CubeIDE 1.2.0</b> or more
+% <a href="http://www.st.com/en/development-tools/stm32cubeide.html" target="_blank">(STM32CubeIDE)</a></dd>
+% </html>
+% 
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+%% Package installation
+% STM32 Embedded Target functionalities are available as soon as
+% *STM32* product folder and subfolders are added to the MATLAB(R) path.  
+% 
+% Type *pathtool* in the *MATLAB(R) Command Window* and follow the 
+% stages below to settle the product.
+% 
+% # Click *Add with subfolders...* button of "Set Path" window.
+% # Select *STM32* folder (It contains this Readme file) 
+% # Click *OK*
+% # Click *Save* button and close "Set Path" window 
+% 
+% *STM32 Embedded Target capabilities and functionalities are available now.* 
+%%
+% 
+% <<html\Img\pathtool.PNG>>
+% 
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% <A NAME="package"> </A>
+% </html>
+%
+%% Package Overview
+%
+% The contents of the *STM32 Embedded Target* package are the following one.
+%  
+% <html>
+% <ul>
+% <li><A HREF="#blks">blks</A>: Simulink blockset library</li>
+% <li><A HREF="#CRL">CRL</A>: Code Replacement Libraries for sin/cos math functions.</li>
+% <li><A HREF="#html">html</A>: HTML help files for Simulink blockset library</li>
+% <li><A HREF="#pil">pil</A>: PIL setting files and STM32 RtioStream</li>
+% <li><A HREF="#rtw">rtw</A>: Embedded Coder STM32 configuration files</li>
+% <li><A HREF="#script">script</A>: Settings and configuration MATLAB&reg; scripts.</li>
+% <li><A HREF="#util">util</A>: Utilities MATLAB&reg; scripts.</li>
+% <li><A HREF="#STM32demos">STM32demos</A>: Simulink models for demo and test</li>
+% </ul>
+% </html>
+% 
+% <html>
+% <A NAME="blks"> </A>
+% </html>
+%
+%% _blks_
+% Simulink blockset libraries specific files for STM32 peripherals.
+% 
+% <html>
+% <ul>
+% <li><b>logo</b> repository contains ST.bmp file logo visible on every Simulink peripheral models. cube.png used during STM32CubeMx processing.</li>
+% <li><b>masks</b> repository contains Simulink peripheral models parameters callback script.</li>
+% <li><b>mex</b> repository contains mexw64 files for Simulink peripheral models</li>
+% </ul>
+% <A HREF="#package"><p align="left"> back </p></A>
+% <A NAME="CRL"> </A>
+% </html>
+%
+%% _CRL_
+% *C* ode *R* eplacement *L* ibrary for sin and cos math functions. sin/cos
+% used with Motor control example. *_STM32\STM32demos\MotorControl\FOC\MotorControl.slx_*
+%
+% <html>
+% <A HREF="#package"><p align="left"> back </p></A>
+% <A NAME="html"> </A>
+% </html>
+% 
+%% _html_
+% HTML and snapshots for Simulink peripheral models help description.
+%
+% <html>
+% <A HREF="#package"><p align="left"> back </p></A>
+% <A NAME="pil"> </A>
+% </html>
+%
+%% _pil_
+%
+% <html>
+% <ul>
+% <li><b>+stm32pil</b> repository contains STM32 configuration files for PIL and profiling functionalities.</li>
+% <li><b>stm32SerialRtiostream</b> repository contains "C" source driver files for PIL communication between STM32 board and PC.</li>
+% </ul>
+% When you press <b>RUN</b>, some popup windows are displayed in order to set
+% parameters :<br>
+% <li>STM32 MCU used for PIL.</li>
+% <dd>Default Maximum frequency value is set too. It is taken into account for
+% <b>executionProfile</b> information. (Enter, executionProfile.report command to
+% view PIL execution time)</dd>
+% </html>
+% 
+% <<html\Img\MCU.PNG>>
+%
+% <html>
+% <li>PC communication port and parameters used for PIL must be set.</li>
+% <dd>Default initialization communication timeout and receive communication timeout are set to <b>10sec</b>
+% (Take care if breakpoint is set during PIL debug)</dd>
+% </html>
+% 
+% <<html\Img\COM_PORT.PNG>>
+%
+% <html>
+% <li>USART speed communication parameters are same as PC communication parameters.</li>
+% <dd>Usart name, RX/Tx port(pin) used must be set.</dd><br>
+% <dd>Default buffer used for reception is set to 128bytes.</dd>
+% </html>
+% 
+% <<html\Img\USART.PNG>>
+%
+% <html>
+% <li>As <b>STM32CubeMX</b> generates project, you have to select Toolchain and version used.</li>
+% <dd>Available toolchain are:</dd>
+% <dd><b>EWARM</b></dd>
+% <dd><b>MDK-ARM</b></dd>
+% <dd><b>others</b></dd>
+% <dd>When "others" is selected, Version string parameter contains both toolchain name and version.</dd>
+% </html>
+% 
+% <<html\Img\Toolchain_Select.PNG>>
+%
+% <html>
+% <li><b>STM32CubeMX</b> generates and opens project selected IDE.</li>
+% <dd>You have to set some parameters as described in <A HREF="#Known problems and solutions">Known problems and solutions</A>.</dd>
+% <dd>Build, Download and Run application.</dd>
+% <dd>Then press continue to start PIL communication.</dd>
+% </html>
+% 
+% <<html\Img\PIL_Start.PNG>>
+%
+% <html>
+% <A HREF="#package"><p align="left"> back </p></A>
+% <A NAME="rtw"> </A>
+% </html>
+%
+%% _rtw_
+%
+% <html>
+% <b>rtw</b> repository contains Embedded Coder STM32 configuration
+% files:<br>
+% <ul>
+% <li><b>STM32.tmf</b> <b>t</b>emplate <b>m</b>ake <b>f</b>ile for building a PC-based 
+% stand-alone embedded real-time version of Simulink model.</li>
+% <li><b>STM32.tlc</b> System target file used to define STM32
+% option parameters.</li>
+% </ul>
+% <A HREF="#package"><p align="left"> back </p></A>
+% <A NAME="script"> </A>
+% </html>
+%
+%% _script_
+% Set of script files used to automatically initialize STM32
+% configuration model or used for RTW build process.
+%
+% <html>
+% <A HREF="#package"><p align="left"> back </p></A>
+% <A NAME="util"> </A>
+% </html>
+%
+%% _util_
+% Set of MATLAB(R) script files used to retrieve selected STM32CubeMx configuration information for configured peripherals.
+%
+% <html>
+% <A HREF="#package"><p align="left"> back </p></A>
+% <A NAME="STM32demos"> </A>
+% </html>
+%
+%% _STM32demos_
+% This repository contains PIL demonstration Simulink models and STM32 peripheral
+% test Simulink models.
+%
+% <html>
+% <ul>
+% <li><b>Pil</b> contains typical IIR filtering example to verify and profile STM32 execution 
+% results versus Simulink simulation behavior using PIL testing.</li>
+% <li><b>Test</b> contains STM32 peripherals model examples.<br> 
+% Dedicated to demonstrate build applications STM32 target.<br>
+% <b>Not for PIL</b></li>
+% <li><b>CodeGeneration</b> It is recommended to use this working directory as MATLAB&reg; "Current Folder" to run STM32 Simulink application model.<br>
+% It is not mandatory to set MATLAB&reg; "Current Folder" to <b>THIS</b> particular STM32\STM32demos\CodeGeneration<br>
+% but MATLAB&reg; "Current Folder" <b>end path should be CodeGeneration.</b></li>
+% <li><b>External Mode</b> contains model examples where STM32 application is running,you can modify Simulink model parameters but cannot modify STM32 configuration on this mode.
+% </li>
+% </ul>
+% <A HREF="#package"><p align="left"> back </p></A>
+% </html>
+%
+%% Configuration & Settings
+% 
+% <html>
+% As soon as <b>STM32</b> product folder and subfolders has been added to
+% the MATLAB&reg; path: 
+% <ul>
+% <li>STM32 peripherals Simulink library is available.</li>
+% <li>stm32.tlc system target file is available from Simulink model configuration, Code Generation, Target selection.</li>
+% </ul>
+% Code Generation, STM32 Options have to be set. <br>
+% <br>
+% Crucial information are saved as STM32 group preferences.<br>
+% Command is <b>getpref('STM32')</b> from MATLAB&reg; "Command Window" to
+% see following STM32 defined preferences:<br>
+% <ul>
+% <li><b>COMPort:</b> PC communication port name used for PIL.</li>
+% <li><b>COMSpeed:</b> PC and USART communication speed used for PIL.</li>
+% <li><b>COMDataLen:</b> PC and USART communication data length.</li>
+% <li><b>COMParity:</b> PC and USART communication parity.</li>
+% <li><b>COMStopBit:</b> PC and USART communication number of stop bit.</li>
+% <li><b>COMFlowControl:</b> PC and USART communication with or without flow control.</li>
+% <li><b>COMTimeOut:</b> Communication timeout.</li>
+% <li><b>stm32RootPath:</b> Installed path. (short 8.3 limited name) </li>
+% <li><b>stm32FullRootPath:</b> Installed path. (long name without limitation) </li>
+% <li><b>stm32CubeMxVersion:</b> The STM32CubeMx version in usage, i.e 5.6000. </li>
+% <li><b>stm32CubeMxPath:</b> STM32CubeMx installation path.</li>
+% <li><b>mainCustomizationMode:</b> with 0 for none, 1 for 'normal', 2 for 'processor-in-the-loop', 3 for 'external'</li>
+% <li><b>stm32_SYS_Timebase_Source:</b> 'TIMx' or 'SysTick'</li>
+% </ul>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+%% Demonstration settings (_if installed path is not C:\Matlab\STM32_) 
+% 
+% The provided STM32demos have been saved with *C:\Matlab\STM32*
+% installed path.
+%
+% If installed path is changed, "Configuration Parameters" must be updated for the model:
+%
+% # “Configuration Parameters">"Code Generation">"STM32 Options"
+% # Click "Update install path" button and "OK" to save.
+%
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+% <html>
+% <A NAME="Step by step application"> </A>
+% </html>
+%
+%% Step by step application
+%
+% <html>
+% STM32 package must have been added to MATLAB(R) path as described from 
+% <A HREF="#ANCRES">"Package installation"</A>.
+% </html>
+%
+% Open a new Simulink model.
+%
+% Open its "Model Configuration Parameters" window and select STM32.tlc from
+% "Code Generation>System target file".
+% 
+% <<html\Img\StepByStep1.PNG>>
+%
+% From "Code Generation>STM32 Options" :
+%
+% # Click "Download Application"
+% # Enter "STM32CubeMX installation path" or click "STM32CubeMX Path
+% update" to automatically update path to STM32CubeMX.exe installed program.
+% # Click "OK" to terminate model configuration.
+%
+% <<html\Img\StepByStep2.PNG>>
+%
+% Drag and drop STM32_Config blockset from Simulink Library Browser, Target Support Package - STM32 Adapter 
+% to your model.
+% 
+% Open STM32_Config Block Parameters window to select STM32 configuration.
+%
+% <<html\Img\StepByStep3.PNG>>
+%
+% STM32CubeMX must be used to configure STM32 and you must select an ioc
+% configuration file.
+%
+% You can select any existing configuration file or create a new one.
+%
+% # Click Select STM32 configuration file button to select ioc configuration
+% file you want to use as STM32 configuration for your application.
+% # Select tab "New ioc file" and click "Start STM32CubeMX configuration
+% tool" button to open STM32CubeMX and create a new ioc file.
+% # Select tab "Browse for ioc file" and click "Start STM32CubeMX configuration
+% tool" button to select an existing ioc file and automatically open STM32CubeMX to modify this file.
+% # Select tab "Current ioc file" and click "Start STM32CubeMX configuration
+% tool" button to automatically open STM32CubeMX to modify selected file.
+%
+% MCU Name parameter is updated with STM32 name configured in current ioc file. 
+%
+% <<html\Img\StepByStep4.PNG>>
+%
+% Then, peripheral blockset can be used only for configured peripherals.
+% For instance, if ADC1 and ADC3 are configured using STM32CubeMX, only ADC1 and ADC3 will be available from ADC blockset menu.
+%
+% <<html\Img\StepByStep5.PNG>>
+%
+% When you build model, "C" code is generated for your application and STM32CubeMX is called to generate project.
+% (IDE not visible)
+%
+% *Regarding PIL processing :*
+% *As peripheral blockset are not used for PIL, STM32_Config blockset
+% must NOT be used too.*
+%
+% STM32CubeMX is called in order you can set MCU clock and generate PIL
+% project.
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+% <html>
+% <A NAME="Known problems and solutions"> </A>
+% </html>
+%
+%% Known problems and solutions
+% Depending on STM32CubeMX version, you may have to do some of following "project settings" to avoid problems during build/load of generated project.
+% 
+% <html>
+% <ul>
+% <li>For all toolchain:</li><br>
+% <dd>Remove <b>' Configuration'</b> at the end of generated executable name.</dd>
+% </ul>
+% </html>
+% 
+% <<html\Img\Proj_ExeName.PNG>>
+%
+% <html>
+% <ul>
+% <li>For <b>Discovery</b> or <b>Nucleo</b> boards:</li><br>
+% <dd>It is mandatory to set <b>SW</b> (not JTAG) for Debug Adapter port communication.</dd>
+% </ul>
+% </html>
+% 
+% <<html\Img\Proj_SW.PNG>>
+%
+% <html>
+% <ul>
+% <li>For <b>KEIL V5</b> toolchain:</li><br>
+% <dd>Flash loader is not set so it must be added to project settings.</dd>
+% </ul>
+% </html>
+% 
+% <<html\Img\Proj_FlashLoad.PNG>>
+%
+% 
+% <<html\Img\Proj_Define.PNG>>
+%
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+
+##### SOURCE END #####
+--></body></html>

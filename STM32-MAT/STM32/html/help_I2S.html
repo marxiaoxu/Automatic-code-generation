@@ -1,0 +1,205 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>I2S</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-06-27"><meta name="DC.source" content="help_I2S.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>I2S</h1><!--introduction--><p>STM32 I2S driver based on the HAL library.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#2">S-Function</a></li><li><a href="#3">I2S Block Parameters</a></li></ul></div><p>
+<A NAME="ANCRES"> </A>
+</p><h2 id="2">S-Function</h2><p>This model is used to manage I2S communication depending on STM32CubeMX configuration.</p><p>In <b>Full duplex</b> mode, the peripheral is able to send and receive at same time.</p><p>In <b>Half duplex</b> mode, peripheral is able to send or receive only.</p><p>In <b>Master</b> mode, peripheral provides communication clock and in <b>Slave</b> mode, communication clock is provided by material connected to the peripheral.</p><p><b>Some examples:</b></p><div><ul><li><i>Sensors</i> : STM32 is configured <b>Half duplex - Master - Receiver</b> when it is used to get data (no write)</li><li><i>LCD</i> :  STM32 is configured <b>Half duplex - Master - Transmitter</b> when it is used to send data (no read)</li><li><i>MCU</i> : STM32 is configured as <b>Full duplex</b> when it is used to  communicate with an MCU.</li></ul></div><p><img vspace="5" hspace="5" src="I2S/I2S.PNG" alt=""> </p><p><b>1. Full Duplex</b></p><p><i>Nb Input:</i>  <b>1 or 2</b></p><div><ul><li>Nb2Send_Rcv : number of data to send = number of data to receive</li><li>ptDataSend : Pointer to data to send = Address of buffer (optional)</li></ul></div><p><i>Nb Output:</i> <b>2 or 3 in polling mode only</b></p><div><ul><li>NbRcv : number of received data</li><li>ptDataRcv : Pointer to data received = Buffer address</li><li>DataRcv : Array of received values (optional)</li></ul></div><p><b>2. Half Duplex - Master - Receiver</b></p><p><i>Nb Input:</i>  <b>1 or 2</b></p><div><ul><li>Nb2Rcv : number of data to receive</li><li>ptDataSend : Pointer to data to send = Address of buffer (optional)</li></ul></div><p><i>Nb Output:</i> <b>2 or 3 in polling mode only</b></p><div><ul><li>NbRcv : number of received data</li><li>ptDataRcv : Pointer to data received = Buffer address</li><li>DataRcv : Array of received values (optional)</li></ul></div><p><b>3. Half Duplex - Master - Transmitter</b></p><p><i>Nb Input:</i>  <b>1 or 2</b></p><div><ul><li>Nb2Send_Rcv : number of data to send = number of data to receive</li><li>ptDataSend : Pointer to data to send = Address of buffer (optional)</li></ul></div><p><i>Nb Output:</i> <b>1 in polling mode only</b></p><div><ul><li>NbSent : number of data sent</li></ul></div><p><b>4. Half Duplex - Slave - Receiver</b></p><p><i>Nb Input:</i> <b>1</b></p><div><ul><li>Nb2Rcv : number of data to receive</li></ul></div><p><i>Nb Output:</i> <b>2 or 3 in polling mode only</b></p><div><ul><li>NbRcv : number of received data</li><li>ptDataRcv : Pointer to data received = Buffer address</li><li>DataRcv : Array of received values (optional)</li></ul></div><p><b>5. Half Duplex - Slave - Transmitter</b></p><p><i>Nb Input:</i> <b>1 or 2</b></p><div><ul><li>Nb2Send : number of data to send</li><li>ptDataSend : Pointer to data to send = Address of buffer (optional)</li></ul></div><p><i>Nb Output:</i> <b>1 in polling mode only</b></p><div><ul><li>NbSent : number of data sent</li></ul></div><p>
+<A NAME="ANCRES"> </A>
+</p><h2 id="3">I2S Block Parameters</h2><p><img vspace="5" hspace="5" src="I2S/I2S_Parameters.PNG" alt=""> </p><p><b>Some parameters are used to select features:</b></p><div><ol><li><i>I2Sx</i> : Name of the I2S channel used.</li><li><i>Input port for 16b pointer of data to send</i> : Select it to validate second optional input named ptDataSend. It is the address of data value to send.</li><li><i>Interrupt</i> : When DMA or interrupt mode has been configured from STM32CubeMx it is possible to select interrupt that will be processed.</li><li><i>Output received data</i> : Select it to validate the output of array of received values.</li><li><i>Timeout (Nb solver ticks)</i> : <b>In polling mode only</b> To give timeout for I2S communication. This number of solver loop will be converted in second and written in <i>Timeout value (sec)</i> parameter.</li></ol></div><p><b>Other parameters are information from STM32CubeMx for the I2S selected:</b></p><div><ol><li><i>MASTER/SLAVE</i> : Mode of the device. Master provide clock</li><li><i>Full/Half duplex</i> : Full duplex to be able to send and receive at same time. Half duplex to send or receive only.</li><li><i>Rx/Tx</i> : Configured as receiver or transmitter</li><li><i>Protocol - Data Format - Frequency - RealFrequency - FrequencyError - Clock Polarity</i> : Selected communication protocol parameters.</li></ol></div><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% I2S
+% STM32 I2S driver based on the HAL library.
+%  
+%%
+%
+% <html>
+% <A NAME="ANCRES"> </A>
+% </html>
+% 
+%% S-Function
+% 
+% This model is used to manage I2S communication depending on STM32CubeMX configuration.
+%
+% In *Full duplex* mode, the peripheral is able to send and receive at same
+% time. 
+%
+% In *Half duplex* mode, peripheral is able to send or receive only.
+%
+% In *Master* mode, peripheral provides communication clock and in *Slave* 
+% mode, communication clock is provided by material connected to the peripheral.
+%
+% *Some examples:*
+%
+% * _Sensors_ : STM32 is configured *Half duplex - Master - Receiver* when it 
+% is used to get data (no write)
+% * _LCD_ :  STM32 is configured *Half duplex - Master - Transmitter* when it 
+% is used to send data (no read)
+% * _MCU_ : STM32 is configured as *Full duplex* when it is used to
+%  communicate with an MCU.
+%
+% <<I2S/I2S.PNG>>
+%
+% 
+% *1. Full Duplex* 
+%
+% _Nb Input:_  *1 or 2*
+%
+% * Nb2Send_Rcv : number of data to send = number of data to receive
+% * ptDataSend : Pointer to data to send = Address of buffer (optional)
+% 
+% _Nb Output:_ *2 or 3 in polling mode only*
+%
+% * NbRcv : number of received data
+% * ptDataRcv : Pointer to data received = Buffer address
+% * DataRcv : Array of received values (optional)
+%
+% *2. Half Duplex - Master - Receiver* 
+%
+% _Nb Input:_  *1 or 2*
+%
+% * Nb2Rcv : number of data to receive
+% * ptDataSend : Pointer to data to send = Address of buffer (optional)
+%
+% _Nb Output:_ *2 or 3 in polling mode only*
+%
+% * NbRcv : number of received data
+% * ptDataRcv : Pointer to data received = Buffer address
+% * DataRcv : Array of received values (optional)
+%
+% *3. Half Duplex - Master - Transmitter* 
+%
+% _Nb Input:_  *1 or 2*
+%
+% * Nb2Send_Rcv : number of data to send = number of data to receive
+% * ptDataSend : Pointer to data to send = Address of buffer (optional)
+%
+% _Nb Output:_ *1 in polling mode only*
+%
+% * NbSent : number of data sent
+%
+% *4. Half Duplex - Slave - Receiver*  
+%
+% _Nb Input:_ *1*
+%
+% * Nb2Rcv : number of data to receive
+%
+% _Nb Output:_ *2 or 3 in polling mode only*
+%
+% * NbRcv : number of received data
+% * ptDataRcv : Pointer to data received = Buffer address
+% * DataRcv : Array of received values (optional)
+%
+% *5. Half Duplex - Slave - Transmitter* 
+%
+% _Nb Input:_ *1 or 2*
+%
+% * Nb2Send : number of data to send
+% * ptDataSend : Pointer to data to send = Address of buffer (optional)
+%
+% _Nb Output:_ *1 in polling mode only*
+%
+% * NbSent : number of data sent
+% 
+% <html>
+% <A NAME="ANCRES"> </A>
+% </html>
+% 
+%% I2S Block Parameters
+%
+% <<I2S/I2S_Parameters.PNG>>
+%
+% *Some parameters are used to select features:*
+%
+% # _I2Sx_ : Name of the I2S channel used.
+% # _Input port for 16b pointer of data to send_ : Select it to validate
+% second optional input named ptDataSend. It is the address of data value to send.
+% # _Interrupt_ : When DMA or interrupt mode has been configured from
+% STM32CubeMx it is possible to select interrupt that will be processed.
+% # _Output received data_ : Select it to validate the output of array of
+% received values.
+% # _Timeout (Nb solver ticks)_ : *In polling mode only* To give timeout
+% for I2S communication. This number of solver loop will be converted in
+% second and written in _Timeout value (sec)_ parameter.
+%
+% *Other parameters are information from STM32CubeMx for the I2S selected:*
+%
+% # _MASTER/SLAVE_ : Mode of the device. Master provide clock
+% # _Full/Half duplex_ : Full duplex to be able to send and receive at same
+% time. Half duplex to send or receive only.
+% # _Rx/Tx_ : Configured as receiver or transmitter
+% # _Protocol - Data Format - Frequency - RealFrequency - FrequencyError -
+% Clock Polarity_ : Selected communication protocol parameters.
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+##### SOURCE END #####
+--></body></html>

@@ -1,0 +1,110 @@
+%%
+%% Abstract: WWDG.tlc
+%%    STM32Fxxx WWDG.tlc generates C Code for STM32 window watchdog IP.
+%%
+%% Copyright 1990-2009 The MathWorks, Inc.
+
+%assign CodeFormat = "Embedded-C"
+%implements WWDG  "C"
+
+
+%if !EXISTS(::InsertIncludesToWWDG)
+    %assign ::InsertIncludesToWWDG  = TLC_TRUE
+%endif
+%if !EXISTS(::InsertIncludesFromWWDG)
+    %assign ::InsertIncludesFromWWDG  = TLC_TRUE
+%endif
+
+
+    %function BlockTypeSetup(block, system) void
+        %%model.c and model.h files
+        %assign SrcBaseName = LibGetMdlSrcBaseName()
+        %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+        %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+        %%model_WWDG.h and model_WWDG.c files
+        %assign SrcBaseName_WWDG = "%<SrcBaseName>_WWDG"
+        %assign modelH_WWDG      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_WWDG)
+        %assign modelC_WWDG      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_WWDG)
+
+        %%Include model.h to model_WWDG.c
+        %if EXISTS(::InsertIncludesToWWDG) && (::InsertIncludesToWWDG == TLC_TRUE)
+            %assign ::InsertIncludesToWWDG    = TLC_FALSE
+            %openfile WWDG_Buf
+                #include "%<SrcBaseName>.h"
+                #include "%<SrcBaseName_WWDG>.h"
+            %closefile WWDG_Buf
+            %<LibSetSourceFileSection(modelC_WWDG,"Includes",WWDG_Buf)>
+        %endif
+
+        %%AND Include model_WWDG.h to model.c
+        %if EXISTS(::InsertIncludesFromWWDG) && (::InsertIncludesFromWWDG == TLC_TRUE)
+            %assign ::InsertIncludesFromWWDG    = TLC_FALSE
+            %openfile WWDG_Buf
+                #include "%<SrcBaseName_WWDG>.h"
+            %closefile WWDG_Buf
+            %<LibSetSourceFileSection(modelH,"Includes",WWDG_Buf)>
+
+            %openfile WWDG_Buf
+                #include "STM32_Config.h"
+            %closefile WWDG_Buf
+            %<LibSetSourceFileSection(modelH_WWDG,"Includes",WWDG_Buf)>
+        %endif
+
+        %assign Window =  SFcnParamSettings.Window
+        %assign Counter = SFcnParamSettings.Counter
+        %assign Custom_Window = SFcnParamSettings.Custom_Window
+        %assign Custom_Counter = SFcnParamSettings.Custom_Counter
+
+        %openfile WWDG_Buf
+            extern WWDG_HandleTypeDef hwwdg;
+        %closefile WWDG_Buf
+        %<LibSetSourceFileSection(modelH_WWDG,"Declarations",WWDG_Buf)>
+
+        %openfile WWDG_Buf
+        %if (ISEQUAL(Custom_Window, "on"))
+            hwwdg.Init.Window = %<Window>;
+        %else
+
+        %endif
+
+        %if (ISEQUAL(Custom_Counter, "on"))
+            hwwdg.Init.Counter = %<Counter>;
+        %else
+
+        %endif
+
+            /* Checks if the system has resumed from WWDG reset ####################*/
+            if(__HAL_RCC_GET_FLAG(RCC_FLAG_WWDGRST) != RESET)
+            {
+                /* Clear reset flags */
+                __HAL_RCC_CLEAR_RESET_FLAGS();
+            }
+
+        %closefile WWDG_Buf
+        %<LibMdlStartCustomCode(WWDG_Buf, "declaration")>
+
+        %openfile WWDG_Buf
+            /* User's WWDG_Error_Handler definition */
+            void WWDG_Error_Handler(void){
+                while(1){} /* TO BE CUSTOMIZED */
+            }
+        %closefile WWDG_Buf
+        %<LibSetSourceFileSection(modelC_WWDG,"UserBottom",WWDG_Buf)>
+    %endfunction
+
+
+%% Function: Outputs ==========================================
+%% Abstract:
+%% WWDG.tlc input value depending on pin config
+%%
+    %function Outputs(block, system) Output
+        %openfile WWDG_Buf
+        if(HAL_WWDG_Refresh(&hwwdg) != HAL_OK)
+        {
+          /* WWDG_Error_Handler(); */
+        }
+        %closefile WWDG_Buf
+        %<LibSystemOutputCustomCode(system,WWDG_Buf,"trailer")>
+   %endfunction
+
+%% [EOF] WWDG.tlc

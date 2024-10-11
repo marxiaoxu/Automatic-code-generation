@@ -1,0 +1,897 @@
+%% Abstract: GPIO Exti
+%%    STM32 GPIO External interrupt bit value from selected GPIOx port.
+%%
+%% Copyright 1990-2009 The MathWorks, Inc.
+
+%implements GPIO_Exti "C"
+
+%%warning "---------->Start GPIO_Exti"
+
+%if !EXISTS(::CreateGPIO_Exti)
+    %assign ::CreateGPIO_Exti  = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertItCallback)
+    %assign ::InsertItCallback  = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertIncludesToEXTI)
+    %assign ::InsertIncludesToEXTI  = TLC_TRUE
+%endif
+%if !EXISTS(::InsertIncludesFromEXTI)
+    %assign ::InsertIncludesFromEXTI  = TLC_TRUE
+%endif
+
+%if !EXISTS(::Exti0Free)
+    %assign ::Exti0Free  = TLC_TRUE
+%endif
+%if !EXISTS(::Exti1Free)
+    %assign ::Exti1Free  = TLC_TRUE
+%endif
+%if !EXISTS(::Exti2Free)
+    %assign ::Exti2Free  = TLC_TRUE
+%endif
+%if !EXISTS(::Exti3Free)
+    %assign ::Exti3Free  = TLC_TRUE
+%endif
+%if !EXISTS(::Exti4Free)
+    %assign ::Exti4Free  = TLC_TRUE
+%endif
+%if !EXISTS(::Exti5Free)
+    %assign ::Exti5Free  = TLC_TRUE
+%endif
+%if !EXISTS(::Exti6Free)
+    %assign ::Exti6Free  = TLC_TRUE
+%endif
+%if !EXISTS(::Exti7Free)
+    %assign ::Exti7Free  = TLC_TRUE
+%endif
+%if !EXISTS(::Exti8Free)
+    %assign ::Exti8Free  = TLC_TRUE
+%endif
+%if !EXISTS(::Exti9Free)
+    %assign ::Exti9Free  = TLC_TRUE
+%endif
+%if !EXISTS(::Exti10Free)
+    %assign ::Exti10Free  = TLC_TRUE
+%endif
+%if !EXISTS(::Exti11Free)
+    %assign ::Exti11Free  = TLC_TRUE
+%endif
+%if !EXISTS(::Exti12Free)
+    %assign ::Exti12Free  = TLC_TRUE
+%endif
+%if !EXISTS(::Exti13Free)
+    %assign ::Exti13Free  = TLC_TRUE
+%endif
+%if !EXISTS(::Exti14Free)
+    %assign ::Exti14Free  = TLC_TRUE
+%endif
+%if !EXISTS(::Exti15Free)
+    %assign ::Exti15Free  = TLC_TRUE
+%endif
+
+    %assign ::CreateGPIO_Exti  = TLC_TRUE
+
+%trace CreateGPIO_Exti  %<CreateGPIO_Exti>
+
+
+%% Create function for GPIO Exti:
+
+%% Code for system initialization:
+%function Start(block,system) Output
+    %assign Pin_0 =  SFcnParamSettings.Pin_0
+    %assign Pin_1 =  SFcnParamSettings.Pin_1
+    %assign Pin_2 =  SFcnParamSettings.Pin_2
+    %assign Pin_3 =  SFcnParamSettings.Pin_3
+    %assign Pin_4 =  SFcnParamSettings.Pin_4
+    %assign Pin_5 =  SFcnParamSettings.Pin_5
+    %assign Pin_6 =  SFcnParamSettings.Pin_6
+    %assign Pin_7 =  SFcnParamSettings.Pin_7
+    %assign Pin_8 =  SFcnParamSettings.Pin_8
+    %assign Pin_9 =  SFcnParamSettings.Pin_9
+    %assign Pin_10 =  SFcnParamSettings.Pin_10
+    %assign Pin_11 =  SFcnParamSettings.Pin_11
+    %assign Pin_12 =  SFcnParamSettings.Pin_12
+    %assign Pin_13 =  SFcnParamSettings.Pin_13
+    %assign Pin_14 =  SFcnParamSettings.Pin_14
+    %assign Pin_15 =  SFcnParamSettings.Pin_15
+
+    %openfile IT_Config_Buf
+    {
+        /* External interrupt function registering. */
+        %if (ISEQUAL(Pin_0, "on"))
+        %%warning "---------->EXTI_Callback Pin0:%<Pin_0> !!!!!!!!!!!!!"
+        EXTI_Callback[0] = EXTI0_Callback;
+        %endif
+        %if (ISEQUAL(Pin_1, "on"))
+        EXTI_Callback[1] = EXTI1_Callback;
+        %endif
+        %if (ISEQUAL(Pin_2, "on"))
+        EXTI_Callback[2] = EXTI2_Callback;
+        %endif
+        %if (ISEQUAL(Pin_3, "on"))
+        EXTI_Callback[3] = EXTI3_Callback;
+        %endif
+        %if (ISEQUAL(Pin_4, "on"))
+        EXTI_Callback[4] = EXTI4_Callback;
+        %endif
+        %if (ISEQUAL(Pin_5, "on"))
+        EXTI_Callback[5] = EXTI5_Callback;
+        %endif
+        %if (ISEQUAL(Pin_6, "on"))
+        EXTI_Callback[6] = EXTI6_Callback;
+        %endif
+        %if (ISEQUAL(Pin_7, "on"))
+        EXTI_Callback[7] = EXTI7_Callback;
+        %endif
+        %if (ISEQUAL(Pin_8, "on"))
+        EXTI_Callback[8] = EXTI8_Callback;
+        %endif
+        %if (ISEQUAL(Pin_9, "on"))
+        EXTI_Callback[9] = EXTI9_Callback;
+        %endif
+        %if (ISEQUAL(Pin_10, "on"))
+        EXTI_Callback[10] = EXTI10_Callback;
+        %endif
+        %if (ISEQUAL(Pin_11, "on"))
+        EXTI_Callback[11] = EXTI11_Callback;
+        %endif
+        %if (ISEQUAL(Pin_12, "on"))
+        EXTI_Callback[12] = EXTI12_Callback;
+        %endif
+        %if (ISEQUAL(Pin_13, "on"))
+        EXTI_Callback[13] = EXTI13_Callback;
+        %endif
+        %if (ISEQUAL(Pin_14, "on"))
+        EXTI_Callback[14] = EXTI14_Callback;
+        %endif
+        %if (ISEQUAL(Pin_15, "on"))
+        EXTI_Callback[15] = EXTI15_Callback;
+        %endif
+    }
+    %closefile IT_Config_Buf
+    %<LibMdlStartCustomCode(IT_Config_Buf,"execution")>
+%endfunction
+
+
+%% Code for GPIO configuration call:
+%function BlockInstanceSetup(block, system) void
+    %%warning "---------->Start GPIO_Exti"
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+    %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+
+    %%model_EXTI.h and model_EXTI.c files
+    %assign SrcBaseName_EXTI = "%<SrcBaseName>_EXTI"
+    %assign modelH_EXTI      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_EXTI)
+    %assign modelC_EXTI      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_EXTI)
+
+    %%Include model.h to model_EXTI.c
+    %if EXISTS(::InsertIncludesToEXTI) && (::InsertIncludesToEXTI == TLC_TRUE)
+        %assign ::InsertIncludesToEXTI    = TLC_FALSE
+        %openfile EXTI_Buf
+            #include "%<SrcBaseName>.h"
+            #include "%<SrcBaseName_EXTI>.h"
+        %closefile EXTI_Buf
+        %<LibSetSourceFileSection(modelC_EXTI,"Includes",EXTI_Buf)>
+    %endif
+
+    %%And Include model_EXTI.h to model.c
+    %if EXISTS(::InsertIncludesFromEXTI) && (::InsertIncludesFromEXTI == TLC_TRUE)
+        %assign ::InsertIncludesFromEXTI    = TLC_FALSE
+
+        %openfile EXTI_Buf
+            #include "%<SrcBaseName_EXTI>.h"
+        %closefile EXTI_Buf
+        %<LibSetSourceFileSection(modelH,"Includes",EXTI_Buf)>
+
+        %openfile EXTI_Buf
+            #include "STM32_Config.h"
+        %closefile EXTI_Buf
+        %<LibSetSourceFileSection(modelH_EXTI,"Includes",EXTI_Buf)>
+    %endif
+
+    %if EXISTS(::InsertItCallback) && (::InsertItCallback == TLC_TRUE)
+        %assign ::InsertItCallback  = TLC_FALSE
+        %openfile IT_Config_Buf
+       /**
+        * @brief  EXTI line detection callbacks.
+        * @param  GPIO_Pin Specifies the pins connected EXTI line
+        * @retval None
+        */
+        void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+        {
+          uint16_t pinNum = 0;
+
+          switch(GPIO_Pin) {
+            case GPIO_PIN_1 :
+              pinNum = 1;
+            break;
+
+            case GPIO_PIN_2 :
+              pinNum = 2;
+            break;
+
+            case GPIO_PIN_3 :
+              pinNum = 3;
+            break;
+
+            case GPIO_PIN_4 :
+              pinNum = 4;
+            break;
+
+            case GPIO_PIN_5 :
+              pinNum = 5;
+            break;
+
+            case GPIO_PIN_6 :
+              pinNum = 6;
+            break;
+
+            case GPIO_PIN_7 :
+              pinNum = 7;
+            break;
+ 
+            case GPIO_PIN_8 :
+              pinNum = 8;
+            break;
+
+            case GPIO_PIN_9 :
+              pinNum = 9;
+            break;
+ 
+            case GPIO_PIN_10 :
+              pinNum = 10;
+            break;
+
+            case GPIO_PIN_11 :
+              pinNum = 11;
+            break;
+
+            case GPIO_PIN_12 :
+              pinNum = 12;
+            break;
+ 
+            case GPIO_PIN_13 :
+              pinNum = 13;
+            break;
+
+            case GPIO_PIN_14 :
+              pinNum = 14;
+            break;
+
+            case GPIO_PIN_15 :
+              pinNum = 15;
+            break;
+            
+            default:
+              pinNum = 0;
+            break;
+          }
+          if(EXTI_Callback[pinNum] != NULL) {
+            (*EXTI_Callback[pinNum])();
+          }
+        }
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelC_EXTI,"Functions",IT_Config_Buf)>
+
+        %openfile IT_Config_Buf
+        /* Exti function pointer array */
+        void (*EXTI_Callback[16])(void) = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelC_EXTI,"Defines",IT_Config_Buf)>
+
+        %openfile IT_Config_Buf
+        /* Exti function pointer array declaration */
+        extern void (*EXTI_Callback[16])(void);
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelH_EXTI,"Declarations",IT_Config_Buf)>
+
+    %endif
+%endfunction
+
+%% Function: Outputs ==========================================
+%% Abstract:
+%% GPIO_Exti input value depending on pin config
+%%
+%function Outputs(block, system) Output
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %%model_EXTI.h and model_EXTI.c files
+    %assign SrcBaseName_EXTI = "%<SrcBaseName>_EXTI"
+    %assign modelH_EXTI      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_EXTI)
+    %assign modelC_EXTI      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_EXTI)
+
+    %assign Port_name =  SFcnParamSettings.Port_name
+    %assign Pin_0 =  SFcnParamSettings.Pin_0
+    %assign Pin_1 =  SFcnParamSettings.Pin_1
+    %assign Pin_2 =  SFcnParamSettings.Pin_2
+    %assign Pin_3 =  SFcnParamSettings.Pin_3
+    %assign Pin_4 =  SFcnParamSettings.Pin_4
+    %assign Pin_5 =  SFcnParamSettings.Pin_5
+    %assign Pin_6 =  SFcnParamSettings.Pin_6
+    %assign Pin_7 =  SFcnParamSettings.Pin_7
+    %assign Pin_8 =  SFcnParamSettings.Pin_8
+    %assign Pin_9 =  SFcnParamSettings.Pin_9
+    %assign Pin_10 =  SFcnParamSettings.Pin_10
+    %assign Pin_11 =  SFcnParamSettings.Pin_11
+    %assign Pin_12 =  SFcnParamSettings.Pin_12
+    %assign Pin_13 =  SFcnParamSettings.Pin_13
+    %assign Pin_14 =  SFcnParamSettings.Pin_14
+    %assign Pin_15 =  SFcnParamSettings.Pin_15
+
+    %assign OutputNum = 0
+
+%if (ISEQUAL(Pin_0, "on"))
+    %if EXISTS(::Exti0Free) && (::Exti0Free == TLC_TRUE)
+        %assign ::Exti0Free  = TLC_FALSE
+
+        %openfile IT_Config_Buf
+        extern void EXTI0_Callback(void);
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelH_EXTI,"Declarations",IT_Config_Buf)>
+
+        %openfile IT_Config_Buf
+        /*******************************************************************************
+        * Function Name  : EXTI0_Callback
+        * Description    : Callback for External Interrupt connected to Pin0
+        * Input          : -
+        *******************************************************************************/
+        void EXTI0_Callback()
+        {
+            %if LibIsEqual(SFcnSystemOutputCall[OutputNum].BlockToCall,"unconnected")
+                %assign wrnTxt = "No code will be generated for %<Port_name>_Pin0  "\
+                                 "since it is not connected to a system."
+                %<LibReportWarning(wrnTxt)>
+            %endif
+            %% call the downstream system
+            %<LibBlockExecuteFcnCall(block, OutputNum)>\
+            %assign OutputNum = OutputNum + 1
+        }
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelC_EXTI,"Functions",IT_Config_Buf)>
+
+    %else
+        %assign wrnTxt = "EXTI0 External interrupt is already used "\
+        "by an other GPIO_Exti instance."
+        %<LibReportWarning(wrnTxt)>
+    %endif
+%endif
+
+%if (ISEQUAL(Pin_1, "on"))
+    %if EXISTS(::Exti1Free) && (::Exti1Free == TLC_TRUE)
+        %assign ::Exti1Free  = TLC_FALSE
+
+        %openfile IT_Config_Buf
+        extern void EXTI1_Callback(void);
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelH_EXTI,"Declarations",IT_Config_Buf)>
+
+        %openfile IT_Config_Buf
+        /*******************************************************************************
+        * Function Name  : EXTI1_Callback
+        * Description    : Callback for External Interrupt connected to Pin1
+        * Input          : -
+        *******************************************************************************/
+        void EXTI1_Callback()
+        {
+            %if LibIsEqual(SFcnSystemOutputCall[OutputNum].BlockToCall,"unconnected")
+                %assign wrnTxt = "No code will be generated for %<Port_name>_Pin1  "\
+                "since it is not connected to a system."
+                %<LibReportWarning(wrnTxt)>
+                %%continue
+            %endif
+            %% call the downstream system
+            %<LibBlockExecuteFcnCall(block, OutputNum)>\
+            %assign  OutputNum = OutputNum + 1
+    }
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelC_EXTI,"Functions",IT_Config_Buf)>
+    %else
+        %assign wrnTxt = "EXTI1 External interrupt is already used "\
+        "by an other GPIO_Exti instance."
+        %<LibReportWarning(wrnTxt)>
+    %endif
+%endif
+
+%if (ISEQUAL(Pin_2, "on"))
+    %if EXISTS(::Exti2Free) && (::Exti2Free == TLC_TRUE)
+        %assign ::Exti2Free  = TLC_FALSE
+
+        %openfile IT_Config_Buf
+        extern void EXTI2_Callback(void);
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelH_EXTI,"Declarations",IT_Config_Buf)>
+
+        %openfile IT_Config_Buf
+        /*******************************************************************************
+        * Function Name  : EXTI2_Callback
+        * Description    : Callback for External Interrupt connected to Pin2
+        * Input          : -
+        *******************************************************************************/
+        void EXTI2_Callback()
+        {
+            %if LibIsEqual(SFcnSystemOutputCall[OutputNum].BlockToCall,"unconnected")
+                %assign wrnTxt = "No code will be generated for %<Port_name>_Pin2  "\
+                "since it is not connected to a system."
+                %<LibReportWarning(wrnTxt)>
+                %%continue
+            %endif
+            %% call the downstream system
+            %<LibBlockExecuteFcnCall(block, OutputNum)>\
+            %assign OutputNum = OutputNum + 1
+        }
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelC_EXTI,"Functions",IT_Config_Buf)>
+    %else
+        %assign wrnTxt = "EXTI2 External interrupt is already used "\
+        "by an other GPIO_Exti instance."
+        %<LibReportWarning(wrnTxt)>
+    %endif
+%endif
+
+%if (ISEQUAL(Pin_3, "on"))
+    %if EXISTS(::Exti3Free) && (::Exti3Free == TLC_TRUE)
+        %assign ::Exti3Free  = TLC_FALSE
+
+        %openfile IT_Config_Buf
+        extern void EXTI3_Callback(void);
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelH_EXTI,"Declarations",IT_Config_Buf)>
+
+        %openfile IT_Config_Buf
+        /*******************************************************************************
+        * Function Name  : EXTI3_Callback
+        * Description    : Callback for External Interrupt connected to Pin3
+        * Input          : -
+        *******************************************************************************/
+        void EXTI3_Callback()
+        {
+            %if LibIsEqual(SFcnSystemOutputCall[OutputNum].BlockToCall,"unconnected")
+                %assign wrnTxt = "No code will be generated for %<Port_name>_Pin3  "\
+                "since it is not connected to a system."
+                %<LibReportWarning(wrnTxt)>
+                %%continue
+            %endif
+            %% call the downstream system
+            %<LibBlockExecuteFcnCall(block, OutputNum)>\
+            %assign OutputNum = OutputNum + 1
+        }
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelC_EXTI,"Functions",IT_Config_Buf)>
+    %else
+        %assign wrnTxt = "EXTI3 External interrupt is already used "\
+        "by an other GPIO_Exti instance."
+        %<LibReportWarning(wrnTxt)>
+    %endif
+%endif
+
+%if (ISEQUAL(Pin_4, "on"))
+    %if EXISTS(::Exti4Free) && (::Exti4Free == TLC_TRUE)
+        %assign ::Exti4Free  = TLC_FALSE
+
+        %openfile IT_Config_Buf
+        extern void EXTI4_Callback(void);
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelH_EXTI,"Declarations",IT_Config_Buf)>
+
+        %openfile IT_Config_Buf
+        /*******************************************************************************
+        * Function Name  : EXTI4_Callback
+        * Description    : Callback for External Interrupt connected to Pin4
+        * Input          : -
+        *******************************************************************************/
+        void EXTI4_Callback()
+        {
+            %if LibIsEqual(SFcnSystemOutputCall[OutputNum].BlockToCall,"unconnected")
+                %assign wrnTxt = "No code will be generated for %<Port_name>_Pin4  "\
+                "since it is not connected to a system."
+                %<LibReportWarning(wrnTxt)>
+            %endif
+            %% call the downstream system
+            %<LibBlockExecuteFcnCall(block, OutputNum)>\
+            %assign OutputNum = OutputNum + 1
+        }
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelC_EXTI,"Functions",IT_Config_Buf)>
+    %else
+        %assign wrnTxt = "EXTI4 External interrupt is already used "\
+        "by an other GPIO_Exti instance."
+        %<LibReportWarning(wrnTxt)>
+    %endif
+%endif
+
+%if (ISEQUAL(Pin_5, "on"))
+    %if EXISTS(::Exti5Free) && (::Exti5Free == TLC_TRUE)
+        %assign ::Exti5Free  = TLC_FALSE
+
+        %openfile IT_Config_Buf
+        extern void EXTI5_Callback(void);
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelH_EXTI,"Declarations",IT_Config_Buf)>
+
+        %openfile IT_Config_Buf
+        /*******************************************************************************
+        * Function Name  : EXTI5_Callback
+        * Description    : Callback for External Interrupt connected to Pin5
+        * Input          : -
+        *******************************************************************************/
+        void EXTI5_Callback()
+        {
+            %if LibIsEqual(SFcnSystemOutputCall[OutputNum].BlockToCall,"unconnected")
+                %assign wrnTxt = "No code will be generated for %<Port_name>_Pin5  "\
+                "since it is not connected to a system."
+                %<LibReportWarning(wrnTxt)>
+            %endif
+            %% call the downstream system
+            %<LibBlockExecuteFcnCall(block, OutputNum)>\
+            %assign OutputNum = OutputNum + 1
+        }
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelC_EXTI,"Functions",IT_Config_Buf)>
+    %else
+        %assign wrnTxt = "EXTI5 External interrupt is already used "\
+        "by an other GPIO_Exti instance."
+        %<LibReportWarning(wrnTxt)>
+    %endif
+%endif
+
+%if (ISEQUAL(Pin_6, "on"))
+    %if EXISTS(::Exti6Free) && (::Exti6Free == TLC_TRUE)
+        %assign ::Exti6Free  = TLC_FALSE
+
+        %openfile IT_Config_Buf
+        extern void EXTI6_Callback(void);
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelH_EXTI,"Declarations",IT_Config_Buf)>
+
+        %openfile IT_Config_Buf
+        /*******************************************************************************
+        * Function Name  : EXTI6_Callback
+        * Description    : Callback for External Interrupt connected to Pin6
+        * Input          : -
+        *******************************************************************************/
+        void EXTI6_Callback()
+        {
+            %if LibIsEqual(SFcnSystemOutputCall[OutputNum].BlockToCall,"unconnected")
+                %assign wrnTxt = "No code will be generated for %<Port_name>_Pin6  "\
+                "since it is not connected to a system."
+                %<LibReportWarning(wrnTxt)>
+                %%continue
+            %endif
+            %% call the downstream system
+            %<LibBlockExecuteFcnCall(block, OutputNum)>\
+            %assign OutputNum = OutputNum + 1
+        }
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelC_EXTI,"Functions",IT_Config_Buf)>
+    %else
+        %assign wrnTxt = "EXTI6 External interrupt is already used "\
+        "by an other GPIO_Exti instance."
+        %<LibReportWarning(wrnTxt)>
+    %endif
+%endif
+
+%if (ISEQUAL(Pin_7, "on"))
+    %if EXISTS(::Exti7Free) && (::Exti7Free == TLC_TRUE)
+        %assign ::Exti7Free  = TLC_FALSE
+
+        %openfile IT_Config_Buf
+        extern void EXTI7_Callback(void);
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelH_EXTI,"Declarations",IT_Config_Buf)>
+
+        %openfile IT_Config_Buf
+        /*******************************************************************************
+        * Function Name  : EXTI7_Callback
+        * Description    : Callback for External Interrupt connected to Pin7
+        * Input          : -
+        *******************************************************************************/
+        void EXTI7_Callback()
+        {
+            %if LibIsEqual(SFcnSystemOutputCall[OutputNum].BlockToCall,"unconnected")
+                %assign wrnTxt = "No code will be generated for %<Port_name>_Pin7  "\
+                "since it is not connected to a system."
+                %<LibReportWarning(wrnTxt)>
+                %%continue
+            %endif
+            %% call the downstream system
+            %<LibBlockExecuteFcnCall(block, OutputNum)>\
+            %assign  OutputNum = OutputNum + 1
+        }
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelC_EXTI,"Functions",IT_Config_Buf)>
+    %else
+        %assign wrnTxt = "EXTI7 External interrupt is already used "\
+        "by an other GPIO_Exti instance."
+        %<LibReportWarning(wrnTxt)>
+    %endif
+%endif
+
+%if (ISEQUAL(Pin_8, "on"))
+    %if EXISTS(::Exti8Free) && (::Exti8Free == TLC_TRUE)
+        %assign ::Exti8Free  = TLC_FALSE
+
+        %openfile IT_Config_Buf
+        extern void EXTI8_Callback(void);
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelH_EXTI,"Declarations",IT_Config_Buf)>
+
+        %openfile IT_Config_Buf
+        /*******************************************************************************
+        * Function Name  : EXTI8_Callback
+        * Description    : Callback for External Interrupt connected to Pin8
+        * Input          : -
+        *******************************************************************************/
+        void EXTI8_Callback()
+        {
+            %if LibIsEqual(SFcnSystemOutputCall[OutputNum].BlockToCall,"unconnected")
+                %assign wrnTxt = "No code will be generated for %<Port_name>_Pin8  "\
+                "since it is not connected to a system."
+                %<LibReportWarning(wrnTxt)>
+                %%continue
+            %endif
+            %% call the downstream system
+            %<LibBlockExecuteFcnCall(block, OutputNum)>\
+            %assign OutputNum = OutputNum + 1
+        }
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelC_EXTI,"Functions",IT_Config_Buf)>
+    %else
+        %assign wrnTxt = "EXTI8 External interrupt is already used "\
+        "by an other GPIO_Exti instance."
+        %<LibReportWarning(wrnTxt)>
+    %endif
+%endif
+
+%if (ISEQUAL(Pin_9, "on"))
+    %if EXISTS(::Exti9Free) && (::Exti9Free == TLC_TRUE)
+        %assign ::Exti9Free  = TLC_FALSE
+
+        %openfile IT_Config_Buf
+        extern void EXTI9_Callback(void);
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelH_EXTI,"Declarations",IT_Config_Buf)>
+
+        %openfile IT_Config_Buf
+        /*******************************************************************************
+        * Function Name  : EXTI9_Callback
+        * Description    : Callback for External Interrupt connected to Pin9
+        * Input          : -
+        *******************************************************************************/
+        void EXTI9_Callback()
+        {
+            %if LibIsEqual(SFcnSystemOutputCall[OutputNum].BlockToCall,"unconnected")
+                %assign wrnTxt = "No code will be generated for %<Port_name>_Pin9  "\
+                "since it is not connected to a system."
+                %<LibReportWarning(wrnTxt)>
+            %endif
+            %% call the downstream system
+            %<LibBlockExecuteFcnCall(block, OutputNum)>\
+            %assign OutputNum = OutputNum> + 1
+        }
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelC_EXTI,"Functions",IT_Config_Buf)>
+    %else
+        %assign wrnTxt = "EXTI9 External interrupt is already used "\
+        "by an other GPIO_Exti instance."
+        %<LibReportWarning(wrnTxt)>
+    %endif
+%endif
+
+%if (ISEQUAL(Pin_10, "on"))
+    %if EXISTS(::Exti10Free) && (::Exti10Free == TLC_TRUE)
+        %assign ::Exti10Free  = TLC_FALSE
+
+        %openfile IT_Config_Buf
+         extern void EXTI10_Callback(void);
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelH_EXTI,"Declarations",IT_Config_Buf)>
+
+        %openfile IT_Config_Buf
+        /*******************************************************************************
+        * Function Name  : EXTI10_Callback
+        * Description    : Callback for External Interrupt connected to Pin10
+        * Input          : -
+        *******************************************************************************/
+        void EXTI10_Callback()
+        {
+            %if LibIsEqual(SFcnSystemOutputCall[OutputNum].BlockToCall,"unconnected")
+                %assign wrnTxt = "No code will be generated for %<Port_name>_Pin10  "\
+                "since it is not connected to a system."
+                %<LibReportWarning(wrnTxt)>
+                %%continue
+            %endif
+            %% call the downstream system
+            %<LibBlockExecuteFcnCall(block, OutputNum)>\
+            %assign OutputNum = OutputNum + 1
+        }
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelC_EXTI,"Functions",IT_Config_Buf)>
+    %else
+        %assign wrnTxt = "EXTI10 External interrupt is already used "\
+        "by an other GPIO_Exti instance."
+        %<LibReportWarning(wrnTxt)>
+    %endif
+%endif
+
+%if (ISEQUAL(Pin_11, "on"))
+    %if EXISTS(::Exti11Free) && (::Exti11Free == TLC_TRUE)
+        %assign ::Exti11Free  = TLC_FALSE
+
+        %openfile IT_Config_Buf
+         extern void EXTI11_Callback(void);
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelH_EXTI,"Declarations",IT_Config_Buf)>
+
+        %openfile IT_Config_Buf
+        /*******************************************************************************
+        * Function Name  : EXTI11_Callback
+        * Description    : Callback for External Interrupt connected to Pin11
+        * Input          : -
+        *******************************************************************************/
+        void EXTI11_Callback()
+        {
+            %if LibIsEqual(SFcnSystemOutputCall[OutputNum].BlockToCall,"unconnected")
+                %assign wrnTxt = "No code will be generated for %<Port_name>_Pin11  "\
+                "since it is not connected to a system."
+                %<LibReportWarning(wrnTxt)>
+            %endif
+            %% call the downstream system
+            %<LibBlockExecuteFcnCall(block, OutputNum)>\
+            %assign OutputNum = OutputNum + 1
+        }
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelC_EXTI,"Functions",IT_Config_Buf)>
+    %else
+        %assign wrnTxt = "EXTI11 External interrupt is already used "\
+        "by an other GPIO_Exti instance."
+        %<LibReportWarning(wrnTxt)>
+    %endif
+%endif
+
+%if (ISEQUAL(Pin_12, "on"))
+    %if EXISTS(::Exti12Free) && (::Exti12Free == TLC_TRUE)
+        %assign ::Exti12Free  = TLC_FALSE
+
+        %openfile IT_Config_Buf
+          extern void EXTI12_Callback(void);
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelH_EXTI,"Declarations",IT_Config_Buf)>
+
+        %openfile IT_Config_Buf
+        /*******************************************************************************
+        * Function Name  : EXTI12_Callback
+        * Description    : Callback for External Interrupt connected to Pin12
+        * Input          : -
+        *******************************************************************************/
+        void EXTI12_Callback()
+        {
+            %if LibIsEqual(SFcnSystemOutputCall[OutputNum].BlockToCall,"unconnected")
+                %assign wrnTxt = "No code will be generated for %<Port_name>_Pin12  "\
+                "since it is not connected to a system."
+                %<LibReportWarning(wrnTxt)>
+                %%continue
+            %endif
+            %% call the downstream system
+            %<LibBlockExecuteFcnCall(block, OutputNum)>\
+            %assign OutputNum = OutputNum> + 1
+        }
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelC_EXTI,"Functions",IT_Config_Buf)>
+    %else
+        %assign wrnTxt = "EXTI12 External interrupt is already used "\
+        "by an other GPIO_Exti instance."
+        %<LibReportWarning(wrnTxt)>
+    %endif
+%endif
+
+%if (ISEQUAL(Pin_13, "on"))
+      %if EXISTS(::Exti13Free) && (::Exti13Free == TLC_TRUE)
+        %assign ::Exti13Free  = TLC_FALSE
+
+        %openfile IT_Config_Buf
+         extern void EXTI13_Callback(void);
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelH_EXTI,"Declarations",IT_Config_Buf)>
+
+        %openfile IT_Config_Buf
+        /*******************************************************************************
+        * Function Name  : EXTI13_Callback
+        * Description    : Callback for External Interrupt connected to Pin13
+        * Input          : -
+        *******************************************************************************/
+        void EXTI13_Callback()
+        {
+            %if LibIsEqual(SFcnSystemOutputCall[OutputNum].BlockToCall,"unconnected")
+                %assign wrnTxt = "No code will be generated for %<Port_name>_Pin13  "\
+                "since it is not connected to a system."
+                %<LibReportWarning(wrnTxt)>
+                %%continue
+            %endif
+            %% call the downstream system
+            %<LibBlockExecuteFcnCall(block, OutputNum)>\
+            %assign OutputNum = OutputNum> + 1
+        }
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelC_EXTI,"Functions",IT_Config_Buf)>
+      %else
+        %assign wrnTxt = "EXTI13 External interrupt is already used "\
+        "by an other GPIO_Exti instance."
+        %<LibReportWarning(wrnTxt)>
+      %endif
+%endif
+
+%if (ISEQUAL(Pin_14, "on"))
+    %if EXISTS(::Exti14Free) && (::Exti14Free == TLC_TRUE)
+        %assign ::Exti14Free  = TLC_FALSE
+
+        %openfile IT_Config_Buf
+         extern void EXTI14_Callback(void);
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelH_EXTI,"Declarations",IT_Config_Buf)>
+
+        %openfile IT_Config_Buf
+        /*******************************************************************************
+        * Function Name  : EXTI14_Callback
+        * Description    : Callback for External Interrupt connected to Pin14
+        * Input          : -
+        *******************************************************************************/
+        void EXTI14_Callback()
+        {
+            %if LibIsEqual(SFcnSystemOutputCall[OutputNum].BlockToCall,"unconnected")
+                %assign wrnTxt = "No code will be generated for %<Port_name>_Pin14  "\
+                "since it is not connected to a system."
+                %<LibReportWarning(wrnTxt)>
+                %%continue
+            %endif
+            %% call the downstream system
+            %<LibBlockExecuteFcnCall(block, OutputNum)>\
+            %assign OutputNum = OutputNum> + 1
+        }
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelC_EXTI,"Functions",IT_Config_Buf)>
+    %else
+        %assign wrnTxt = "EXTI14 External interrupt is already used "\
+        "by an other GPIO_Exti instance."
+        %<LibReportWarning(wrnTxt)>
+    %endif
+%endif
+
+%if (ISEQUAL(Pin_15, "on"))
+    %if EXISTS(::Exti15Free) && (::Exti15Free == TLC_TRUE)
+        %assign ::Exti15Free  = TLC_FALSE
+        %openfile IT_Config_Buf
+         extern void EXTI15_Callback(void);
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelH_EXTI,"Declarations",IT_Config_Buf)>
+
+        %openfile IT_Config_Buf
+        /*******************************************************************************
+        * Function Name  : EXTI15_Callback
+        * Description    : Callback for External Interrupt connected to Pin15
+        * Input          : -
+        *******************************************************************************/
+        void EXTI15_Callback()
+        {
+            %if LibIsEqual(SFcnSystemOutputCall[OutputNum].BlockToCall,"unconnected")
+                %assign wrnTxt = "No code will be generated for %<Port_name>_Pin15  "\
+                "since it is not connected to a system."
+                %<LibReportWarning(wrnTxt)>
+                %%continue
+            %endif
+            %% call the downstream system
+            %<LibBlockExecuteFcnCall(block, OutputNum)>\
+            %assign OutputNum = OutputNum + 1
+        }
+        %closefile IT_Config_Buf
+        %<LibSetSourceFileSection(modelC_EXTI,"Functions",IT_Config_Buf)>
+    %else
+        %assign wrnTxt = "EXTI15 External interrupt is already used "\
+        "by an other GPIO_Exti instance."
+        %<LibReportWarning(wrnTxt)>
+    %endif
+%endif
+%endfunction
+
+%% [EOF] GPIO_Exti.tlc

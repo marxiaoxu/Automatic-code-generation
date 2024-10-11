@@ -1,0 +1,196 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>ADC Read block</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-09"><meta name="DC.source" content="help_ADC_Read.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>ADC Read block</h1><!--introduction--><p>Block used in the model to get the STM32 Analog to Digital Conversion (ADC) value.</p><p>Depending on STM32CubeMx configuration.</p><p>The STM32CubeMx project should be done at first with the ADCs, with the corresponding channels and with the interrupt configurations.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#2">S-Function</a></li><li><a href="#3">ADC read parameters</a></li><li><a href="#5"><i>ADC</i></a></li><li><a href="#7"><i>Channel Selection</i></a></li><li><a href="#9"><i>ADC settings</i></a></li><li><a href="#11"><i>Channel settings</i></a></li></ul></div><p>
+<A NAME="ANCRES"> </A>
+</p><h2 id="2">S-Function</h2><p><i>Nb Input:</i>  <b>0</b></p><p><i>Nb Output:</i></p><div><ul><li><b>1 function call</b> for IRQ <i>Named:</i> <b>EOC</b> <b>JEOC</b> <b>AWD</b> <b>OVR</b> <b>DmaFull</b> <b>DmaHalf</b></li><li><b>Up to 16</b> regular selected channel <i>Named:</i> <b>CHx_ry</b>  x(ch num)=0..15 and y(rank id)=1..16</li><li><b>Up to 4</b> injected selected channel <i>Named:</i> <b>CHx_iy</b>  x(ch num)=0..15 and y(rank id)=1..4</li></ul></div><p><img vspace="5" hspace="5" src="ADC\STM32_ADC_Read.PNG" alt=""> </p><h2 id="3">ADC read parameters</h2><p><img vspace="5" hspace="5" src="ADC\ADC_Read.PNG" alt=""> </p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="5"><i>ADC</i></h2><p>Name of ADC to read value from. (ADC1, ADC2, ADC3 or ADC4)</p><p><img vspace="5" hspace="5" src="ADC\ADC_Name.PNG" alt=""> </p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="7"><i>Channel Selection</i></h2><p>Select channel to read among available channels, previously set by the STM32CubeMX tool.</p><p>Select rank to read if channel is read several times.</p><p>Then, outputs are visible.</p><div><ul><li>For example : <b>Ch1_r1 Ch3_r4 and Ch7_i1</b></li><li>Regular Channel 1 (rank 1)</li><li>Regular Channel 3 (rank 4)</li><li>Injected Channel 7 (rank 1)</li></ul></div><p><img vspace="5" hspace="5" src="ADC\ADC_Read_Channel_Setting.PNG" alt=""> </p><p><img vspace="5" hspace="5" src="ADC\ADC_ChOut.PNG" alt=""> </p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="9"><i>ADC settings</i></h2><p>Retrieve STM32CubeMx project configuration.</p><p>Select IRQ among available interrupt, previously set by the STM32CubeMX tool.</p><p>Then, 1 IRQ output is visible for all selected interrupts.</p><p>Needs 'demux' block to process each IRQ</p><p><img vspace="5" hspace="5" src="ADC\ADC_Settings.PNG" alt=""> </p><p><img vspace="5" hspace="5" src="ADC\ADC_IRQ.PNG" alt=""> </p><p>Select End Of Conversion interrupt depending on STM32CubeMX configuration. EOC/S for regular channels and JEO/S for Injected channels. EOC (End of conversion) when 'At the end of all conversions' checkbox is not selected. EOCS (End of all conversions) if selected.</p><p><img vspace="5" hspace="5" src="ADC\ADC_EndOfConv.PNG" alt=""> </p><p>Enter DMA buffer acquisition length when DMA is selected.</p><p>Data Store Memory must be defined to access to generated code for DMA buffer pointers from DmaFull / DmaHalf interrupts.</p><p><img vspace="5" hspace="5" src="ADC\ADC_DmaAccess.PNG" alt=""> </p><p><img vspace="5" hspace="5" src="ADC\ADC_DmaAccessDef.PNG" alt=""> </p><p><img vspace="5" hspace="5" src="ADC\ADC_Dma.PNG" alt=""> </p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="11"><i>Channel settings</i></h2><p>Retrieve channel output selection.</p><p><img vspace="5" hspace="5" src="ADC\Ch_Settings.PNG" alt=""> </p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% ADC Read block
+% Block used in the model to get the STM32 Analog to Digital Conversion (ADC) value.
+%
+% Depending on STM32CubeMx configuration.
+%
+% The STM32CubeMx project should be done at first with the ADCs, with the corresponding channels and with the interrupt configurations.
+% 
+%%
+%
+% <html>
+% <A NAME="ANCRES"> </A>
+% </html>
+% 
+%% S-Function
+% _Nb Input:_  *0*
+%
+% _Nb Output:_ 
+%
+% * *1 function call* for IRQ _Named:_ *EOC* *JEOC* *AWD* *OVR* *DmaFull*
+% *DmaHalf*
+% * *Up to 16* regular selected channel _Named:_ *CHx_ry*  x(ch num)=0..15
+% and y(rank id)=1..16
+% * *Up to 4* injected selected channel _Named:_ *CHx_iy*  x(ch num)=0..15 and y(rank id)=1..4
+% 
+%
+% <<ADC\STM32_ADC_Read.PNG>>
+% 
+%% ADC read parameters
+%%
+% 
+% <<ADC\ADC_Read.PNG>> 
+% 
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%% _ADC_
+% Name of ADC to read value from. (ADC1, ADC2, ADC3 or ADC4)
+%%
+% 
+% <<ADC\ADC_Name.PNG>>
+% 
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%% _Channel Selection_
+% Select channel to read among available channels, previously set by the STM32CubeMX tool.
+%
+% Select rank to read if channel is read several times.
+%
+% Then, outputs are visible. 
+%
+% * For example : *Ch1_r1 Ch3_r4 and Ch7_i1*
+% * Regular Channel 1 (rank 1)
+% * Regular Channel 3 (rank 4)
+% * Injected Channel 7 (rank 1)
+%%
+% 
+% <<ADC\ADC_Read_Channel_Setting.PNG>>
+%
+% <<ADC\ADC_ChOut.PNG>>
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%% _ADC settings_
+% Retrieve STM32CubeMx project configuration.
+%
+% Select IRQ among available interrupt, previously set by the STM32CubeMX tool.
+%
+% Then, 1 IRQ output is visible for all selected interrupts.
+%
+% Needs 'demux' block to process each IRQ 
+%
+%%
+% 
+% <<ADC\ADC_Settings.PNG>>
+%
+% <<ADC\ADC_IRQ.PNG>>
+%
+% Select End Of Conversion interrupt depending on STM32CubeMX
+% configuration. EOC/S for regular channels and JEO/S for Injected
+% channels. EOC (End of conversion) when 'At the end of all conversions'
+% checkbox is not selected. EOCS (End of all conversions) if selected.
+% 
+% <<ADC\ADC_EndOfConv.PNG>>
+%
+% Enter DMA buffer acquisition length when DMA is selected.
+%
+% Data Store Memory must be defined to access to generated code for DMA
+% buffer pointers from DmaFull / DmaHalf interrupts.
+%  
+% <<ADC\ADC_DmaAccess.PNG>>
+%
+%  
+% <<ADC\ADC_DmaAccessDef.PNG>>
+%
+%  
+% <<ADC\ADC_Dma.PNG>>
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%% _Channel settings_
+% Retrieve channel output selection.
+%%
+% 
+% <<ADC\Ch_Settings.PNG>>
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+
+##### SOURCE END #####
+--></body></html>

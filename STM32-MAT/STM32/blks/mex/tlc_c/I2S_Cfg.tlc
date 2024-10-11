@@ -1,0 +1,320 @@
+%%
+%% Abstract: I2S_Cfg
+%%    STM32Fxxx I2S_Cfg Reads a values on the selected block, code based on HAL library.
+%%
+
+%assign CodeFormat = "Embedded-C"
+%implements I2S_Cfg  "C"
+
+%if !EXISTS(::InsertIncludesToI2S)
+    %assign ::InsertIncludesToI2S = TLC_TRUE
+%endif
+%if !EXISTS(::InsertIncludesFromI2S)
+    %assign ::InsertIncludesFromI2S = TLC_TRUE
+%endif
+%if !EXISTS(::InsertI2S)
+    %assign ::InsertI2S = TLC_TRUE
+%endif
+
+
+%% *************************************************************************************
+%% ******************      Fonction : Start        *************************************
+%% *************************************************************************************
+%function Start(block,system) Output
+    %assign I2Sx = SFcnParamSettings.I2Sx
+
+    %if !EXISTS(::Initialization_%<I2Sx>)
+      %assign ::Initialization_%<I2Sx>  = TLC_TRUE
+      %openfile I2S_Buf
+    %%  /* %<I2Sx> initialization */
+    %%    %<I2Sx>_Initialization();
+      %closefile I2S_Buf
+      %<LibMdlStartCustomCode(I2S_Buf,"execution")>
+    %endif
+%endfunction
+
+
+%% *************************************************************************************
+%% ******************      Fonction : BlockInstanceSetup       *************************
+%% *************************************************************************************
+%function BlockInstanceSetup(block, system) void
+    %%model.c and model.h files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+    %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+
+    %%model_I2S.h and model_I2S.c files
+    %assign SrcBaseName_I2S = "%<SrcBaseName>_I2S"
+    %assign modelH_I2S      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_I2S)
+    %assign modelC_I2S      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_I2S)
+
+
+    %if EXISTS(::InsertIncludesToI2S) && (::InsertIncludesToI2S == TLC_TRUE)
+        %assign ::InsertIncludesToI2S = TLC_FALSE
+        %openfile I2S_Buf
+            #include "%<SrcBaseName>.h"
+            #include "%<SrcBaseName_I2S>.h"
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelC_I2S,"Includes",I2S_Buf)>
+    %endif
+
+    %%AND Include model_I2S.h to model.c
+    %if EXISTS(::InsertIncludesFromI2S) && (::InsertIncludesFromI2S == TLC_TRUE)
+        %assign ::InsertIncludesFromI2S = TLC_FALSE
+        %openfile I2S_Buf
+            #include "%<SrcBaseName_I2S>.h"
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelH,"Includes",I2S_Buf)>
+
+        %openfile I2S_Buf
+            #include "STM32_Config.h"
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelH_I2S,"Includes",I2S_Buf)>
+    %endif
+
+
+    %assign I2Sx = SFcnParamSettings.I2Sx
+    %assign Master_Slave = SFcnParamSettings.Master_Slave
+    %assign Half_Full = SFcnParamSettings.Half_Full
+    %assign Rx_Tx = SFcnParamSettings.Rx_Tx
+    %assign NbI2S = SFcnParamSettings.NbI2S
+    %assign Rx_SizeIn = SFcnParamSettings.Rx_SizeIn
+    %assign Tx_SizeIn = SFcnParamSettings.Tx_SizeIn
+    %assign Rx_Size = SFcnParamSettings.Rx_Size
+    %assign Tx_Size = SFcnParamSettings.Tx_Size
+    %assign RxMode = SFcnParamSettings.RxMode
+    %assign TxMode = SFcnParamSettings.TxMode
+    %assign DataFormat = SFcnParamSettings.DataFormat
+
+    %assign I2SNum = IDNUM("%<I2Sx>")[1]
+    %assign I2SNombre=IDNUM("%<NbI2S>")[1]
+
+    %if (ISEQUAL(Rx_SizeIn, "on"))
+        %assign Rx_Size = LibBlockInputSignal(0, "", "", 0)
+    %endif
+    %if (ISEQUAL(Tx_SizeIn, "on"))
+        %if (ISEQUAL(Rx_SizeIn, "on"))
+            %assign Tx_Size = LibBlockInputSignal(1, "", "", 0)
+        %else
+            %assign Tx_Size = LibBlockInputSignal(0, "", "", 0)
+        %endif
+    %endif
+
+
+    %% ***************************************************************************
+    %% **********************DECLARATION FOR I2S *********************************
+    %if EXISTS(::InsertI2S) && (::InsertI2S == TLC_TRUE)
+        %assign ::InsertI2S    = TLC_FALSE
+        %openfile I2S_Buf
+        /**
+        * @brief I2S Mode enum definition
+        */
+        typedef enum
+        {
+            FULL_MASTER  = 0x00,    /*!< FULL DUPLEX MASTER   */
+            FULL_SLAVE,             /*!< FULL DUPLEX SLAVE */
+            HALF_MASTER_RX,         /*!< HALF DUPLEX MASTER RX */
+            HALF_MASTER_TX,         /*!< HALF DUPLEX MASTER TX */
+            HALF_SLAVE_RX,          /*!< HALF DUPLEX SLAVE RX */
+            HALF_SLAVE_TX           /*!< HALF DUPLEX SLAVE TX */
+        }I2S_TypeEnumDef;
+        /**
+        * @brief  I2S data information
+        */
+        typedef struct  {
+             uint16_t           nb2Send;       /*!< Nb of uint16 to send*/
+             uint16_t           nb2Rcv;        /*!< Nb of uint16 to send*/
+             uint16_t           nbSent;        /*!< Nb sent uint16 */
+             uint16_t           nbRcv;         /*!< Nb sent uint16 */
+             I2S_TypeEnumDef    type;          /*!< I2S communication type */
+             uint8_t            rxMode;        /*!< I2S communication mode 0=undefined, 1=IT 2=DMA 3=Polling */
+             uint8_t            txMode;        /*!< I2S communication mode 0=undefined, 1=IT 2=DMA 3=Polling */
+             int32_t            timeOut;       /*!< timeOut value for polling mode*/
+             I2S_HandleTypeDef* I2S_Handler;   /*!< I2S handler of this struct info */
+             void (* ItError)(void);
+             void (* ItRxHalfCplt)(void);
+             void (* ItRxCplt)(void);
+             void (* ItTxHalfCplt)(void);
+             void (* ItTxCplt)(void);
+             void (* ItTxRxCplt)(void);
+        }I2S_DataLinkTypeDef;
+        %if (%<NbI2S> > 1)
+        extern uint16_t G_NbI2SConf; /* Number of I2S configured */
+        /* Array of I2S data information */
+        extern I2S_DataLinkTypeDef*  G_I2S_Data[%<NbI2S>];
+        extern I2S_HandleTypeDef*    G_I2S_Handler[%<NbI2S>];
+        %else
+        extern I2S_DataLinkTypeDef*   G_I2S_Data;      /* Pointer to I2S data information*/
+        extern I2S_HandleTypeDef*     G_I2S_Handler;   /* Pointer to I2S handler */
+        %endif
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelH_I2S,"Defines",I2S_Buf)>
+
+        %openfile I2S_Buf
+        %if (%<NbI2S> > 1)
+        uint16_t               G_NbI2SConf = 0; /* Number of I2S configured */
+        /* Array of I2S data information */
+        I2S_DataLinkTypeDef*   G_I2S_Data[%<NbI2S>];
+        I2S_HandleTypeDef*     G_I2S_Handler[%<NbI2S>];
+        %else
+        I2S_DataLinkTypeDef*   G_I2S_Data;      /* Pointer to I2S data information*/
+        I2S_HandleTypeDef*     G_I2S_Handler;   /* Pointer to I2S handler */
+        %endif
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelC_I2S,"Defines",I2S_Buf)>
+    %endif
+
+    %% *************************************************************************************
+    %% **********************INITIALISATION OF MODULES I2Sx*********************************
+    %if !EXISTS(::BuffSizeCfg_%<I2Sx>)
+        %assign ::BuffSizeCfg_%<I2Sx>  = TLC_TRUE
+        %openfile I2S_Buf
+        %if (ISEQUAL(Half_Full, "HALF DUPLEX")&&ISEQUAL(Master_Slave, "SLAVE")&&ISEQUAL(Rx_Tx, "Receiver"))
+            %if EXISTS(::BuffSize_%<I2Sx>)
+            /* %<I2Sx> Rx Buffer size is not default size */
+            #undef %<I2Sx>_RX_BUFFER_SIZE
+            %endif
+            /* %<I2Sx> is Receiver only*/
+            #define %<I2Sx>_RX_BUFFER_SIZE      %<Rx_Size>
+        %elseif (ISEQUAL(Half_Full, "HALF DUPLEX")&&ISEQUAL(Master_Slave, "SLAVE")&&ISEQUAL(Rx_Tx, "Transmitter"))
+            %if EXISTS(::BuffSize_%<I2Sx>)
+            /* %<I2Sx> Tx Buffer size is not default size */
+            #undef %<I2Sx>_TX_BUFFER_SIZE
+            %endif
+            /* %<I2Sx> is Transmitter only*/
+            #define %<I2Sx>_TX_BUFFER_SIZE      %<Tx_Size>
+        %else
+            %if EXISTS(::BuffSize_%<I2Sx>)
+            /* %<I2Sx> Rx/Tx Buffer sizes are not default sizes */
+            #ifdef %<I2Sx>_RX_BUFFER_SIZE
+            #undef %<I2Sx>_RX_BUFFER_SIZE
+            #endif
+            #ifdef %<I2Sx>_TX_BUFFER_SIZE
+            #undef %<I2Sx>_TX_BUFFER_SIZE
+            #endif
+            %endif
+            /* Buffer size definition for %<I2Sx>*/
+            #define %<I2Sx>_RX_BUFFER_SIZE      %<Rx_Size>
+            #define %<I2Sx>_TX_BUFFER_SIZE      %<Tx_Size>
+        %endif
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelH_I2S,"Defines",I2S_Buf)>
+    %endif
+
+    %if !EXISTS(::Cfg_%<I2Sx>)
+    %assign ::Cfg_%<I2Sx>  = TLC_TRUE
+        %openfile I2S_Buf
+            /* %<I2Sx> handler */
+            extern I2S_HandleTypeDef hi2s%<I2SNum>;
+            %%test for DMA handler
+        %if (RxMode == 2)
+            extern DMA_HandleTypeDef hdma_I2S%<I2SNum>_rx;
+        %endif
+        %if (TxMode == 2)
+            extern DMA_HandleTypeDef hdma_I2S%<I2SNum>_tx;
+        %endif
+            /* %<I2Sx> Transmit data structure information*/
+            extern I2S_DataLinkTypeDef   %<I2Sx>_DataLink;
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelH_I2S,"Defines",I2S_Buf)>
+
+        %openfile I2S_Buf
+        %if (ISEQUAL(DataFormat, "16 Bits Data on 16 Bits Frame")||ISEQUAL(DataFormat, "16 Bits Data on 32 Bits Frame"))
+            /* %<I2Sx> is 16bit data length */
+            #define %<I2Sx>_DATA_TYPE  uint16_t
+        %elseif (ISEQUAL(DataFormat, "24 Bits Data on 32 Bits Frame")||ISEQUAL(DataFormat, "32 Bits Data on 32 Bits Frame"))
+            /* %<I2Sx> is 24bit or 32bit data length */
+            #define %<I2Sx>_DATA_TYPE  uint32_t
+        %else
+            /* %<I2Sx> data length unknown (default is 16bit) */
+            #define %<I2Sx>_DATA_TYPE  uint16_t
+        %endif
+            /* Pointers to %<I2Sx> buffers*/
+        %if (ISEQUAL(Half_Full, "FULL DUPLEX"))
+            extern %<I2Sx>_DATA_TYPE  %<I2Sx>_RxBuff[%<I2Sx>_RX_BUFFER_SIZE];
+            extern %<I2Sx>_DATA_TYPE  %<I2Sx>_TxBuff[%<I2Sx>_TX_BUFFER_SIZE];
+            extern %<I2Sx>_DATA_TYPE *%<I2Sx>_ptRxBuff;
+            extern %<I2Sx>_DATA_TYPE *%<I2Sx>_ptHalfRxBuff;
+            extern %<I2Sx>_DATA_TYPE *%<I2Sx>_ptTxBuff;
+            extern %<I2Sx>_DATA_TYPE *%<I2Sx>_ptHalfTxBuff;
+        %elseif (ISEQUAL(Half_Full, "HALF DUPLEX")&&ISEQUAL(Master_Slave, "SLAVE")&&ISEQUAL(Rx_Tx, "Receiver"))
+            extern %<I2Sx>_DATA_TYPE  %<I2Sx>_RxBuff[%<I2Sx>_RX_BUFFER_SIZE];
+            extern %<I2Sx>_DATA_TYPE *%<I2Sx>_ptRxBuff;
+            extern %<I2Sx>_DATA_TYPE *%<I2Sx>_ptHalfRxBuff;
+        %elseif (ISEQUAL(Half_Full, "HALF DUPLEX")&&ISEQUAL(Master_Slave, "SLAVE")&&ISEQUAL(Rx_Tx, "Transmitter"))
+            extern %<I2Sx>_DATA_TYPE  %<I2Sx>_TxBuff[%<I2Sx>_TX_BUFFER_SIZE];
+            extern %<I2Sx>_DATA_TYPE *%<I2Sx>_ptTxBuff;
+            extern %<I2Sx>_DATA_TYPE *%<I2Sx>_ptHalfTxBuff;
+        %else
+            extern %<I2Sx>_DATA_TYPE  %<I2Sx>_RxBuff[%<I2Sx>_RX_BUFFER_SIZE];
+            extern %<I2Sx>_DATA_TYPE  %<I2Sx>_TxBuff[%<I2Sx>_TX_BUFFER_SIZE];
+            extern %<I2Sx>_DATA_TYPE *%<I2Sx>_ptRxBuff;
+            extern %<I2Sx>_DATA_TYPE *%<I2Sx>_ptHalfRxBuff;
+            extern %<I2Sx>_DATA_TYPE *%<I2Sx>_ptTxBuff;
+            extern %<I2Sx>_DATA_TYPE *%<I2Sx>_ptHalfTxBuff;
+        %endif
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelH_I2S,"Declarations",I2S_Buf)>
+
+        %openfile I2S_Buf
+            /* %<I2Sx> data information*/
+          %if (ISEQUAL(Half_Full, "FULL DUPLEX"))
+            %<I2Sx>_DATA_TYPE  %<I2Sx>_RxBuff[%<I2Sx>_RX_BUFFER_SIZE];
+            %<I2Sx>_DATA_TYPE  %<I2Sx>_TxBuff[%<I2Sx>_TX_BUFFER_SIZE];
+            %<I2Sx>_DATA_TYPE *%<I2Sx>_ptRxBuff = %<I2Sx>_RxBuff;
+            %<I2Sx>_DATA_TYPE *%<I2Sx>_ptHalfRxBuff = &%<I2Sx>_RxBuff[%<I2Sx>_RX_BUFFER_SIZE/2-1];
+            %<I2Sx>_DATA_TYPE *%<I2Sx>_ptTxBuff = %<I2Sx>_TxBuff;
+            %<I2Sx>_DATA_TYPE *%<I2Sx>_ptHalfTxBuff = &%<I2Sx>_TxBuff[%<I2Sx>_TX_BUFFER_SIZE/2-1];
+          %elseif (ISEQUAL(Half_Full, "HALF DUPLEX")&&ISEQUAL(Master_Slave, "SLAVE")&&ISEQUAL(Rx_Tx, "Receiver"))
+            %<I2Sx>_DATA_TYPE  %<I2Sx>_RxBuff[%<I2Sx>_RX_BUFFER_SIZE];
+            %<I2Sx>_DATA_TYPE *%<I2Sx>_ptRxBuff = %<I2Sx>_RxBuff;
+            %<I2Sx>_DATA_TYPE *%<I2Sx>_ptHalfRxBuff = &%<I2Sx>_RxBuff[%<I2Sx>_RX_BUFFER_SIZE/2-1];
+          %elseif (ISEQUAL(Half_Full, "HALF DUPLEX")&&ISEQUAL(Master_Slave, "SLAVE")&&ISEQUAL(Rx_Tx, "Transmitter"))
+            %<I2Sx>_DATA_TYPE  %<I2Sx>_TxBuff[%<I2Sx>_TX_BUFFER_SIZE];
+            %<I2Sx>_DATA_TYPE *%<I2Sx>_ptTxBuff = %<I2Sx>_TxBuff;
+            %<I2Sx>_DATA_TYPE *%<I2Sx>_ptHalfTxBuff = &%<I2Sx>_TxBuff[%<I2Sx>_TX_BUFFER_SIZE/2-1];
+          %else
+            %<I2Sx>_DATA_TYPE  %<I2Sx>_RxBuff[%<I2Sx>_RX_BUFFER_SIZE];
+            %<I2Sx>_DATA_TYPE  %<I2Sx>_TxBuff[%<I2Sx>_TX_BUFFER_SIZE];
+            %<I2Sx>_DATA_TYPE *%<I2Sx>_ptRxBuff = %<I2Sx>_RxBuff;
+            %<I2Sx>_DATA_TYPE *%<I2Sx>_ptHalfRxBuff = &%<I2Sx>_RxBuff[%<I2Sx>_RX_BUFFER_SIZE/2-1];
+            %<I2Sx>_DATA_TYPE *%<I2Sx>_ptTxBuff = %<I2Sx>_TxBuff;
+            %<I2Sx>_DATA_TYPE *%<I2Sx>_ptHalfTxBuff = &%<I2Sx>_TxBuff[%<I2Sx>_TX_BUFFER_SIZE/2-1];
+          %endif
+            I2S_DataLinkTypeDef  %<I2Sx>_DataLink;
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelC_I2S,"Defines",I2S_Buf)>
+    %endif
+%endfunction
+
+%% *************************************************************************************
+%% ******************      Fonction Outputs        *************************************
+%% *************************************************************************************
+%function Outputs(block, system) Output
+    %assign I2Sx = SFcnParamSettings.I2Sx
+    %assign Master_Slave = SFcnParamSettings.Master_Slave
+    %assign Half_Full = SFcnParamSettings.Half_Full
+    %assign Rx_Tx = SFcnParamSettings.Rx_Tx
+    %assign NbI2S = SFcnParamSettings.NbI2S
+    %assign Rx_SizeIn = SFcnParamSettings.Rx_SizeIn
+    %assign Tx_SizeIn = SFcnParamSettings.Tx_SizeIn
+    %assign Rx_Size = SFcnParamSettings.Rx_Size
+    %assign Tx_Size = SFcnParamSettings.Tx_Size
+    %assign RxMode = SFcnParamSettings.RxMode
+    %assign TxMode = SFcnParamSettings.TxMode
+    %assign DataFormat = SFcnParamSettings.DataFormat
+
+    %if (ISEQUAL(Rx_SizeIn, "on"))
+        %assign Rx_Size = LibBlockInputSignal(0, "", "", 0)
+    %endif
+    %if (ISEQUAL(Tx_SizeIn, "on"))
+        %if (ISEQUAL(Rx_SizeIn, "on"))
+            %assign Tx_Size = LibBlockInputSignal(1, "", "", 0)
+        %else
+            %assign Tx_Size = LibBlockInputSignal(0, "", "", 0)
+        %endif
+    %endif
+
+%endfunction
+
+%% [EOF] I2S_Cfg.tlc

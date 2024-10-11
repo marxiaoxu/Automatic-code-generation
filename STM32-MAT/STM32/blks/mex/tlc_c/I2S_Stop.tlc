@@ -1,0 +1,80 @@
+%%
+%% Abstract: I2S_Stop
+%%    STM32Fxxx I2S_Stop for the transmision of all the data
+%%
+
+%assign CodeFormat = "Embedded-C"
+%implements I2S_Stop  "C"
+
+%assign I2Sx = SFcnParamSettings.I2Sx
+
+%if !EXISTS(::InsertIncludesToI2S)
+    %assign ::InsertIncludesToI2S = TLC_TRUE
+%endif
+%if !EXISTS(::InsertIncludesFromI2S)
+    %assign ::InsertIncludesFromI2S = TLC_TRUE
+%endif
+
+%% *************************************************************************************
+%% ******************      Fonction : Start        *************************************
+%% *************************************************************************************
+%function Start(block,system) Output
+%endfunction
+
+
+%% *************************************************************************************
+%% ******************      Fonction : BlockInstanceSetup       *************************
+%% *************************************************************************************
+%function BlockInstanceSetup(block, system) void
+    %%model.c and model.h files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+    %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+
+    %%model_I2S.h and model_I2S.c files
+    %assign SrcBaseName_I2S = "%<SrcBaseName>_I2S"
+    %assign modelH_I2S      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_I2S)
+    %assign modelC_I2S      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_I2S)
+
+
+    %if EXISTS(::InsertIncludesToI2S) && (::InsertIncludesToI2S == TLC_TRUE)
+        %assign ::InsertIncludesToI2S = TLC_FALSE
+        %openfile I2S_Buf
+            #include "%<SrcBaseName>.h"
+            #include "%<SrcBaseName_I2S>.h"
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelC_I2S,"Includes",I2S_Buf)>
+    %endif
+
+    %%AND Include model_I2S.h to model.c
+    %if EXISTS(::InsertIncludesFromI2S) && (::InsertIncludesFromI2S == TLC_TRUE)
+        %assign ::InsertIncludesFromI2S = TLC_FALSE
+        %openfile I2S_Buf
+            #include "%<SrcBaseName_I2S>.h"
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelH,"Includes",I2S_Buf)>
+
+        %openfile I2S_Buf
+            #include "STM32_Config.h"
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelH_I2S,"Includes",I2S_Buf)>
+    %endif
+%endfunction
+
+
+%% *************************************************************************************
+%% ******************      Fonction Outputs        *************************************
+%% *************************************************************************************
+%function Outputs(block, system) Output
+    %%model.c and model.h files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %%model_I2S.h and model_I2S.c files
+    %assign SrcBaseName_I2S = "%<SrcBaseName>_I2S"
+    %assign modelH_I2S      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_I2S)
+    %assign modelC_I2S      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_I2S)
+
+    %assign I2Sx = SFcnParamSettings.I2Sx
+    /* Stop %<I2Sx> audio stream */
+    HAL_I2S_DMAStop(%<I2Sx>_DataLink.I2S_Handler);
+%endfunction
+%% [EOF] I2S_Stop.tlc

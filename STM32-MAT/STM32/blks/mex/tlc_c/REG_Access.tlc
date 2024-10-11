@@ -1,0 +1,71 @@
+%% Abstract: REGISTER ACCESS
+%%    STM32 REGISTER ACCESS (Read/Write)
+%%
+
+%assign CodeFormat = "Embedded-C"
+%implements REG_Access "C"
+
+
+%% Function: Outputs ==========================================
+%% Abstract:
+%% REG_Access input value depending on pin config
+%%
+%function Outputs(block, system) Output
+    %%warning "---------->Start REGISTER ACCESS Outputs"
+    %assign Peripheral = SFcnParamSettings.Peripheral
+    %assign RegName = SFcnParamSettings.RegName
+    %assign RegRead = SFcnParamSettings.RegRead
+    %assign RegWrite = SFcnParamSettings.RegWrite
+    %assign RegValueIn = SFcnParamSettings.RegValueIn
+    %assign RegValue = SFcnParamSettings.RegValue
+    %assign RegEqual = SFcnParamSettings.RegEqual
+    %assign RegAnd = SFcnParamSettings.RegAnd
+    %assign RegOr = SFcnParamSettings.RegOr
+    %assign RegComplement = SFcnParamSettings.RegComplement
+    %assign RegComments = SFcnParamSettings.RegComments
+
+    %assign operator = ""
+
+    %if(ISEQUAL(RegName,"") == TLC_FALSE)
+        %if(ISEQUAL(RegWrite, "on"))
+            %%Select operator
+            %if(ISEQUAL(RegEqual, "on"))
+               %assign operator = "="
+            %elseif(ISEQUAL(RegAnd, "on"))
+               %assign operator = "&="
+            %elseif(ISEQUAL(RegOr, "on"))
+               %assign operator = "|="
+            %else
+               %assign operator = ""
+            %endif
+
+            %if(ISEQUAL(operator,"") == TLC_FALSE)
+            {
+                %if(ISEQUAL(RegComments,"") == TLC_FALSE)
+                    /* %<RegComments> */
+                %endif
+                %if(ISEQUAL(RegValueIn, "on"))
+                    %assign  RegValue = LibBlockInputSignal(0, "", "", 0)
+                %endif
+                %if(ISEQUAL(RegComplement, "on"))
+                    %<Peripheral>->%<RegName> %<operator> ~(%<RegValue>);
+                %else
+                    %<Peripheral>->%<RegName> %<operator> %<RegValue>;
+                %endif
+            }
+            %endif
+
+        %elseif(ISEQUAL(RegRead, "on"))
+            %assign regVal = LibBlockOutputSignal(0, "", "", 0)
+            {
+                %if(ISEQUAL(RegComments,"") == TLC_FALSE)
+                    /* %<RegComments> */
+                %endif
+                %<regVal> = %<Peripheral>->%<RegName>;
+            }
+         %endif
+   %endif
+
+%endfunction
+
+%% [EOF] REG_Access.tlc

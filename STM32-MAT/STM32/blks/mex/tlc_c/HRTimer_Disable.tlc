@@ -1,0 +1,167 @@
+%% Abstract: HRTimer_Disable
+%%    STM32 HR Timers Disable Timer Master to timer E
+%%    Generated code is based on STM32 HAL Library files.
+%%
+%% Copyright 1990-2009 The MathWorks, Inc.
+%assign CodeFormat = "Embedded-C"
+%implements HRTimer_Disable "C"
+
+%% %include "FunctionCalledAsChart.tlc"
+
+%%warning "---------->Disable HRTimers"
+
+%if !EXISTS(::CreateHRTimers)
+    %assign ::CreateHRTimers  = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertIncludesToHRTIM)
+    %assign ::InsertIncludesToHRTIM  = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertIncludesFromHRTIM)
+    %assign ::InsertIncludesFromHRTIM  = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertHRTIM)
+    %assign ::InsertHRTIM  = TLC_TRUE
+%endif
+
+%assign ::CreateHRTimers  = TLC_TRUE
+
+%%trace CreateHRTimers  %<CreateHRTimers>
+
+
+%% Create function for HRTimers:
+%if EXISTS(CreateHRTimers) && (CreateHRTimers == TLC_TRUE)
+
+    %%assign ::CreateHRTimers = TLC_FALSE
+
+
+%% Code for system initialization:
+%function Start(block,system) Output
+%endfunction
+
+
+%% Code for HRTimers configuration call:
+%function BlockInstanceSetup(block, system) void
+    %%model.c and model.h files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+    %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+    %%model_HRTIM.h and model_HRTIM.c files
+    %assign SrcBaseName_HRTIM = "%<SrcBaseName>_HRTIM"
+    %assign modelH_HRTIM      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_HRTIM)
+    %assign modelC_HRTIM      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_HRTIM)
+    %%Include model.h to model_HRTIM.c
+    %if EXISTS(::InsertIncludesToHRTIM) && (::InsertIncludesToHRTIM == TLC_TRUE)
+        %assign ::InsertIncludesToHRTIM    = TLC_FALSE
+        %openfile HRTIM_Buf
+            #include "%<SrcBaseName>.h"
+            #include "%<SrcBaseName_HRTIM>.h"
+        %closefile HRTIM_Buf
+        %<LibSetSourceFileSection(modelC_HRTIM,"Includes",HRTIM_Buf)>
+    %endif
+    %%AND Include model_HRTIM.h to model.c
+    %if EXISTS(::InsertIncludesFromHRTIM) && (::InsertIncludesFromHRTIM == TLC_TRUE)
+        %assign ::InsertIncludesFromHRTIM    = TLC_FALSE
+        %openfile HRTIM_Buf
+            #include "%<SrcBaseName_HRTIM>.h"
+        %closefile HRTIM_Buf
+        %<LibSetSourceFileSection(modelH,"Includes",HRTIM_Buf)>
+
+        %openfile HRTIM_Buf
+            #include "STM32_Config.h"
+        %closefile HRTIM_Buf
+        %<LibSetSourceFileSection(modelH_HRTIM,"Includes",HRTIM_Buf)>
+    %endif
+
+    %%%%%%%%%%%%%%%%%%%%%% HRTIM %%%%%%%%%%%%%%%%%%%%%%%%%
+    %assign NbHRTim  = SFcnParamSettings.NbHRTim
+    %assign HRTIM_Name = SFcnParamSettings.HRTIM_Name
+    %assign M_Disable = SFcnParamSettings.M_Disable
+    %assign A_Disable = SFcnParamSettings.A_Disable
+    %assign B_Disable = SFcnParamSettings.B_Disable
+    %assign C_Disable = SFcnParamSettings.C_Disable
+    %assign D_Disable = SFcnParamSettings.D_Disable
+    %assign E_Disable = SFcnParamSettings.E_Disable
+    %assign F_Disable = SFcnParamSettings.F_Disable
+
+%% Code for required TIM external definition: in model_HRTIM.c file
+    %assign timNum = IDNUM("%<HRTIM_Name>")[1]
+
+    %%Initialization should be done once only
+    %if EXISTS(::InsertHRTIM) && (::InsertHRTIM == TLC_TRUE)
+
+    %openfile HRTIM_Buf
+        /* %<HRTIM_Name> handler */
+        extern HRTIM_HandleTypeDef hhrtim%<timNum>;
+    %closefile HRTIM_Buf
+    %<LibSetSourceFileSection(modelH_HRTIM,"Defines",HRTIM_Buf)>
+
+    %endif
+%endfunction
+
+
+%% Function: Outputs ==========================================
+%% Abstract:
+%% HRTimers input value depending on pin config
+%%
+%function Outputs(block, system) Output
+    %%model.c and model.h files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+    %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+    %%model_HRTIM.h and model_HRTIM.c files
+    %assign SrcBaseName_HRTIM = "%<SrcBaseName>_HRTIM"
+    %assign modelH_HRTIM      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_HRTIM)
+    %assign modelC_HRTIM      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_HRTIM)
+
+    %%%%%%%%%%%%%%%%%%%%%% HRTIM %%%%%%%%%%%%%%%%%%%%%%%%%
+    %assign NbHRTim  = SFcnParamSettings.NbHRTim
+    %assign HRTIM_Name = SFcnParamSettings.HRTIM_Name
+    %assign M_Disable = SFcnParamSettings.M_Disable
+    %assign A_Disable = SFcnParamSettings.A_Disable
+    %assign B_Disable = SFcnParamSettings.B_Disable
+    %assign C_Disable = SFcnParamSettings.C_Disable
+    %assign D_Disable = SFcnParamSettings.D_Disable
+    %assign E_Disable = SFcnParamSettings.E_Disable
+    %assign F_Disable = SFcnParamSettings.F_Disable
+
+    %assign timNum = IDNUM("%<HRTIM_Name>")[1]
+
+    %if ISEQUAL(M_Disable,"on")
+    /* Disable Master Timer */
+    __HAL_HRTIM_DISABLE(&hhrtim%<timNum>, HRTIM_TIMERID_MASTER);
+    %endif
+    %if ISEQUAL(A_Disable,"on")
+    /* Disable Timer A */
+    __HAL_HRTIM_DISABLE(&hhrtim%<timNum>, HRTIM_TIMERID_TIMER_A);
+    %endif
+    %if ISEQUAL(B_Disable,"on")
+    /* Disable Timer B */
+    __HAL_HRTIM_DISABLE(&hhrtim%<timNum>, HRTIM_TIMERID_TIMER_B);
+    %endif
+    %if ISEQUAL(C_Disable,"on")
+    /* Disable Timer C */
+    __HAL_HRTIM_DISABLE(&hhrtim%<timNum>, HRTIM_TIMERID_TIMER_C);
+    %endif
+    %if ISEQUAL(D_Disable,"on")
+    /* Disable Timer D */
+    __HAL_HRTIM_DISABLE(&hhrtim%<timNum>, HRTIM_TIMERID_TIMER_D);
+    %endif
+    %if ISEQUAL(E_Disable,"on")
+    /* Disable Timer E */
+    __HAL_HRTIM_DISABLE(&hhrtim%<timNum>, HRTIM_TIMERID_TIMER_E);
+    %endif
+    %if ISEQUAL(F_Disable,"on")
+    /* Disable Timer F */
+    __HAL_HRTIM_DISABLE(&hhrtim%<timNum>, HRTIM_TIMERID_TIMER_F);
+    %endif
+%endfunction
+
+%else
+%% ERROR HRTimers Disable MUST BE CALLED ONCE ONLY
+   %trace ERROR HRTimers Disable MUST BE CALLED ONCE ONLY
+%endif
+
+%% [EOF] HRTimer_Disable.tlc

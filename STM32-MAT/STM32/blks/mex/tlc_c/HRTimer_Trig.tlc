@@ -1,0 +1,280 @@
+%% Abstract: HRTimer_Trig
+%%    STM32 HR Timers Trig operation for Timer Master to timer E
+%%    Generated code is based on STM32 HAL Library files.
+%%
+%% Copyright 1990-2009 The MathWorks, Inc.
+%assign CodeFormat = "Embedded-C"
+%implements HRTimer_Trig "C"
+
+%% %include "FunctionCalledAsChart.tlc"
+
+%%warning "---------->Enable HRTimers"
+
+%if !EXISTS(::CreateHRTimers)
+    %assign ::CreateHRTimers  = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertIncludesToHRTIM)
+    %assign ::InsertIncludesToHRTIM  = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertIncludesFromHRTIM)
+    %assign ::InsertIncludesFromHRTIM  = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertHRTIM)
+    %assign ::InsertHRTIM  = TLC_TRUE
+%endif
+
+%assign ::CreateHRTimers  = TLC_TRUE
+%%trace CreateHRTimers  %<CreateHRTimers>
+
+
+%% Create function for HRTimers:
+%if EXISTS(CreateHRTimers) && (CreateHRTimers == TLC_TRUE)
+    %%assign ::CreateHRTimers = TLC_FALSE
+
+
+%% Code for system initialization:
+%function Start(block,system) Output
+%endfunction
+
+
+%% Code for HRTimers configuration call:
+%function BlockInstanceSetup(block, system) void
+    %%model.c and model.h files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+    %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+    %%model_HRTIM.h and model_HRTIM.c files
+    %assign SrcBaseName_HRTIM = "%<SrcBaseName>_HRTIM"
+    %assign modelH_HRTIM      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_HRTIM)
+    %assign modelC_HRTIM      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_HRTIM)
+    %%Include model.h to model_HRTIM.c
+    %if EXISTS(::InsertIncludesToHRTIM) && (::InsertIncludesToHRTIM == TLC_TRUE)
+        %assign ::InsertIncludesToHRTIM    = TLC_FALSE
+        %openfile HRTIM_Buf
+            #include "%<SrcBaseName>.h"
+            #include "%<SrcBaseName_HRTIM>.h"
+        %closefile HRTIM_Buf
+        %<LibSetSourceFileSection(modelC_HRTIM,"Includes",HRTIM_Buf)>
+    %endif
+    %%AND Include model_HRTIM.h to model.c
+    %if EXISTS(::InsertIncludesFromHRTIM) && (::InsertIncludesFromHRTIM == TLC_TRUE)
+        %assign ::InsertIncludesFromHRTIM    = TLC_FALSE
+        %openfile HRTIM_Buf
+            #include "%<SrcBaseName_HRTIM>.h"
+        %closefile HRTIM_Buf
+        %<LibSetSourceFileSection(modelH,"Includes",HRTIM_Buf)>
+
+        %openfile HRTIM_Buf
+            #include "STM32_Config.h"
+        %closefile HRTIM_Buf
+        %<LibSetSourceFileSection(modelH_HRTIM,"Includes",HRTIM_Buf)>
+    %endif
+
+    %%%%%%%%%%%%%%%%%%%%%% HRTIM %%%%%%%%%%%%%%%%%%%%%%%%%
+    %assign NbHRTim  = SFcnParamSettings.NbHRTim
+    %assign HRTIM_Name = SFcnParamSettings.HRTIM_Name
+    %assign Trig_Burst  = SFcnParamSettings.Trig_Burst
+    %assign Trig_A_Cpt1  = SFcnParamSettings.Trig_A_Cpt1
+    %assign Trig_A_Cpt2  = SFcnParamSettings.Trig_A_Cpt2
+    %assign Trig_B_Cpt1  = SFcnParamSettings.Trig_B_Cpt1
+    %assign Trig_B_Cpt2  = SFcnParamSettings.Trig_B_Cpt2
+    %assign Trig_C_Cpt1  = SFcnParamSettings.Trig_C_Cpt1
+    %assign Trig_C_Cpt2  = SFcnParamSettings.Trig_C_Cpt2
+    %assign Trig_D_Cpt1  = SFcnParamSettings.Trig_D_Cpt1
+    %assign Trig_D_Cpt2  = SFcnParamSettings.Trig_D_Cpt2
+    %assign Trig_E_Cpt1  = SFcnParamSettings.Trig_E_Cpt1
+    %assign Trig_E_Cpt2  = SFcnParamSettings.Trig_E_Cpt2
+    %assign Trig_M_Update  = SFcnParamSettings.Trig_M_Update
+    %assign Trig_A_Update  = SFcnParamSettings.Trig_A_Update
+    %assign Trig_B_Update  = SFcnParamSettings.Trig_B_Update
+    %assign Trig_C_Update  = SFcnParamSettings.Trig_C_Update
+    %assign Trig_D_Update  = SFcnParamSettings.Trig_D_Update
+    %assign Trig_E_Update  = SFcnParamSettings.Trig_E_Update
+    %assign Trig_M_Reset  = SFcnParamSettings.Trig_M_Reset
+    %assign Trig_A_Reset  = SFcnParamSettings.Trig_A_Reset
+    %assign Trig_B_Reset  = SFcnParamSettings.Trig_B_Reset
+    %assign Trig_C_Reset  = SFcnParamSettings.Trig_C_Reset
+    %assign Trig_D_Reset  = SFcnParamSettings.Trig_D_Reset
+    %assign Trig_E_Reset  = SFcnParamSettings.Trig_E_Reset
+    %assign Trig_F_Reset  = SFcnParamSettings.Trig_F_Reset
+
+    %% Code for required TIM external definition: in model_HRTIM.c file
+    %assign timNum = IDNUM("%<HRTIM_Name>")[1]
+
+    %%Initialization should be done once only
+    %if EXISTS(::InsertHRTIM) && (::InsertHRTIM == TLC_TRUE)
+
+    %openfile HRTIM_Buf
+        /* %<HRTIM_Name> handler */
+        extern HRTIM_HandleTypeDef hhrtim%<timNum>;
+    %closefile HRTIM_Buf
+    %<LibSetSourceFileSection(modelH_HRTIM,"Defines",HRTIM_Buf)>
+
+    %endif
+%endfunction
+
+%% Function: Outputs ==========================================
+%% Abstract:
+%% HRTimers input value depending on pin config
+%%
+%function Outputs(block, system) Output
+    %%model.c and model.h files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+    %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+    %%model_HRTIM.h and model_HRTIM.c files
+    %assign SrcBaseName_HRTIM = "%<SrcBaseName>_HRTIM"
+    %assign modelH_HRTIM      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_HRTIM)
+    %assign modelC_HRTIM      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_HRTIM)
+
+    %%%%%%%%%%%%%%%%%%%%%% HRTIM %%%%%%%%%%%%%%%%%%%%%%%%%
+    %assign NbHRTim  = SFcnParamSettings.NbHRTim
+    %assign HRTIM_Name = SFcnParamSettings.HRTIM_Name
+    %assign Trig_Burst  = SFcnParamSettings.Trig_Burst
+    %assign Trig_A_Cpt1  = SFcnParamSettings.Trig_A_Cpt1
+    %assign Trig_A_Cpt2  = SFcnParamSettings.Trig_A_Cpt2
+    %assign Trig_B_Cpt1  = SFcnParamSettings.Trig_B_Cpt1
+    %assign Trig_B_Cpt2  = SFcnParamSettings.Trig_B_Cpt2
+    %assign Trig_C_Cpt1  = SFcnParamSettings.Trig_C_Cpt1
+    %assign Trig_C_Cpt2  = SFcnParamSettings.Trig_C_Cpt2
+    %assign Trig_D_Cpt1  = SFcnParamSettings.Trig_D_Cpt1
+    %assign Trig_D_Cpt2  = SFcnParamSettings.Trig_D_Cpt2
+    %assign Trig_E_Cpt1  = SFcnParamSettings.Trig_E_Cpt1
+    %assign Trig_E_Cpt2  = SFcnParamSettings.Trig_E_Cpt2
+    %assign Trig_M_Update  = SFcnParamSettings.Trig_M_Update
+    %assign Trig_A_Update  = SFcnParamSettings.Trig_A_Update
+    %assign Trig_B_Update  = SFcnParamSettings.Trig_B_Update
+    %assign Trig_C_Update  = SFcnParamSettings.Trig_C_Update
+    %assign Trig_D_Update  = SFcnParamSettings.Trig_D_Update
+    %assign Trig_E_Update  = SFcnParamSettings.Trig_E_Update
+    %assign Trig_M_Reset  = SFcnParamSettings.Trig_M_Reset
+    %assign Trig_A_Reset  = SFcnParamSettings.Trig_A_Reset
+    %assign Trig_B_Reset  = SFcnParamSettings.Trig_B_Reset
+    %assign Trig_C_Reset  = SFcnParamSettings.Trig_C_Reset
+    %assign Trig_D_Reset  = SFcnParamSettings.Trig_D_Reset
+    %assign Trig_E_Reset  = SFcnParamSettings.Trig_E_Reset
+    %assign Trig_F_Reset  = SFcnParamSettings.Trig_F_Reset
+
+    %assign timNum = IDNUM("%<HRTIM_Name>")[1]
+    %assign InputNum = 0
+
+
+    %if ISEQUAL(Trig_Burst,"on")
+    /* Trig burst operation */
+    HAL_HRTIM_BurstModeSoftwareTrigger(&hhrtim%<timNum>);
+    %endif
+    %if ISEQUAL(Trig_A_Cpt1,"on")
+    /* Trig Timer A capture register 1 */
+    HAL_HRTIM_SoftwareCapture(&hhrtim%<timNum>,HRTIM_TIMERINDEX_TIMER_A,HRTIM_CAPTUREUNIT_1);
+    %endif
+    %if ISEQUAL(Trig_A_Cpt2,"on")
+    /* Trig Timer A capture register 2 */
+    HAL_HRTIM_SoftwareCapture(&hhrtim%<timNum>,HRTIM_TIMERINDEX_TIMER_A,HRTIM_CAPTUREUNIT_2);
+    %endif
+    %if ISEQUAL(Trig_B_Cpt1,"on")
+    /* Trig Timer B capture register 1 */
+    HAL_HRTIM_SoftwareCapture(&hhrtim%<timNum>,HRTIM_TIMERINDEX_TIMER_B,HRTIM_CAPTUREUNIT_1);
+    %endif
+    %if ISEQUAL(Trig_B_Cpt2,"on")
+    /* Trig Timer B capture register 2 */
+    HAL_HRTIM_SoftwareCapture(&hhrtim%<timNum>,HRTIM_TIMERINDEX_TIMER_B,HRTIM_CAPTUREUNIT_2);
+    %endif
+    %if ISEQUAL(Trig_C_Cpt1,"on")
+    /* Trig Timer C capture register 1 */
+    HAL_HRTIM_SoftwareCapture(&hhrtim%<timNum>,HRTIM_TIMERINDEX_TIMER_C,HRTIM_CAPTUREUNIT_1);
+    %endif
+    %if ISEQUAL(Trig_C_Cpt2,"on")
+    /* Trig Timer C capture register 2 */
+    HAL_HRTIM_SoftwareCapture(&hhrtim%<timNum>,HRTIM_TIMERINDEX_TIMER_C,HRTIM_CAPTUREUNIT_2);
+    %endif
+    %if ISEQUAL(Trig_D_Cpt1,"on")
+    /* Trig Timer D capture register 1 */
+    HAL_HRTIM_SoftwareCapture(&hhrtim%<timNum>,HRTIM_TIMERINDEX_TIMER_D,HRTIM_CAPTUREUNIT_1);
+    %endif
+    %if ISEQUAL(Trig_D_Cpt2,"on")
+    /* Trig Timer D capture register 2 */
+    HAL_HRTIM_SoftwareCapture(&hhrtim%<timNum>,HRTIM_TIMERINDEX_TIMER_D,HRTIM_CAPTUREUNIT_2);
+    %endif
+    %if ISEQUAL(Trig_E_Cpt1,"on")
+    /* Trig Timer E capture register 1 */
+    HAL_HRTIM_SoftwareCapture(&hhrtim%<timNum>,HRTIM_TIMERINDEX_TIMER_E,HRTIM_CAPTUREUNIT_1);
+    %endif
+    %if ISEQUAL(Trig_E_Cpt2,"on")
+    /* Trig Timer E capture register 2 */
+    HAL_HRTIM_SoftwareCapture(&hhrtim%<timNum>,HRTIM_TIMERINDEX_TIMER_E,HRTIM_CAPTUREUNIT_2);
+    %endif
+    %if ISEQUAL(Trig_F_Cpt1,"on")
+    /* Trig Timer F capture register 1 */
+    HAL_HRTIM_SoftwareCapture(&hhrtim%<timNum>,HRTIM_TIMERINDEX_TIMER_F,HRTIM_CAPTUREUNIT_1);
+    %endif
+    %if ISEQUAL(Trig_F_Cpt2,"on")
+    /* Trig Timer F capture register 2 */
+    HAL_HRTIM_SoftwareCapture(&hhrtim%<timNum>,HRTIM_TIMERINDEX_TIMER_F,HRTIM_CAPTUREUNIT_2);
+    %endif
+    %if ISEQUAL(Trig_M_Update,"on")
+    /* Trig Timer  update */
+    HAL_HRTIM_SoftwareUpdate(&hhrtim%<timNum>,HRTIM_TIMERUPDATE_MASTER);
+    %endif
+    %if ISEQUAL(Trig_A_Update,"on")
+    /* Trig Timer  update */
+    HAL_HRTIM_SoftwareUpdate(&hhrtim%<timNum>,HRTIM_TIMERUPDATE_A);
+    %endif
+    %if ISEQUAL(Trig_B_Update,"on")
+    /* Trig Timer A update */
+    HAL_HRTIM_SoftwareUpdate(&hhrtim%<timNum>,HRTIM_TIMERUPDATE_B);
+    %endif
+    %if ISEQUAL(Trig_C_Update,"on")
+    /* Trig Timer B update */
+    HAL_HRTIM_SoftwareUpdate(&hhrtim%<timNum>,HRTIM_TIMERUPDATE_C);
+    %endif
+    %if ISEQUAL(Trig_D_Update,"on")
+    /* Trig Timer C update */
+    HAL_HRTIM_SoftwareUpdate(&hhrtim%<timNum>,HRTIM_TIMERUPDATE_D);
+    %endif
+    %if ISEQUAL(Trig_E_Update,"on")
+    /* Trig Timer D update */
+    HAL_HRTIM_SoftwareUpdate(&hhrtim%<timNum>,HRTIM_TIMERUPDATE_E);
+    %endif
+    %if ISEQUAL(Trig_F_Update,"on")
+    /* Trig Timer F update */
+    HAL_HRTIM_SoftwareUpdate(&hhrtim%<timNum>,HRTIM_TIMERUPDATE_F);
+    %endif
+    %if ISEQUAL(Trig_M_Reset,"on")
+    /* Trig Timer E reset */
+    HAL_HRTIM_SoftwareReset(&hhrtim%<timNum>,HRTIM_TIMERRESET_MASTER);
+    %endif
+    %if ISEQUAL(Trig_A_Reset,"on")
+    /* Trig Timer A reset */
+    HAL_HRTIM_SoftwareReset(&hhrtim%<timNum>,HRTIM_TIMERRESET_TIMER_A);
+    %endif
+    %if ISEQUAL(Trig_B_Reset,"on")
+    /* Trig Timer B reset */
+    HAL_HRTIM_SoftwareReset(&hhrtim%<timNum>,HRTIM_TIMERRESET_TIMER_B);
+    %endif
+    %if ISEQUAL(Trig_C_Reset,"on")
+    /* Trig Timer C reset */
+    HAL_HRTIM_SoftwareReset(&hhrtim%<timNum>,HRTIM_TIMERRESET_TIMER_C);
+    %endif
+    %if ISEQUAL(Trig_D_Reset,"on")
+    /* Trig Timer D reset */
+    HAL_HRTIM_SoftwareReset(&hhrtim%<timNum>,HRTIM_TIMERRESET_TIMER_D);
+    %endif
+    %if ISEQUAL(Trig_E_Reset,"on")
+    /* Trig Timer E reset */
+    HAL_HRTIM_SoftwareReset(&hhrtim%<timNum>,HRTIM_TIMERRESET_TIMER_E);
+    %endif
+    %if ISEQUAL(Trig_F_Reset,"on")
+    /* Trig Timer F reset */
+    HAL_HRTIM_SoftwareReset(&hhrtim%<timNum>,HRTIM_TIMERRESET_TIMER_F);
+    %endif
+%endfunction
+
+%else
+%% ERROR HRTimers Enable MUST BE CALLED ONCE ONLY
+%trace ERROR HRTimers Enable MUST BE CALLED ONCE ONLY
+%endif
+
+%% [EOF] HRTimer_Trig.tlc

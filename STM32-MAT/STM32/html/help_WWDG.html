@@ -1,0 +1,233 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>WWDG (Window WatchDoG)</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-06-10"><meta name="DC.source" content="help_WWDG.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>WWDG (Window WatchDoG)</h1><!--introduction--><p>This model is used to trigger a MCU reset when a refresh of the WatchDoG is not done inside a custom time window.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#2">S-Function</a></li><li><a href="#4">WWDG STM32CubeMX configuration</a></li><li><a href="#6">WWDG Block Interface</a></li><li><a href="#8">Custom Window and Custom Counter</a></li><li><a href="#10">Period and Refresh window</a></li><li><a href="#12">Example using the WWDG and an I2C communication</a></li><li><a href="#14">Results and performance</a></li></ul></div><p>
+<A NAME="ANCRES"> </A>
+</p><h2 id="2">S-Function</h2><p><i>Nb Input:</i>  <b>0</b></p><p><i>Nb Output:</i> <b>0</b></p><p><img vspace="5" hspace="5" src="WWDG/Block.PNG" alt=""> </p><p>Displayed on the model :</p><div><ol><li>Period : Period of the timeout calculated in the block</li><li><i>S Function name</i> : Model Name</li></ol></div><h2 id="4">WWDG STM32CubeMX configuration</h2><p>Elements to be taken into account while configuring the WWDG on STM32CubeMX</p><p>The WWDG clock is called PCLK1. It is based on a HSI based clock signal obtained after prescaling, which name is APB1 peripheral clock (in yellow in the figure below). PCLK1 is obtained after prescaling APB1 clock by the prescaler value customizable in the STM32CubeMX WWDG applet :</p><p><img vspace="5" hspace="5" src="WWDG/Clock.PNG" alt=""> </p><p>A step of configuration of the main APB1 clock is needed to meet application requirements.</p><h2 id="6">WWDG Block Interface</h2><p>Main interface of the WWDG model.</p><p><img vspace="5" hspace="5" src="WWDG/Interface.PNG" alt=""> </p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="8">Custom Window and Custom Counter</h2><p>Check boxes to be activated to check for the reliability of the values set in STM32CUbeMX WWDG configuration step. If checked, Custom values are used in the code. If not, the values are set up directly from the .ioc file generated by STM32CubeMX, and are disabled.</p><p><img vspace="5" hspace="5" src="WWDG/WindowOn.PNG" alt=""> </p><p><img vspace="5" hspace="5" src="WWDG/WindowOff.PNG" alt=""> </p><p><img vspace="5" hspace="5" src="WWDG/CounterOn.PNG" alt=""> </p><p><img vspace="5" hspace="5" src="WWDG/CounterOff.PNG" alt=""> </p><h2 id="10">Period and Refresh window</h2><p>These values are calculated to set a timeout and a time window where the refresh must occur to avoid MCU reset.</p><p>The refresh window and the period are obtained by calculating first the maximum value of the time window, the timeout or period, as given in the ref. manual <i>RM0090</i> :</p><p><img vspace="5" hspace="5" src="WWDG/WWDG_formula.PNG" alt=""> </p><p>And then the lowest value is generated the same way except that the counter here is replaced in the formula above by window value subtracted from the counter value.</p><h2 id="12">Example using the WWDG and an I2C communication</h2><p>This example is based on STM32F429i Discovery Kit and a STM32CubeMX configuration file available in the example folder. It is also given in the I2C_Write model help file. The sensor used here for test/debugging purposes is a <i>MikroE RTC CLICK</i> which integrates a PCF8583P,which is a a clock and calendar chip, based on a 2048 bit static CMOS1 RAM organized as 256 words by 8 bits. The ref. manual can be downloaded freely <a href="http://www.nxp.com/documents/data_sheet/PCF8583.pdf">here</a>.</p><p><img vspace="5" hspace="5" src="WWDG/WWDGTest.PNG" alt=""> </p><p>IMPORTANT :</p><div><ol><li>For the description of the I2C process included in this example, please refer to the I2C_Test example.</li><li>This example implies a 4-wire connection between the board and the sensor, where GND, 3.3V, SDA and SCL from the chip are respectively connected to GND, 3V, PB9 and PB6 on the STM32F429i Discovery Kit as configured by STM32CubeMX.</li><li>In order to have the blocksets processed in the right order, you must set up priorities for each block decreasingly (except for the configuration block).</li><li>You must set the time step of the solver at a value lower than the WWDG Timeout to visualize the case the MCU resets by unplugging the 3V3 wire for example.</li></ol></div><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><p><a href="matlab:open_system('I2C_Master_WWDG')">Click to open example I2C_Test_WWDG</a></p><h2 id="14">Results and performance</h2><p>This part is giving the results obtained on the oscilloscope with this example, in order to give a basis for debugging further applications using this library.</p><p>The I2C time sequence is given below, and is the same as in the I2C_Test example.</p><p><img vspace="5" hspace="5" src="WWDG/TrameTestWWDG.bmp" alt=""> </p><p>A scope is connected to the VRST pin of the board, which is pulled down to 0 when a MCU reset occurs. The timeout is 52.4ms and the window is therefore 46.70 (ms) &lt; refresh &lt; 52.43 (ms).</p><p>Three cases are therefore monitored on the oscilloscope and given in the figures below, depending on three cases regarding the time step of the solver.</p><p>1. The solver is set to 0.04s, which is shorter than the window values:</p><p><img vspace="5" hspace="5" src="WWDG/WWDG_0_4.bmp" alt=""> </p><p>Even though the I2C communication is operating properly, a reset is triggered as the refresh of the counter happens before the time window.</p><p>2. The solver is set to 0.05s, which is inside the window values:</p><p><img vspace="5" hspace="5" src="WWDG/WWDG_0_5.bmp" alt=""> </p><p>3. The solver is set to 0.06s, which is greater than the window values:</p><p><img vspace="5" hspace="5" src="WWDG/WWDG_0_6.bmp" alt=""> </p><p>A reset is always triggered before any kind of activity on the I2C line because the timeout is reached before a call of the I2C_Master_WWDG_ste^p function.</p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% WWDG (Window WatchDoG)
+% This model is used to trigger a MCU reset when a refresh of the WatchDoG
+% is not done inside a custom time window.
+% 
+%%
+%
+% <html>
+% <A NAME="ANCRES"> </A>
+% </html>
+% 
+%% S-Function
+% _Nb Input:_  *0*
+%
+% _Nb Output:_ *0*
+%
+%%
+% 
+% <<WWDG/Block.PNG>>
+% 
+% Displayed on the model :
+%
+% # Period : Period of the timeout calculated in the block
+% # _S Function name_ : Model Name
+% 
+%% WWDG STM32CubeMX configuration
+% Elements to be taken into account while configuring the WWDG on
+% STM32CubeMX
+%%
+% The WWDG clock is called PCLK1. It is based on a HSI based clock signal
+% obtained after prescaling, which name is APB1 peripheral clock (in yellow
+% in the figure below). PCLK1 is obtained after prescaling APB1 clock by
+% the prescaler value customizable in the STM32CubeMX WWDG applet :
+%
+% <<WWDG/Clock.PNG>>
+%
+% A step of configuration of the main APB1 clock is needed to meet
+% application requirements.
+%
+%% WWDG Block Interface
+% Main interface of the WWDG model.
+%%
+% 
+% <<WWDG/Interface.PNG>>
+% 
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+%% Custom Window and Custom Counter
+% Check boxes to be activated to check for the reliability of the values 
+% set in STM32CUbeMX WWDG configuration step. If checked, Custom values are
+% used in the code. If not, the values are set up directly from the .ioc 
+% file generated by STM32CubeMX, and are disabled.
+%%
+% <<WWDG/WindowOn.PNG>>
+%
+% <<WWDG/WindowOff.PNG>>
+%
+% <<WWDG/CounterOn.PNG>>
+%
+% <<WWDG/CounterOff.PNG>>
+%
+%% Period and Refresh window
+% These values are calculated to set a timeout and a time window where the
+% refresh must occur to avoid MCU reset.
+%%
+% The refresh window and the period are obtained by calculating first the
+% maximum value of the time window, the timeout or period, as given in the 
+% ref. manual _RM0090_ :
+%
+% <<WWDG/WWDG_formula.PNG>>
+%
+% And then the lowest value is generated the same way except that the
+% counter here is replaced in the formula above by window value subtracted
+% from the counter value.
+%
+%% Example using the WWDG and an I2C communication
+%
+% This example is based on STM32F429i Discovery Kit and a STM32CubeMX 
+% configuration file available in the example folder. It is also given in
+% the I2C_Write model help file.
+% The sensor used here for test/debugging purposes is a _MikroE RTC CLICK_
+% which integrates a PCF8583P,which is a a clock and calendar chip, based 
+% on a 2048 bit static CMOS1 RAM organized as 256 words by 8 bits. 
+% The ref. manual can be downloaded freely
+% <http://www.nxp.com/documents/data_sheet/PCF8583.pdf here>.
+%
+%%
+% 
+% <<WWDG/WWDGTest.PNG>>
+% 
+% IMPORTANT : 
+%
+% # For the description of the I2C process included in this example, please
+% refer to the I2C_Test example.
+% # This example implies a 4-wire connection between the board and the
+% sensor, where GND, 3.3V, SDA and SCL from the chip are respectively
+% connected to GND, 3V, PB9 and PB6 on the STM32F429i Discovery Kit as
+% configured by STM32CubeMX.
+% # In order to have the blocksets processed in the right order, you must
+% set up priorities for each block decreasingly (except for the
+% configuration block).
+% # You must set the time step of the solver at a value lower than the WWDG
+% Timeout to visualize the case the MCU resets by unplugging the 3V3 wire
+% for example.
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+% <matlab:open_system('I2C_Master_WWDG') Click to open example I2C_Test_WWDG> 
+%
+%% Results and performance
+%
+% This part is giving the results obtained on the oscilloscope with this
+% example, in order to give a basis for debugging further applications
+% using this library.
+%
+% The I2C time sequence is given below, and is the same as in the
+% I2C_Test example.
+% 
+% <<WWDG/TrameTestWWDG.bmp>>
+%
+% A scope is connected to the VRST pin of the board,
+% which is pulled down to 0 when a MCU reset occurs. The timeout is 52.4ms
+% and the window is therefore 46.70 (ms) < refresh < 52.43 (ms).
+%
+% Three cases are therefore monitored on the oscilloscope and given in the
+% figures below, depending on three cases regarding the time step of the
+% solver. 
+%
+% 1. The solver is set to 0.04s, which is shorter than the window values:
+%
+% <<WWDG/WWDG_0_4.bmp>>
+%
+% Even though the I2C communication is operating properly, a reset is
+% triggered as the refresh of the counter happens before the time window.
+% 
+% 2. The solver is set to 0.05s, which is inside the window values:
+%
+% <<WWDG/WWDG_0_5.bmp>>
+%
+% 3. The solver is set to 0.06s, which is greater than the window values:
+%
+% <<WWDG/WWDG_0_6.bmp>>
+%
+% A reset is always triggered before any kind of activity on the I2C line
+% because the timeout is reached before a call of the I2C_Master_WWDG_ste^p
+% function.
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+##### SOURCE END #####
+--></body></html>

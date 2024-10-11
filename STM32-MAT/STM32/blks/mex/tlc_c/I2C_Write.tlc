@@ -1,0 +1,402 @@
+%% Abstract: I2C_Write
+%%    STM32Fxxx I2C_Write writes a values on the selected block, code based on HAL library.
+%%
+%% Copyright 1990-2009 The MathWorks, Inc.
+
+%assign CodeFormat = "Embedded-C"
+%implements I2C_Write  "C"
+
+
+%if !EXISTS(::InsertIncludesToI2C)
+    %assign ::InsertIncludesToI2C  = TLC_TRUE
+%endif
+%if !EXISTS(::InsertIncludesFromI2C)
+    %assign ::InsertIncludesFromI2C  = TLC_TRUE
+%endif
+
+%assign handler =  SFcnParamSettings.handler
+%if !EXISTS(::Create_%<handler>)
+    %assign ::Create_%<handler>  = TLC_TRUE
+%endif
+
+%if !EXISTS(::Create_WRITE_MASTER)
+    %assign ::Create_WRITE_MASTER  = TLC_TRUE
+%endif
+%if !EXISTS(::Create_WRITE_SLAVE)
+    %assign ::Create_WRITE_SLAVE  = TLC_TRUE
+%endif
+%if !EXISTS(::Create_W_CALLBACK_FCN)
+    %assign ::Create_W_CALLBACK_FCN  = TLC_TRUE
+%endif
+
+
+%function BlockInstanceSetup(block, system) void
+    %%model.c and model.h files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+    %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+    %%model_I2C.h and model_I2C.c files
+    %assign SrcBaseName_I2C = "%<SrcBaseName>_I2C"
+    %assign modelH_I2C      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_I2C)
+    %assign modelC_I2C      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_I2C)
+
+    %%Include model.h to model_I2C.c
+    %if EXISTS(::InsertIncludesToI2C) && (::InsertIncludesToI2C == TLC_TRUE)
+        %assign ::InsertIncludesToI2C    = TLC_FALSE
+        %openfile I2C_Buf
+            #include "%<SrcBaseName>.h"
+            #include "%<SrcBaseName_I2C>.h"
+        %closefile I2C_Buf
+        %<LibSetSourceFileSection(modelC_I2C,"Includes",I2C_Buf)>
+    %endif
+
+    %%AND Include model_I2C.h to model.c
+    %if EXISTS(::InsertIncludesFromI2C) && (::InsertIncludesFromI2C == TLC_TRUE)
+        %assign ::InsertIncludesFromI2C    = TLC_FALSE
+        %openfile I2C_Buf
+            #include "%<SrcBaseName_I2C>.h"
+        %closefile I2C_Buf
+        %<LibSetSourceFileSection(modelH,"Includes",I2C_Buf)>
+
+        %openfile I2C_Buf
+            #include "STM32_Config.h"
+        %closefile I2C_Buf
+        %<LibSetSourceFileSection(modelH_I2C,"Includes",I2C_Buf)>
+    %endif
+
+    %assign block_name =  block.Identifier
+    %assign i2cx =  SFcnParamSettings.i2cx
+    %assign handler =  SFcnParamSettings.handler
+    %assign Buffer_Size =  SFcnParamSettings.Buffer_Size
+    %assign Device_Mode =  SFcnParamSettings.Device_Mode
+    %assign Timeout = SFcnParamSettings.TimeoutValue
+    %assign Enable_Input = SFcnParamSettings.Enable_Input
+    %assign i2c_Mode = SFcnParamSettings.i2c_Mode
+    %assign Target_Register = SFcnParamSettings.Target_Register
+    %assign Error = SFcnParamSettings.Error
+    %assign CallBack = SFcnParamSettings.CallBack
+
+    %if EXISTS(::Create_%<handler>) && (::Create_%<handler> == TLC_TRUE)
+        %assign ::Create_%<handler>   = TLC_FALSE
+
+    %openfile I2C_Write_Buf
+        /* %<i2cx> handler declaration. */
+        extern I2C_HandleTypeDef %<handler>;
+    %closefile I2C_Write_Buf
+    %<LibSetSourceFileSection(modelH_I2C,"Defines",I2C_Write_Buf)>
+    %endif
+
+
+    %if(ISEQUAL(CallBack, "on"))
+        %if EXISTS(::Create_W_CALLBACK_FCN) && (::Create_W_CALLBACK_FCN == TLC_TRUE)
+            %assign ::Create_W_CALLBACK_FCN   = TLC_FALSE
+
+        %openfile I2C_Write_Buf
+        /* Blockset I2C Tx CallBack declaration. */
+        extern void (* ItCallBackTxFcn)(void);
+        %closefile I2C_Write_Buf
+        %<LibSetSourceFileSection(modelH_I2C,"Defines",I2C_Write_Buf)>
+
+        %openfile I2C_Write_Buf
+        /* Blockset I2C Tx CallBack definition. */
+        void (* ItCallBackTxFcn)(void) = NULL;
+        %closefile I2C_Write_Buf
+        %<LibSetSourceFileSection(modelC_I2C,"Defines",I2C_Write_Buf)>
+        %endif
+    %endif
+
+
+    %if(ISEQUAL(CallBack, "on"))
+        %openfile I2C_Write_Buf
+        %if(ISEQUAL(Device_Mode, "MASTER"))
+        %if EXISTS(::Create_WRITE_MASTER) && (::Create_WRITE_MASTER == TLC_TRUE)
+            %assign ::Create_WRITE_MASTER   = TLC_FALSE
+            /*******************************************************************************
+            * Function Name  : HAL_I2C_MasterTxCpltCallback
+            * Description    : Handler for I2C write complete callback
+            * Input          : None
+            *******************************************************************************/
+            void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef * hi2c)
+            {
+              if(ItCallBackTxFcn != NULL){
+                /* Call Blockset CallBack function */
+                ItCallBackTxFcn();
+              }
+            }
+        %endif
+
+        %else
+        %if EXISTS(::Create_WRITE_SLAVE) && (::Create_WRITE_SLAVE == TLC_TRUE)
+            %assign ::Create_WRITE_SLAVE  = TLC_FALSE
+            /*******************************************************************************
+            * Function Name  : HAL_I2C_SlaveTxCpltCallback
+            * Description    : Handler for I2C write complete callback
+            * Input          : None
+            *******************************************************************************/
+            void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef * hi2c)
+            {
+              if(ItCallBackTxFcn != NULL){
+                /* Call Blockset CallBack function */
+                ItCallBackTxFcn();
+              }
+            }
+        %endif
+        %endif
+        %closefile I2C_Write_Buf
+        %<LibSetSourceFileSection(modelC_I2C,"UserBottom",I2C_Write_Buf)>
+    %endif
+
+    %openfile I2C_Write_Buf
+        %if !EXISTS(::%<block_name>_TX_BUFFER_SIZE )
+            %assign ::%<block_name>_TX_BUFFER_SIZE  = TLC_TRUE
+            /* User's Defines for %<block_name> */
+            #define %<block_name>_TX_BUFFER_SIZE                      %<Buffer_Size>
+        %endif
+
+        %if (ISEQUAL(i2c_Mode, "IT"))
+            %if (ISEQUAL(Device_Mode, "MASTER"))
+              %if !EXISTS(::I2C_TIMEOUT_FLAG)
+              %assign ::I2C_TIMEOUT_FLAG  = %<Timeout>
+                #ifdef I2C_TIMEOUT_FLAG
+                #undef  I2C_TIMEOUT_FLAG
+                #define I2C_TIMEOUT_FLAG    ((uint32_t)%<Timeout>) /* %<Timeout> ms */
+                #endif
+              %elseif (::I2C_TIMEOUT_FLAG < %<Timeout>)
+              %assign ::I2C_TIMEOUT_FLAG  = %<Timeout>
+                #ifdef I2C_TIMEOUT_FLAG
+                #undef  I2C_TIMEOUT_FLAG
+                #define I2C_TIMEOUT_FLAG    ((uint32_t)%<Timeout>) /* %<Timeout> ms */
+                #endif
+              %endif
+            %endif
+
+        %elseif (ISEQUAL(i2c_Mode, "DMA_TX")|| ISEQUAL(i2c_Mode, "DMA_RX_TX")|| ISEQUAL(i2c_Mode, "DMA_RX"))
+            %if (ISEQUAL(Device_Mode, "MASTER"))
+              %if !EXISTS(::I2C_TIMEOUT_FLAG)
+              %assign ::I2C_TIMEOUT_FLAG  = %<Timeout>
+                #ifdef I2C_TIMEOUT_FLAG
+                #undef  I2C_TIMEOUT_FLAG
+                #define I2C_TIMEOUT_FLAG    ((uint32_t)%<Timeout>) /* %<Timeout> ms */
+                #endif
+              %elseif (::I2C_TIMEOUT_FLAG < %<Timeout>)
+              %assign ::I2C_TIMEOUT_FLAG  = %<Timeout>
+                #ifdef I2C_TIMEOUT_FLAG
+                #undef  I2C_TIMEOUT_FLAG
+                #define I2C_TIMEOUT_FLAG    ((uint32_t)%<Timeout>) /* %<Timeout> ms */
+                #endif
+              %endif
+            %else
+              %if !EXISTS(::I2C_TIMEOUT_ADRR_SLAVE)
+              %assign ::I2C_TIMEOUT_ADRR_SLAVE  = %<Timeout>
+                #ifdef I2C_TIMEOUT_ADRR_SLAVE
+                #undef  I2C_TIMEOUT_ADRR_SLAVE
+                #define I2C_TIMEOUT_ADRR_SLAVE  ((uint32_t)%<Timeout>) /* %<Timeout> ms */
+                #endif
+              %elseif (::I2C_TIMEOUT_ADRR_SLAVE < %<Timeout>)
+              %assign ::I2C_TIMEOUT_ADRR_SLAVE  = %<Timeout>
+                #ifdef I2C_TIMEOUT_ADRR_SLAVE
+                #undef  I2C_TIMEOUT_ADRR_SLAVE
+                #define I2C_TIMEOUT_ADRR_SLAVE  ((uint32_t)%<Timeout>) /* %<Timeout> ms */
+                #endif
+              %endif
+            %endif
+
+        %else
+                #define %<block_name>_I2C_TIMEOUT_POLLING   ((uint32_t)%<Timeout>) /* %<Timeout> ms */
+        %endif
+    %closefile I2C_Write_Buf
+    %<LibSetSourceFileSection(modelH_I2C,"Defines",I2C_Write_Buf)>
+
+
+    %if !EXISTS(::%<block_name>)
+        %assign ::%<block_name> = TLC_TRUE
+        %openfile I2C_Write_Buf
+            /* User's Data declarations for %<block_name> */
+        %if (ISEQUAL(Enable_Input, "off"))
+            %assign Data_str =  SFcnParamSettings.Data_str
+            uint8_t %<block_name>_aTxBuffer[]  = %<Data_str>;
+        %else
+            %if !%<LibIsEmpty(Target_Register)>
+                %assign Data_str = LibBlockInputSignal(0, "", "", 0)
+                uint8_t* %<block_name>_aTxBuffer  = &%<Data_str>;
+            %endif
+        %endif
+        %closefile I2C_Write_Buf
+        %<LibSetSourceFileSection(modelC_I2C,"Declarations",I2C_Write_Buf)>
+     %endif
+
+
+     %if !EXISTS(::%<block_name>_aTxBuffer)
+        %assign ::%<block_name>_aTxBuffer = TLC_TRUE
+        %openfile I2C_Write_Buf
+            /* User's Data declarations for %<block_name> */
+        %if (ISEQUAL(Enable_Input, "off"))
+            %assign Data_str =  SFcnParamSettings.Data_str
+            extern uint8_t %<block_name>_aTxBuffer[];
+        %else
+            %if !%<LibIsEmpty(Target_Register)>
+                %assign Data_str = LibBlockInputSignal(0, "", "", 0)
+                extern uint8_t* %<block_name>_aTxBuffer;
+            %endif
+        %endif
+        %closefile I2C_Write_Buf
+        %<LibSetSourceFileSection(modelH_I2C,"Declarations",I2C_Write_Buf)>
+     %endif
+
+%endfunction
+
+%% Function: Outputs ==========================================
+%% Abstract:
+%% I2C_Write input value depending on pin config
+%%
+%function Outputs(block, system) Output
+    %%model.c and model.h files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %%model_I2C.h and model_I2C.c files
+    %assign SrcBaseName_I2C = "%<SrcBaseName>_I2C"
+    %assign modelH_I2C      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_I2C)
+    %assign modelC_I2C      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_I2C)
+
+    %assign block_name =  block.Identifier
+    %assign i2c_Mode =  SFcnParamSettings.i2c_Mode
+    %assign Device_Mode =  SFcnParamSettings.Device_Mode
+    %assign Target_Address =  SFcnParamSettings.Target_Address
+    %assign handler =  SFcnParamSettings.handler
+    %assign Buffer_Size =  SFcnParamSettings.Buffer_Size
+    %assign i2cx =  SFcnParamSettings.i2cx
+    %assign Error = SFcnParamSettings.Error
+    %assign CallBack = SFcnParamSettings.CallBack
+
+    {
+
+    %if(ISEQUAL(CallBack, "on"))
+        ItCallBackTxFcn = %<block_name>_CallBack_Handler;
+    %else
+    %if EXISTS(::Create_W_CALLBACK_FCN) && (::Create_W_CALLBACK_FCN == TLC_FALSE)
+        ItCallBackTxFcn = NULL;
+    %endif
+    %endif
+
+    %if (ISEQUAL(Device_Mode, "MASTER"))
+        %if (ISEQUAL(i2c_Mode, "DMA_TX")|| ISEQUAL(i2c_Mode, "DMA_RX_TX")|| ISEQUAL(i2c_Mode, "DMA_RX"))
+            /* I2C Transmit with DMA */
+            if(HAL_I2C_Master_Transmit_DMA(&%<handler>,(uint16_t)%<Target_Address>, (uint8_t*)%<block_name>_aTxBuffer, %<block_name>_TX_BUFFER_SIZE)!= HAL_OK)
+
+        %elseif (ISEQUAL(i2c_Mode, "IT"))
+            /* I2C Transmit with IT */
+            if(HAL_I2C_Master_Transmit_IT(&%<handler>,(uint16_t)%<Target_Address>, (uint8_t*)%<block_name>_aTxBuffer, %<block_name>_TX_BUFFER_SIZE)!= HAL_OK)
+
+        %else
+            /* I2C Transmit by Polling */
+            if(HAL_I2C_Master_Transmit(&%<handler>,(uint16_t)%<Target_Address>, (uint8_t*)%<block_name>_aTxBuffer, %<block_name>_TX_BUFFER_SIZE,%<block_name>_I2C_TIMEOUT_POLLING )!= HAL_OK)
+        %endif
+
+    %else
+        %if (ISEQUAL(i2c_Mode, "DMA_TX")|| ISEQUAL(i2c_Mode, "DMA_RX_TX")|| ISEQUAL(i2c_Mode, "DMA_RX"))
+            /* I2C Transmit with DMA */
+            if(HAL_I2C_Slave_Transmit_DMA(&%<handler>, (uint8_t*)%<block_name>_aTxBuffer, %<block_name>_TX_BUFFER_SIZE)!= HAL_OK)
+
+        %elseif (ISEQUAL(i2c_Mode, "IT"))
+            /* I2C Transmit with IT */
+            if(HAL_I2C_Slave_Transmit_IT(&%<handler>, (uint8_t*)%<block_name>_aTxBuffer, %<block_name>_TX_BUFFER_SIZE)!= HAL_OK)
+
+        %else
+            /* I2C Transmit by Polling */
+            if(HAL_I2C_Slave_Transmit(&%<handler>, (uint8_t*)%<block_name>_aTxBuffer, %<block_name>_TX_BUFFER_SIZE,%<block_name>_I2C_TIMEOUT_POLLING )!= HAL_OK)
+        %endif
+    %endif
+
+            {
+                %if(ISEQUAL(Error, "on"))
+                /*  %<block_name>_Error_Handler() function is called when Timeout error occurs
+                When Acknowledge failure occurs the Master Board restarts communication */
+                if (HAL_I2C_GetError(&%<handler>) != HAL_I2C_ERROR_AF)
+                {
+                  %<block_name>_Error_Handler();
+                }
+                %else
+                /* Error not managed */
+                %endif
+            } else {
+                while (HAL_I2C_GetState(&%<handler>) != HAL_I2C_STATE_READY){}
+            }
+
+    }
+
+
+   %if(ISEQUAL(Error, "on"))
+        %openfile I2C_Write_Buf
+        /* %<block_name>_Error_Handler declaration. */
+        void %<block_name>_Error_Handler(void);
+        %closefile I2C_Write_Buf
+        %<LibSetSourceFileSection(modelH_I2C,"Defines",I2C_Write_Buf)>
+
+        %openfile I2C_Write_Buf
+        /*******************************************************************************
+        * Function Name  : %<block_name>_Error_Handler
+        * Description    : Handler for I2C Timeout error
+        * Input          : None
+        *******************************************************************************/
+        void %<block_name>_Error_Handler(void)
+        {
+            %foreach callIdx = NumSFcnSysOutputCalls
+                %if (ISEQUAL(callIdx, 0))
+                    %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                        %assign wrnTxt = "No code will be generated for Write Error  "\
+                        "since it is not connected to a system."
+                        %<LibReportWarning(wrnTxt)>
+                        %continue
+                    %endif
+                    %% call the downstream system
+                    %<LibBlockExecuteFcnCall(block, callIdx)>\
+                %endif
+            %endforeach
+        }
+        %closefile I2C_Write_Buf
+        %<LibSetSourceFileSection(modelC_I2C,"Functions",I2C_Write_Buf)>
+    %endif
+
+    %if(ISEQUAL(CallBack, "on"))
+        %openfile I2C_Write_Buf
+        /* %<block_name>_CallBack_Handler declaration. */
+        void %<block_name>_CallBack_Handler(void);
+        %closefile I2C_Write_Buf
+        %<LibSetSourceFileSection(modelH_I2C,"Defines",I2C_Write_Buf)>
+
+        %openfile I2C_Write_Buf
+        /*******************************************************************************
+        * Function Name  : %<block_name>_CallBack_Handler
+        * Description    : Function called from I2C write complete callback
+        * Input          : None
+        *******************************************************************************/
+        void %<block_name>_CallBack_Handler(void)
+        {
+            %foreach callIdx = NumSFcnSysOutputCalls
+                %if (ISEQUAL(Error,"off") && ISEQUAL(callIdx, 0))
+                    %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                        %assign wrnTxt = "No code will be generated for Write complete  "\
+                        "since it is not connected to a system."
+                        %<LibReportWarning(wrnTxt)>
+                        %continue
+                    %endif
+                    %% call the downstream system
+                    %<LibBlockExecuteFcnCall(block, callIdx)>\
+                %elseif  (ISEQUAL(Error,"on") && ISEQUAL(callIdx, 1))
+                    %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                        %assign wrnTxt = "No code will be generated for Write complete  "\
+                        "since it is not connected to a system."
+                        %<LibReportWarning(wrnTxt)>
+                        %continue
+                    %endif
+                    %% call the downstream system
+                    %<LibBlockExecuteFcnCall(block, callIdx)>\
+                %endif
+            %endforeach
+        }
+        %closefile I2C_Write_Buf
+        %<LibSetSourceFileSection(modelC_I2C,"Functions",I2C_Write_Buf)>
+    %endif
+
+%endfunction
+
+%% [EOF] I2C_Write.tlc

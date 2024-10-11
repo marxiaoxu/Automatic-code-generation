@@ -1,0 +1,1289 @@
+%% Abstract: ADC Read
+%%    STM32 ADC Read input value from ADCx.
+%%    Generated code is based on STM32 HAL Library files.
+%%
+%assign CodeFormat = "Embedded-C"
+%implements ADC_Read "C"
+
+%include "FunctionCalledAsChart.tlc"
+
+%%warning "---------->Start ADC_READ"
+
+%if !EXISTS(::InsertIncludesToADC)
+    %assign ::InsertIncludesToADC = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertIncludesFromADC)
+    %assign ::InsertIncludesFromADC = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertADC)
+    %assign ::InsertADC = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertItRegADC)
+    %assign ::InsertItRegADC = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertDmaRegADC)
+    %assign ::InsertDmaRegADC = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertItInjADC)
+    %assign ::InsertItInjADC = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertAwdItADC)
+    %assign ::InsertAwdItADC = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertOvrItADC)
+    %assign ::InsertOvrItADC = TLC_TRUE
+%endif
+
+%assign ADC_Name = SFcnParamSettings.ADC_Name
+
+%if !EXISTS(::VarDef_%<ADC_Name>)
+    %assign ::VarDef_%<ADC_Name> = TLC_TRUE
+%endif
+
+%if !EXISTS(::Initialization_%<ADC_Name>)
+    %assign ::Initialization_%<ADC_Name> = TLC_TRUE
+%endif
+
+%if !EXISTS(::ItEOCFcn_%<ADC_Name>)
+    %assign ::ItEOCFcn_%<ADC_Name> = TLC_TRUE
+%endif
+%if !EXISTS(::ItJEOCFcn_%<ADC_Name>)
+    %assign ::ItJEOCFcn_%<ADC_Name> = TLC_TRUE
+%endif
+%if !EXISTS(::ItAWDFcn_%<ADC_Name>)
+    %assign ::ItAWDFcn_%<ADC_Name> = TLC_TRUE
+%endif
+%if !EXISTS(::ItOVRFcn_%<ADC_Name>)
+    %assign ::ItOVRFcn_%<ADC_Name> = TLC_TRUE
+%endif
+%if !EXISTS(::ItDMAFullFcn_%<ADC_Name>)
+    %assign ::ItDMAFullFcn_%<ADC_Name> = TLC_TRUE
+%endif
+%if !EXISTS(::ItDMAHalfFullFcn_%<ADC_Name>)
+    %assign ::ItDMAHalfFullFcn_%<ADC_Name> = TLC_TRUE
+%endif
+
+%if !EXISTS(::Start_%<ADC_Name>)
+    %assign ::Start_%<ADC_Name> = TLC_TRUE
+%endif
+
+%% For DEBUG purposes only.
+%assign ::ADC_IT_GENERATE_DEBUG_COUNTER = TLC_FALSE
+%assign ::ADC_DEBUG_HAL_TICK_COUNTER = TLC_FALSE
+
+%% Code for ADC initialization:
+%function Start(block,system) Output
+    %assign ADC_Name = SFcnParamSettings.ADC_Name
+    %assign NbADC = SFcnParamSettings.NbADC
+    %assign DmaReq = SFcnParamSettings.DmaReq
+    %assign DMA_Buffer_Length = SFcnParamSettings.DMA_Buffer_Length
+
+    %assign ItReq = SFcnParamSettings.ItReq
+    %assign ADC_RegNb = SFcnParamSettings.ADC_RegNb
+    %assign ADC_InjNb = SFcnParamSettings.ADC_InjNb
+    %assign ADC_NbTotCh = ADC_RegNb + ADC_InjNb
+    %assign adcNum = IDNUM("%<ADC_Name>")[1]
+
+    %assign AWD_Mode = SFcnParamSettings.AWD_Mode
+    %assign AWD_Ch = SFcnParamSettings.AWD_Ch
+    %assign AWD_HThres = SFcnParamSettings.AWD_HThres
+    %assign AWD_LThres = SFcnParamSettings.AWD_LThres
+    %assign AWD_En_Int = SFcnParamSettings.AWD_En_Int
+    %assign EOC_SEQ = SFcnParamSettings.EOC_SEQ
+    %assign EOC_IT = SFcnParamSettings.EOC_IT
+    %assign JEOC_IT = SFcnParamSettings.JEOC_IT
+    %assign AWD_IT = SFcnParamSettings.AWD_IT
+    %assign OVR_IT = SFcnParamSettings.OVR_IT
+    %assign CpltTrans = SFcnParamSettings.CpltTrans
+    %assign HalfTrans = SFcnParamSettings.HalfTrans
+
+    %% %warning SFcnParamSettings: %<SFcnParamSettings>
+
+%if !EXISTS(::Initialization_%<ADC_Name>) || (::Initialization_%<ADC_Name> == TLC_TRUE)
+    %assign ::Initialization_%<ADC_Name> = TLC_FALSE
+
+%openfile ADC_Buf
+{
+            /* %<ADC_Name> initialization. */
+            /* Store %<ADC_Name> informations and its handler. */
+      %if (NbADC > 1)
+            G_ADC_Conf[G_ADC_Count] = &%<ADC_Name>_Conf;
+            G_ADC_Handler[G_ADC_Count] = &hadc%<adcNum>;
+            G_ADC_Count++;
+      %else
+            G_ADC_Conf = &%<ADC_Name>_Conf;
+            G_ADC_Handler = &hadc%<adcNum>;
+      %endif
+
+      %if (ADC_RegNb > 0)
+            %if ISEQUAL(DmaReq, "on")
+            /* %<ADC_Name> Regular channel DMA buffer pointer initialization. */
+            %<ADC_Name>_DmaBuff = &%<ADC_Name>_RegularConvertedValue[0];
+            /* %<ADC_Name> Regular channel DMA Half transfer complete buffer pointer initialization. */
+            %<ADC_Name>_DmaHalf = &%<ADC_Name>_RegularConvertedValue[0];
+
+            /* %<ADC_Name> Regular channel DMA Full transfer complete buffer pointer initialization. */
+            %<ADC_Name>_DmaFull = \
+            &%<ADC_Name>_RegularConvertedValue[(%<ADC_Name>_DMA_BUFF_SIZE>1) ? (%<ADC_Name>_DMA_BUFF_SIZE/2-1) : 0];
+
+            /* %<ADC_Name> DMA buffer size. */
+            %<ADC_Name>_Conf.dmaBuffSize = %<ADC_Name>_DMA_BUFF_SIZE;
+            %endif
+            %<ADC_Name>_Conf.regularBuffer = %<ADC_Name>_RegularConvertedValue;
+            %<ADC_Name>_Conf.regularCount = %<ADC_RegNb>;
+      %endif
+
+      %if (ADC_InjNb > 0)
+        %if (ISEQUAL(DmaReq, "on")||ISEQUAL(ItReq, "on"))
+            %<ADC_Name>_Conf.injectedBuffer = %<ADC_Name>_InjectedConvertedValue;
+        %endif
+            %<ADC_Name>_Conf.injectedCount = %<ADC_InjNb>;
+      %endif
+
+      %if (ISEQUAL(DmaReq, "on"))
+            /* DMA acquisition mode. */
+            %<ADC_Name>_Conf.dmaUsed = true;
+      %endif
+
+      %if (ISEQUAL(EOC_SEQ, "on"))
+            /* EOS/JEOS at end of all conversions. */
+            %<ADC_Name>_Conf.IntEndOfAllConv = true;
+      %endif
+}
+%closefile ADC_Buf
+%<LibMdlStartCustomCode(ADC_Buf,"declaration")>
+%endif
+
+%openfile ADC_Buf
+%%{
+    %if (ISEQUAL(EOC_IT, "on"))
+        %if !EXISTS(::ItEOCFcn_%<ADC_Name>) || (::ItEOCFcn_%<ADC_Name> == TLC_TRUE)
+        %assign ::ItEOCFcn_%<ADC_Name> = TLC_FALSE
+        /* Update End of Conversion interrupt function. */
+        %<ADC_Name>_Conf.ItEOCFcn = %<ADC_Name>_ItEOCFcn;
+        %else
+        %exit Multiple %<ADC_Name> ADC_Read block: Update End of Conversion interrupt already used.
+        %endif
+    %endif
+    %if (ISEQUAL(JEOC_IT, "on"))
+        %if !EXISTS(::ItJEOCFcn_%<ADC_Name>) || (::ItJEOCFcn_%<ADC_Name> == TLC_TRUE)
+        %assign ::ItJEOCFcn_%<ADC_Name> = TLC_FALSE
+        /* Update Injected End of Conversion interrupt function. */
+        %<ADC_Name>_Conf.ItJEOCFcn = %<ADC_Name>_ItJEOCFcn;
+        %else
+        %exit Multiple %<ADC_Name> ADC_Read block: Update Injected End of Conversion interrupt already used.
+        %endif
+    %endif
+    %if (ISEQUAL(AWD_IT, "on"))
+        %if !EXISTS(::ItAWDFcn_%<ADC_Name>) || (::ItAWDFcn_%<ADC_Name> == TLC_TRUE)
+        %assign ::ItAWDFcn_%<ADC_Name> = TLC_FALSE
+       /* Update Analog Watchdog interrupt function. */
+        %<ADC_Name>_Conf.ItAWDFcn = %<ADC_Name>_ItAWDFcn;
+        %else
+        %exit Multiple %<ADC_Name> ADC_Read block: Update Analog Watchdog interrupt already used.
+        %endif
+    %endif
+    %if (ISEQUAL(OVR_IT, "on"))
+        %if !EXISTS(::ItOVRFcn_%<ADC_Name>) || (::ItOVRFcn_%<ADC_Name> == TLC_TRUE)
+        %assign ::ItOVRFcn_%<ADC_Name> = TLC_FALSE
+        /* Update Overrun interrupt function. */
+        %<ADC_Name>_Conf.ItOVRFcn = %<ADC_Name>_ItOVRFcn;
+        %else
+        %exit Multiple %<ADC_Name> ADC_Read block: Update Overrun interrupt already used.
+        %endif
+    %endif
+    %if (ISEQUAL(CpltTrans, "on"))
+        %if !EXISTS(::ItDMAFullFcn_%<ADC_Name>) || (::ItDMAFullFcn_%<ADC_Name> == TLC_TRUE)
+        %assign ::ItDMAFullFcn_%<ADC_Name> = TLC_FALSE
+        /* Update DMA transfer complete interrupt function. */
+        %<ADC_Name>_Conf.ItDMAFullFcn = %<ADC_Name>_ItDMAFullFcn;
+        %else
+        %exit Multiple %<ADC_Name> ADC_Read block: Update DMA transfer complete interrupt already used.
+        %endif
+    %endif
+    %if (ISEQUAL(HalfTrans, "on"))
+        %if !EXISTS(::ItDMAHalfFullFcn_%<ADC_Name>) || (::ItDMAHalfFullFcn_%<ADC_Name> == TLC_TRUE)
+        %assign ::ItDMAHalfFullFcn_%<ADC_Name> = TLC_FALSE
+        /* Update DMA Half transfer complete interrupt function. */
+        %<ADC_Name>_Conf.ItDMAHalfFullFcn = %<ADC_Name>_ItDMAHalfFullFcn;
+        %else
+        %exit Multiple %<ADC_Name> ADC_Read block: Update DMA Half transfer complete interrupt already used.
+        %endif
+    %endif
+%%}
+%closefile ADC_Buf
+%<LibMdlStartCustomCode(ADC_Buf,"declaration")>
+
+%if !EXISTS(::Start_%<ADC_Name>) || (::Start_%<ADC_Name> == TLC_TRUE)
+    %assign ::Start_%<ADC_Name> = TLC_FALSE
+%openfile ADC_Buf
+{
+        /* %<ADC_Name> Start. */
+    %if (ISEQUAL(DmaReq, "on"))
+        /* Start DMA conversion for %<ADC_Name> regular channel. */
+        HAL_ADC_Start_DMA(&hadc%<adcNum>, (uint32_t*)&%<ADC_Name>_RegularConvertedValue[0], %<ADC_Name>_DMA_BUFF_SIZE);
+    %elseif (ISEQUAL(ItReq, "on"))
+        %if (ADC_RegNb > 0)
+        /* Start interrupt conversion for %<ADC_Name> regular channel. */
+        HAL_ADC_Start_IT(&hadc%<adcNum>);
+        %endif
+        %if (ADC_InjNb > 0)
+        /* Start interrupt conversion for %<ADC_Name> injected channel. */
+        HAL_ADCEx_InjectedStart_IT(&hadc%<adcNum>);
+        %endif
+    %else
+        %if (ADC_RegNb > 0)
+        /* Start %<ADC_Name> conversion. */
+        HAL_ADC_Start(&hadc%<adcNum>);
+        %endif
+        %if (ADC_InjNb > 0)
+        /* Start conversion for %<ADC_Name> injected channel. */
+        HAL_ADCEx_InjectedStart(&hadc%<adcNum>);
+        %endif
+    %endif
+}
+%closefile ADC_Buf
+%<LibMdlStartCustomCode(ADC_Buf,"execution")>
+%endif
+
+%endfunction
+
+
+%% Code for ADC configuration call:
+%function BlockInstanceSetup(block, system) void
+    %%addtorecord block AsyncCallerGenCode TLC_TRUE
+
+    %%model.c and model.h files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+    %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+
+    %%model_ADC.h and model_ADC.c files
+    %assign SrcBaseName_ADC = "%<SrcBaseName>_ADC"
+    %assign modelH_ADC      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_ADC)
+    %assign modelC_ADC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_ADC)
+
+    %%Include model.h to model_ADC.c
+    %if EXISTS(::InsertIncludesToADC) && (::InsertIncludesToADC == TLC_TRUE)
+        %assign ::InsertIncludesToADC = TLC_FALSE
+        %openfile ADC_Buf
+            #include "%<SrcBaseName>.h"
+            #include "%<SrcBaseName_ADC>.h"
+        %closefile ADC_Buf
+        %<LibSetSourceFileSection(modelC_ADC,"Includes",ADC_Buf)>
+    %endif
+
+    %%AND Include model_ADC.h to model.c
+    %if EXISTS(::InsertIncludesFromADC) && (::InsertIncludesFromADC == TLC_TRUE)
+        %assign ::InsertIncludesFromADC = TLC_FALSE
+        %openfile ADC_Buf
+            #include "%<SrcBaseName_ADC>.h"
+        %closefile ADC_Buf
+        %<LibSetSourceFileSection(modelH,"Includes",ADC_Buf)>
+
+        %openfile ADC_Buf
+            #include "STM32_Config.h"
+        %closefile ADC_Buf
+        %<LibSetSourceFileSection(modelH_ADC,"Includes",ADC_Buf)>
+    %endif
+
+    %%Then build model_ADC.h and model_ADC.c
+    %assign ADC_Name = SFcnParamSettings.ADC_Name
+    %assign NbADC = SFcnParamSettings.NbADC
+    %assign DmaReq = SFcnParamSettings.DmaReq
+    %assign DMA_Buffer_Length = SFcnParamSettings.DMA_Buffer_Length
+    %assign ItReq = SFcnParamSettings.ItReq
+    %assign ADC_RegNb = SFcnParamSettings.ADC_RegNb
+    %assign ADC_InjNb = SFcnParamSettings.ADC_InjNb
+    %assign ADC_NbTotCh = %<ADC_RegNb> + %<ADC_InjNb>
+
+    %assign AWD_Mode = SFcnParamSettings.AWD_Mode
+    %assign AWD_Ch = SFcnParamSettings.AWD_Ch
+    %assign AWD_HThres = SFcnParamSettings.AWD_HThres
+    %assign AWD_LThres = SFcnParamSettings.AWD_LThres
+    %assign AWD_En_Int = SFcnParamSettings.AWD_En_Int
+    %assign EOC_SEQ = SFcnParamSettings.EOC_SEQ
+    %assign EOC_IT = SFcnParamSettings.EOC_IT
+    %assign JEOC_IT = SFcnParamSettings.JEOC_IT
+    %assign AWD_IT = SFcnParamSettings.AWD_IT
+    %assign OVR_IT = SFcnParamSettings.OVR_IT
+    %assign CpltTrans = SFcnParamSettings.CpltTrans
+    %assign HalfTrans = SFcnParamSettings.HalfTrans
+
+    %%warning "---------->ADC_Name: %<ADC_Name> NbADC:%<NbADC>"
+
+
+    %% Code for required ADC external definition: in model_ADC.c file
+    %assign adcNum = IDNUM("%<ADC_Name>")[1]
+
+%if !EXISTS(::%<ADC_Name>_DMA_BUFF_SIZE)
+    %assign ::%<ADC_Name>_DMA_BUFF_SIZE = %<DMA_Buffer_Length>
+    %openfile ADC_Buf
+    #define %<ADC_Name>_DMA_BUFF_SIZE %<DMA_Buffer_Length>
+    %closefile ADC_Buf
+    %%<LibSetSourceFileSection(modelH_ADC,"Defines",ADC_Buf)>
+    %<LibSetSourceFileSection(modelH_ADC,"Includes",ADC_Buf)>
+%else
+    %if (%<DMA_Buffer_Length> > ::%<ADC_Name>_DMA_BUFF_SIZE)
+        %assign ::%<ADC_Name>_DMA_BUFF_SIZE = %<DMA_Buffer_Length>
+    %openfile ADC_Buf
+    #undef %<ADC_Name>_DMA_BUFF_SIZE
+    #define %<ADC_Name>_DMA_BUFF_SIZE %<DMA_Buffer_Length>
+    %closefile ADC_Buf
+    %<LibSetSourceFileSection(modelH_ADC,"Includes",ADC_Buf)>
+    %endif
+%endif
+
+
+%if EXISTS(::InsertADC) && (::InsertADC == TLC_TRUE)
+    %assign ::InsertADC = TLC_FALSE
+%openfile ADC_Buf
+    /**
+     * @brief  ADC information
+     */
+     typedef struct {
+     uint16_t* regularBuffer;   /*!< Regular buffer for converted value. */
+     uint32_t  regularCount;    /*!< Number of regular channel. */
+     uint32_t  regularRank;     /*!< Regular current rank. */
+     uint16_t* injectedBuffer;  /*!< Injected buffer for converted value. */
+     uint32_t  injectedCount;   /*!< Number of injected channel. */
+     uint32_t  injectedRank;    /*!< Injected current rank. */
+     uint32_t  dmaBuffSize;     /*!< Buffer size for DMA acquisition. */
+     uint8_t   dmaUsed;         /*!< DMA acquisition mode. */
+     uint8_t   IntEndOfAllConv; /*!< EOS/JEOS Int at end of all conversions. */
+     void (* ItEOCFcn)(void);
+     void (* ItJEOCFcn)(void);
+     void (* ItAWDFcn)(void);
+     void (* ItOVRFcn)(void);
+     void (* ItDMAFullFcn)(void);
+     void (* ItDMAHalfFullFcn)(void);
+    } ADC_ConfTypeDef;
+
+    %if (NbADC > 1)
+    /* Number of ADC configured. */
+    extern uint16_t G_ADC_Count;
+
+    /* Array of ADC informations. */
+    extern ADC_ConfTypeDef* G_ADC_Conf[%<NbADC>];
+    extern ADC_HandleTypeDef* G_ADC_Handler[%<NbADC>];
+    %else
+    /* Pointer to ADC informations. */
+    extern ADC_ConfTypeDef* G_ADC_Conf;
+
+    /* Pointer to ADC handler. */
+    extern ADC_HandleTypeDef* G_ADC_Handler;
+    %endif
+%closefile ADC_Buf
+%<LibSetSourceFileSection(modelH_ADC,"Defines",ADC_Buf)>
+
+%openfile ADC_Buf
+    %if (NbADC > 1)
+    /* Number of ADC configured. */
+    uint16_t G_ADC_Count = 0;
+    /* Array of ADC informations. */
+    ADC_ConfTypeDef* G_ADC_Conf[%<NbADC>];
+    ADC_HandleTypeDef* G_ADC_Handler[%<NbADC>];
+    %else
+    /* Pointer to ADC informations. */
+    ADC_ConfTypeDef* G_ADC_Conf;
+    /* Pointer to ADC handler. */
+    ADC_HandleTypeDef* G_ADC_Handler;
+    %endif
+%closefile ADC_Buf
+%<LibSetSourceFileSection(modelC_ADC,"Defines",ADC_Buf)>
+%endif
+
+%if !EXISTS(::VarDef_%<ADC_Name>) || (::VarDef_%<ADC_Name> == TLC_TRUE)
+    %assign ::VarDef_%<ADC_Name> = TLC_FALSE
+
+    %openfile ADC_Buf
+        /* %<ADC_Name> handler. */
+        extern ADC_HandleTypeDef hadc%<adcNum>;
+        %%test for DMA handler
+        %if (ISEQUAL(DmaReq, "on"))
+        extern DMA_HandleTypeDef hdma_adc%<adcNum>;
+        %endif
+    %closefile ADC_Buf
+    %<LibSetSourceFileSection(modelH_ADC,"Defines",ADC_Buf)>
+
+    %%Buffer for Regular channels creation
+    %if (ADC_RegNb > 0)
+        %if ISEQUAL(DmaReq, "on")
+        %openfile ADC_Buf
+        /* %<ADC_Name> Regular channel Converted value DMA buffer */
+        uint16_t %<ADC_Name>_RegularConvertedValue[%<ADC_Name>_DMA_BUFF_SIZE];
+        /* %<ADC_Name> Regular channel DMA buffer pointer*/
+        uint16_t* %<ADC_Name>_DmaBuff;
+        /* %<ADC_Name> Regular channel DMA Half transfer complete buffer pointer*/
+        uint16_t* %<ADC_Name>_DmaHalf;
+        /* %<ADC_Name> Regular channel DMA Full transfer complete buffer pointer*/
+        uint16_t* %<ADC_Name>_DmaFull;
+        %closefile ADC_Buf
+        %<LibSetSourceFileSection(modelC_ADC,"Defines",ADC_Buf)>
+
+        %openfile ADC_Buf
+        /* %<ADC_Name> Regular channel Converted value DMA buffer */
+        extern uint16_t %<ADC_Name>_RegularConvertedValue[%<ADC_Name>_DMA_BUFF_SIZE];
+        /* %<ADC_Name> Regular channel DMA buffer pointer*/
+        extern uint16_t* %<ADC_Name>_DmaBuff;
+        /* %<ADC_Name> Regular channel DMA Half transfer complete buffer pointer*/
+        extern uint16_t* %<ADC_Name>_DmaHalf;
+        /* %<ADC_Name> Regular channel DMA Full transfer complete buffer pointer*/
+        extern uint16_t* %<ADC_Name>_DmaFull;
+        %closefile ADC_Buf
+        %<LibSetSourceFileSection(modelH_ADC,"Defines",ADC_Buf)>
+
+        %else
+        %openfile ADC_Buf
+        /* %<ADC_Name> Regular channel Converted value buffer */
+        uint16_t %<ADC_Name>_RegularConvertedValue[%<ADC_RegNb>];
+        %closefile ADC_Buf
+        %<LibSetSourceFileSection(modelC_ADC,"Defines",ADC_Buf)>
+        %openfile ADC_Buf
+        /* %<ADC_Name> Regular channel Converted value buffer */
+        extern uint16_t %<ADC_Name>_RegularConvertedValue[%<ADC_RegNb>];
+        %closefile ADC_Buf
+        %<LibSetSourceFileSection(modelH_ADC,"Defines",ADC_Buf)>
+        %endif
+    %endif
+
+    %%Buffer for Injected channels creation
+    %if (ADC_InjNb > 0)
+        %openfile ADC_Buf
+        /* %<ADC_Name> Injected channel Converted value buffer */
+        uint16_t %<ADC_Name>_InjectedConvertedValue[%<ADC_InjNb>];
+        %closefile ADC_Buf
+        %<LibSetSourceFileSection(modelC_ADC,"Defines",ADC_Buf)>
+        %openfile ADC_Buf
+       /* %<ADC_Name> Injected channel Converted value buffer */
+        extern uint16_t %<ADC_Name>_InjectedConvertedValue[%<ADC_InjNb>];
+        %closefile ADC_Buf
+        %<LibSetSourceFileSection(modelH_ADC,"Defines",ADC_Buf)>
+    %endif
+
+        %openfile ADC_Buf
+        /* %<ADC_Name> informations. */
+        ADC_ConfTypeDef %<ADC_Name>_Conf = {
+          /* Regular channels. */
+          NULL,0,0,
+          /* Injected channels. */
+          NULL,0,ADC_INJECTED_RANK_1,
+          /* Dma. */
+          0,false,
+          /* End of conversion. */
+          false,
+          /* Interrupts callbacks. */
+          NULL,NULL,NULL,NULL,NULL,NULL
+        };
+        %if (ISEQUAL(ItReq, "on") == TLC_FALSE && ISEQUAL(DmaReq, "on") == TLC_FALSE)
+        /* %<ADC_Name> polling timeout value. Number of Solver loop. (can be changed)*/
+        uint32_t G_%<ADC_Name>_PollTimeOut = 10;
+        %endif
+        %closefile ADC_Buf
+        %<LibSetSourceFileSection(modelC_ADC,"Defines",ADC_Buf)>
+
+        %openfile ADC_Buf
+        /* %<ADC_Name> informations. */
+        extern ADC_ConfTypeDef %<ADC_Name>_Conf;
+        %if (ISEQUAL(ItReq, "on") == TLC_FALSE && ISEQUAL(DmaReq, "on") == TLC_FALSE)
+        /* %<ADC_Name> polling timeout value. Number of Solver loop. (can be changed)*/
+        extern uint32_t G_%<ADC_Name>_PollTimeOut;
+        %endif
+        %closefile ADC_Buf
+        %<LibSetSourceFileSection(modelH_ADC,"Defines",ADC_Buf)>
+%endif
+
+
+%%Callback function for IT conversion
+%if (ISEQUAL(ItReq, "on") || ISEQUAL(DmaReq, "on"))
+
+    %%For regular channels
+    %if (ADC_RegNb > 0) && EXISTS(::InsertItRegADC) && (::InsertItRegADC == TLC_TRUE)
+        %assign ::InsertItRegADC = TLC_FALSE
+ %openfile ADC_Buf
+        /**
+         * @brief  Conversion complete callback in non-blocking mode.
+         * @param hadc ADC handle
+         * @retval None
+         */
+        void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+        {
+          ADC_ConfTypeDef* pConf;
+          ADC_HandleTypeDef* pHandler;
+
+%if ::ADC_IT_GENERATE_DEBUG_COUNTER == TLC_TRUE
+          /* For debug. */
+          static volatile uint32_t DEBUG_%<ADC_Name>_ConvCplt_ItFcnCount = 0;
+          DEBUG_%<ADC_Name>_ConvCplt_ItFcnCount++;\
+%endif
+%if ::ADC_DEBUG_HAL_TICK_COUNTER == TLC_TRUE
+          static volatile uint32_t DEBUG_%<ADC_Name>_HAL_Tick_Count = 0;
+          DEBUG_%<ADC_Name>_HAL_Tick_Count = HAL_GetTick();
+%endif
+
+          %if (NbADC > 1)
+          {
+            uint16_t idx;
+            for(idx = 0; idx < %<NbADC>; idx++) {
+              pHandler = G_ADC_Handler[idx];
+              if(pHandler == hadc) {
+                pConf = G_ADC_Conf[idx];
+                break;
+              }
+            }
+          }
+          %else
+          pConf = G_ADC_Conf;
+          pHandler = G_ADC_Handler;
+          %endif
+
+          if(pHandler == hadc) {
+            if(pConf->dmaUsed == false) {
+              /* Process It for current received channel. */
+              /* Store converted value of current regular channel. */
+              pConf->regularBuffer[pConf->regularRank] = (uint16_t)HAL_ADC_GetValue(hadc);
+              /* Increment rank for next conversion. */
+              pConf->regularRank++;
+              /* Test for max conversion channel number */
+              if(pConf->regularRank >= pConf->regularCount){
+                pConf->regularRank = 0;
+              }
+            }
+            if(pConf->ItEOCFcn != NULL){
+              /* Call End Of Conversion function */
+              pConf->ItEOCFcn();
+            }
+            if(pConf->dmaUsed == true) {
+              if(pConf->ItDMAFullFcn != NULL){
+                /* Call DMA transfer complete function */
+                pConf->ItDMAFullFcn();
+              }
+              %%/* Re-start DMA acquisition */
+              %%HAL_ADC_Start_DMA(hadc, (uint32_t*)pConf->regularBuffer,pConf->dmaBuffSize);
+            }
+          }
+        }
+ %closefile ADC_Buf
+ %<LibSetSourceFileSection(modelC_ADC,"Functions",ADC_Buf)>
+    %endif
+
+    %%For injected channels
+    %if (ADC_InjNb > 0) && EXISTS(::InsertItInjADC) && (::InsertItInjADC == TLC_TRUE)
+        %assign ::InsertItInjADC = TLC_FALSE
+%openfile ADC_Buf
+        /**
+         * @brief  Injected conversion complete callback in non-blocking mode.
+         * @param hadc ADC handle
+         * @retval None
+         */
+        void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
+        {
+          ADC_ConfTypeDef* pConf;
+          ADC_HandleTypeDef* pHandler;
+
+%if ::ADC_IT_GENERATE_DEBUG_COUNTER == TLC_TRUE
+          /* For debug. */
+          static volatile uint32_t DEBUG_%<ADC_Name>_InjectedConvCplt_ItFcnCount = 0;
+          DEBUG_%<ADC_Name>_InjectedConvCplt_ItFcnCount++;
+%endif
+
+        %if (NbADC > 1)
+          {
+            uint16_t idx;
+            for(idx = 0;idx < %<NbADC>;idx++) {
+              pHandler = G_ADC_Handler[idx];
+              if(pHandler == hadc) {
+                pConf = G_ADC_Conf[idx];
+                break;
+              }
+            }
+          }
+        %else
+          pConf = G_ADC_Conf;
+          pHandler = G_ADC_Handler;
+        %endif
+
+          if(pHandler == hadc) {
+            if (pConf->IntEndOfAllConv == true) {
+              uint16_t idx;
+              /* Store converted values for all Injected channels. */
+              for(idx=ADC_INJECTED_RANK_1; idx<=pConf->injectedCount; idx++) {
+                pConf->injectedBuffer[idx-1] = (uint16_t)HAL_ADCEx_InjectedGetValue(hadc, idx);
+              }
+            }else{
+              /* Store converted value of current Injected channel. */
+              pConf->injectedBuffer[pConf->injectedRank] = (uint16_t)HAL_ADCEx_InjectedGetValue(hadc, pConf->injectedRank);
+              /*Increment rank for next conversion*/
+              pConf->injectedRank++;
+              /* Test for max conversion channel number */
+              if(pConf->injectedRank >= pConf->injectedCount){
+                pConf->injectedRank = ADC_INJECTED_RANK_1;
+              }
+            }
+            if(pConf->ItJEOCFcn != NULL){
+              /* Call Injected End Of Conversion function. */
+              pConf->ItJEOCFcn();
+            }
+          }
+        }
+%closefile ADC_Buf
+%<LibSetSourceFileSection(modelC_ADC,"Functions",ADC_Buf)>
+    %endif
+
+%endif
+%%For regular channels and DMA acquisition
+%if (ISEQUAL(DmaReq, "on") && (ADC_RegNb > 0) && EXISTS(::InsertDmaRegADC) && (::InsertDmaRegADC == TLC_TRUE))
+        %assign ::InsertDmaRegADC = TLC_FALSE
+%openfile ADC_Buf
+        /**
+         * @brief  Conversion DMA half-transfer callback in non-blocking mode.
+         * @param hadc ADC handle
+         * @retval None
+         */
+        void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc)
+        {
+          ADC_ConfTypeDef* pConf;
+          ADC_HandleTypeDef* pHandler;
+
+%if ::ADC_IT_GENERATE_DEBUG_COUNTER == TLC_TRUE
+          /* For debug. */
+          static volatile uint32_t DEBUG_%<ADC_Name>_ConvHalfCplt_ItFcnCount = 0;
+          DEBUG_%<ADC_Name>_ConvHalfCplt_ItFcnCount++;
+%endif
+
+          %if (NbADC > 1)
+          {
+            uint16_t idx;
+            for(idx = 0;idx < %<NbADC>;idx++) {
+              pHandler = G_ADC_Handler[idx];
+              if(pHandler == hadc) {
+                pConf = G_ADC_Conf[idx];
+                break;
+              }
+            }
+          }
+          %else
+          pConf = G_ADC_Conf;
+          pHandler = G_ADC_Handler;
+          %endif
+
+          if(pHandler == hadc) {
+            if(pConf->ItDMAHalfFullFcn != NULL){
+               /* Call DMA Half transfer complete function */
+               pConf->ItDMAHalfFullFcn();
+            }
+          }
+        }
+%closefile ADC_Buf
+%<LibSetSourceFileSection(modelC_ADC,"Functions",ADC_Buf)>
+%endif
+
+%%Callback function for AWD IT
+%if (ISEQUAL(AWD_IT, "on") && EXISTS(::InsertAwdItADC) && (::InsertAwdItADC == TLC_TRUE))
+    %assign ::InsertAwdItADC = TLC_FALSE
+%openfile ADC_Buf
+        /**
+         * @brief  Analog watchdog 1 callback in non-blocking mode.
+         * @param hadc ADC handle
+         * @retval None
+         */
+        void HAL_ADC_LevelOutOfWindowCallback(ADC_HandleTypeDef* hadc)
+        {
+          ADC_ConfTypeDef* pConf;
+          ADC_HandleTypeDef* pHandler;
+
+          %if (NbADC > 1)
+          {
+            uint16_t idx;
+            for(idx = 0; idx < %<NbADC>; idx++) {
+              pHandler = G_ADC_Handler[idx];
+              if(pHandler == hadc) {
+                pConf = G_ADC_Conf[idx];
+                break;
+              }
+            }
+          }
+          %else
+          pConf = G_ADC_Conf;
+          pHandler = G_ADC_Handler;
+          %endif
+
+          if(pHandler == hadc) {
+            if(pConf->ItAWDFcn != NULL){
+              /* Call Analog Watchdog function. */
+              pConf->ItAWDFcn();
+            }
+          }
+        }
+%closefile ADC_Buf
+%<LibSetSourceFileSection(modelC_ADC,"Functions",ADC_Buf)>
+%endif
+
+%%Callback function for OVR IT
+%if ((ISEQUAL(OVR_IT, "on") && EXISTS(::InsertOvrItADC) && (::InsertOvrItADC == TLC_TRUE)))
+    %assign ::InsertOvrItADC = TLC_FALSE
+%openfile ADC_Buf
+        /**
+         * @brief  ADC error callback in non-blocking mode
+         *         (ADC conversion with interruption or transfer by DMA).
+         * @param hadc ADC handle
+         * @retval None
+         */
+        void HAL_ADC_ErrorCallback(ADC_HandleTypeDef* hadc)
+        {
+          ADC_ConfTypeDef* pConf;
+          ADC_HandleTypeDef* pHandler;
+
+%if ::ADC_IT_GENERATE_DEBUG_COUNTER == TLC_TRUE
+          /* For debug. */
+          static volatile uint32_t DEBUG_%<ADC_Name>_Error_ItFcnCount = 0;
+          DEBUG_%<ADC_Name>_Error_ItFcnCount++;
+%endif
+          %if (NbADC > 1)
+          {
+            uint16_t idx = 0;
+
+            for(idx = 0; idx < %<NbADC>; idx++) {
+              pHandler = G_ADC_Handler[idx];
+              if(pHandler == hadc) {
+                pConf = G_ADC_Conf[idx];
+                break;
+              }
+            }
+          }
+          %else
+          pConf = G_ADC_Conf;
+          pHandler = G_ADC_Handler;
+          %endif
+
+          if(pHandler == hadc) {
+            if(pConf->ItOVRFcn != NULL){
+              /* Call Overrun function. */
+              pConf->ItOVRFcn();
+            }
+          }
+        }
+%closefile ADC_Buf
+%<LibSetSourceFileSection(modelC_ADC,"Functions",ADC_Buf)>
+%endif
+
+%endfunction
+
+
+%% Function: Outputs ==========================================
+%%
+%function Outputs(block, system) Output
+
+    %%model.h and model.c files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+    %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+
+    %%model_ADC.h and model_ADC.c files
+    %assign SrcBaseName_ADC = "%<SrcBaseName>_ADC"
+    %assign modelH_ADC      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_ADC)
+    %assign modelC_ADC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_ADC)
+
+    %assign ADC_Name = SFcnParamSettings.ADC_Name
+    %assign DmaReq = SFcnParamSettings.DmaReq
+    %assign DMA_Buffer_Length = SFcnParamSettings.DMA_Buffer_Length
+    %assign ItReq = SFcnParamSettings.ItReq
+    %assign ADC_RegNb = SFcnParamSettings.ADC_RegNb
+    %assign ADC_InjNb = SFcnParamSettings.ADC_InjNb
+    %assign adcNum = IDNUM("%<ADC_Name>")[1]
+    %assign EOC_SEQ = SFcnParamSettings.EOC_SEQ
+    %assign EOC_IT = SFcnParamSettings.EOC_IT
+    %assign JEOC_IT = SFcnParamSettings.JEOC_IT
+    %assign AWD_IT = SFcnParamSettings.AWD_IT
+    %assign OVR_IT = SFcnParamSettings.OVR_IT
+    %assign CpltTrans = SFcnParamSettings.CpltTrans
+    %assign HalfTrans = SFcnParamSettings.HalfTrans
+    %assign RgRk1 = SFcnParamSettings.RgRk1
+    %assign RgRk2 = SFcnParamSettings.RgRk2
+    %assign RgRk3 = SFcnParamSettings.RgRk3
+    %assign RgRk4 = SFcnParamSettings.RgRk4
+    %assign RgRk5 = SFcnParamSettings.RgRk5
+    %assign RgRk6 = SFcnParamSettings.RgRk6
+    %assign RgRk7 = SFcnParamSettings.RgRk7
+    %assign RgRk8 = SFcnParamSettings.RgRk8
+    %assign RgRk9 = SFcnParamSettings.RgRk9
+    %assign RgRk10 = SFcnParamSettings.RgRk10
+    %assign RgRk11 = SFcnParamSettings.RgRk11
+    %assign RgRk12 = SFcnParamSettings.RgRk12
+    %assign RgRk13 = SFcnParamSettings.RgRk13
+    %assign RgRk14 = SFcnParamSettings.RgRk14
+    %assign RgRk15 = SFcnParamSettings.RgRk15
+    %assign RgRk16 = SFcnParamSettings.RgRk16
+    %assign InjRk1 = SFcnParamSettings.InjRk1
+    %assign InjRk2 = SFcnParamSettings.InjRk2
+    %assign InjRk3 = SFcnParamSettings.InjRk3
+    %assign InjRk4 = SFcnParamSettings.InjRk4
+
+    %assign ADC_Trig = SFcnParamSettings.ADC_Trig
+
+
+    %assign outPortIdx = 0
+    %assign chOffset = 0
+
+    %if (ISEQUAL(EOC_IT, "on") || ISEQUAL(JEOC_IT, "on") || ISEQUAL(AWD_IT, "on") || ISEQUAL(OVR_IT, "on"))
+        %assign outPortIdx = 1
+    %endif
+
+        %%%%%%%% VERY IMPORTANT %%%%%%%%%
+        %%%  DO NOT CHANGE INTERRUPT  %%%
+        %%%     FUNCTION ORDER        %%%
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    %if (ISEQUAL(EOC_IT, "on"))
+        %assign chartIsFound = 0
+
+        %openfile ADC_Buf
+        /* %<ADC_Name> Regular End Of Conversion IT function. */
+        void %<ADC_Name>_ItEOCFcn(void);
+        %closefile ADC_Buf
+        %<LibSetSourceFileSection(modelH_ADC,"Defines",ADC_Buf)>
+
+        %openfile ADC_Buf
+        /*******************************************************************************
+        * Function Name  : %<ADC_Name>_ItEOCFcn
+        * Description    : %<ADC_Name> End of Conversion interrupt
+        * Input          : None
+        *******************************************************************************/
+        void %<ADC_Name>_ItEOCFcn()
+        {
+            %foreach callIdx = NumSFcnSysOutputCalls
+                %if (ISEQUAL(callIdx, chOffset))
+                    %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                        %assign wrnTxt = "No code will be generated for EOC IRQ  "\
+                        "since it is not connected to a system."
+                        %<LibReportWarning(wrnTxt)>
+                        %continue
+                    %endif
+                    %%Is it connected to model including Chart
+                    %assign chartIsFound = FunctionCalledAsChart(callIdx)
+                    %% call the downstream system
+                    %<LibBlockExecuteFcnCall(block, callIdx)>\
+                %endif
+            %endforeach
+        }
+        %closefile ADC_Buf
+        %if (chartIsFound == 1)
+            %<LibSetSourceFileSection(modelC,"Functions",ADC_Buf)>
+        %else
+            %<LibSetSourceFileSection(modelC_ADC,"Functions",ADC_Buf)>
+        %endif
+        %%Then increment channel number for next IT connection
+        %assign chOffset = chOffset + 1
+    %endif
+
+    %if (ISEQUAL(JEOC_IT, "on"))
+        %assign chartIsFound = 0
+
+        %openfile ADC_Buf
+        /* %<ADC_Name> Injected End Of Conversion IT function. */
+        void %<ADC_Name>_ItJEOCFcn(void);
+        %closefile ADC_Buf
+        %<LibSetSourceFileSection(modelH_ADC,"Defines",ADC_Buf)>
+
+        %openfile ADC_Buf
+        /*******************************************************************************
+        * Function Name  : %<ADC_Name>_ItJEOCFcn
+        * Description    : %<ADC_Name> Injected End of Conversion interrupt
+        * Input          : None
+        *******************************************************************************/
+        void %<ADC_Name>_ItJEOCFcn()
+        {
+            %foreach callIdx = NumSFcnSysOutputCalls
+                %if (ISEQUAL(callIdx, chOffset))
+                    %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                        %assign wrnTxt = "No code will be generated for JEOC IRQ  "\
+                        "since it is not connected to a system."
+                        %<LibReportWarning(wrnTxt)>
+                        %continue
+                    %endif
+                    %%Is it connected to model including Chart
+                    %assign chartIsFound = FunctionCalledAsChart(callIdx)
+                    %% call the downstream system
+                    %<LibBlockExecuteFcnCall(block, callIdx)>\
+                %endif
+            %endforeach
+        }
+        %closefile ADC_Buf
+        %if (chartIsFound == 1)
+            %<LibSetSourceFileSection(modelC,"Functions",ADC_Buf)>
+        %else
+            %<LibSetSourceFileSection(modelC_ADC,"Functions",ADC_Buf)>
+        %endif
+        %%Then increment channel number for next IT connection
+        %assign chOffset = chOffset + 1
+    %endif
+
+
+    %if (ISEQUAL(AWD_IT, "on"))
+        %assign chartIsFound = 0
+
+        %openfile ADC_Buf
+        /* %<ADC_Name> Analog Watchdog IT function. */
+        void %<ADC_Name>_ItAWDFcn(void);
+        %closefile ADC_Buf
+        %<LibSetSourceFileSection(modelH_ADC,"Defines",ADC_Buf)>
+
+        %openfile ADC_Buf
+        /*******************************************************************************
+        * Function Name  : %<ADC_Name>_ItAWDFcn
+        * Description    : %<ADC_Name> Analog Watchdog interrupt
+        * Input          : None
+        *******************************************************************************/
+        void %<ADC_Name>_ItAWDFcn()
+        {
+            %foreach callIdx = NumSFcnSysOutputCalls
+                %if (ISEQUAL(callIdx, chOffset))
+                    %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                        %assign wrnTxt = "No code will be generated for AWD IRQ  "\
+                        "since it is not connected to a system."
+                        %<LibReportWarning(wrnTxt)>
+                        %continue
+                    %endif
+                    %%Is it connected to model including Chart
+                    %assign chartIsFound = FunctionCalledAsChart(callIdx)
+                    %% call the downstream system
+                    %<LibBlockExecuteFcnCall(block, callIdx)>\
+                %endif
+            %endforeach
+        }
+        %closefile ADC_Buf
+        %if (chartIsFound == 1)
+            %<LibSetSourceFileSection(modelC,"Functions",ADC_Buf)>
+        %else
+            %<LibSetSourceFileSection(modelC_ADC,"Functions",ADC_Buf)>
+        %endif
+        %%Then increment channel number for next IT connection
+        %assign chOffset = chOffset + 1
+    %endif
+
+    %if (ISEQUAL(OVR_IT, "on"))
+        %assign chartIsFound = 0
+
+        %openfile ADC_Buf
+        /* %<ADC_Name> Over run IT function. */
+        void %<ADC_Name>_ItOVRFcn(void);
+        %closefile ADC_Buf
+        %<LibSetSourceFileSection(modelH_ADC,"Defines",ADC_Buf)>
+
+        %openfile ADC_Buf
+        /*******************************************************************************
+        * Function Name  : %<ADC_Name>_ItOVRFcn
+        * Description    : %<ADC_Name> Overrun interrupt
+        * Input          : None
+        *******************************************************************************/
+        void %<ADC_Name>_ItOVRFcn()
+        {
+            %foreach callIdx = NumSFcnSysOutputCalls
+                %if (ISEQUAL(callIdx, chOffset))
+                    %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                        %assign wrnTxt = "No code will be generated for OVR IRQ  "\
+                        "since it is not connected to a system."
+                        %<LibReportWarning(wrnTxt)>
+                        %continue
+                    %endif
+                    %%Is it connected to model including Chart
+                    %assign chartIsFound = FunctionCalledAsChart(callIdx)
+                    %% call the downstream system
+                    %<LibBlockExecuteFcnCall(block, callIdx)>\
+                %endif
+            %endforeach
+        }
+        %closefile ADC_Buf
+        %if (chartIsFound == 1)
+            %<LibSetSourceFileSection(modelC,"Functions",ADC_Buf)>
+        %else
+            %<LibSetSourceFileSection(modelC_ADC,"Functions",ADC_Buf)>
+        %endif
+        %%Then increment channel number for next IT connection
+        %assign chOffset = chOffset + 1
+    %endif
+
+    %if (ISEQUAL(CpltTrans, "on"))
+        %assign chartIsFound = 0
+
+        %openfile ADC_Buf
+        /* %<ADC_Name> Regular End Of DMA transfer complete IT function. */
+        void %<ADC_Name>_ItDMAFullFcn(void);
+        %closefile ADC_Buf
+        %<LibSetSourceFileSection(modelH_ADC,"Defines",ADC_Buf)>
+
+        %openfile ADC_Buf
+        /*******************************************************************************
+        * Function Name  : %<ADC_Name>_ItDMAFullFcn
+        * Description    : %<ADC_Name> End of DMA transfer complete interrupt
+        * Input          : None
+        *******************************************************************************/
+        void %<ADC_Name>_ItDMAFullFcn()
+        {
+            %foreach callIdx = NumSFcnSysOutputCalls
+                %if (ISEQUAL(callIdx, chOffset))
+                    %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                        %assign wrnTxt = "No code will be generated for DMA transfer complete interrupt  "\
+                        "since it is not connected to a system."
+                        %<LibReportWarning(wrnTxt)>
+                        %continue
+                    %endif
+                    %%Is it connected to model including Chart
+                    %assign chartIsFound = FunctionCalledAsChart(callIdx)
+                    %% call the downstream system
+                    %<LibBlockExecuteFcnCall(block, callIdx)>\
+                %endif
+            %endforeach
+        }
+        %closefile ADC_Buf
+        %if (chartIsFound == 1)
+            %<LibSetSourceFileSection(modelC,"Functions",ADC_Buf)>
+        %else
+            %<LibSetSourceFileSection(modelC_ADC,"Functions",ADC_Buf)>
+        %endif
+        %%Then increment channel number for next IT connection
+        %assign chOffset = chOffset + 1
+    %endif
+
+    %if (ISEQUAL(HalfTrans, "on"))
+        %assign chartIsFound = 0
+
+        %openfile ADC_Buf
+        /* %<ADC_Name> Regular End Of DMA half transfer complete IT function. */
+        void %<ADC_Name>_ItDMAHalfFullFcn(void);
+        %closefile ADC_Buf
+        %<LibSetSourceFileSection(modelH_ADC,"Defines",ADC_Buf)>
+
+        %openfile ADC_Buf
+        /*******************************************************************************
+        * Function Name  : %<ADC_Name>_ItDMAHalfFullFcn
+        * Description    : %<ADC_Name> End of DMA half transfer complete interrupt
+        * Input          : None
+        *******************************************************************************/
+        void %<ADC_Name>_ItDMAHalfFullFcn()
+        {
+            %foreach callIdx = NumSFcnSysOutputCalls
+                %if (ISEQUAL(callIdx, chOffset))
+                    %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                        %assign wrnTxt = "No code will be generated for DMA transfer complete interrupt  "\
+                        "since it is not connected to a system."
+                        %<LibReportWarning(wrnTxt)>
+                        %continue
+                    %endif
+                    %%Is it connected to model including Chart
+                    %assign chartIsFound = FunctionCalledAsChart(callIdx)
+                    %% call the downstream system
+                    %<LibBlockExecuteFcnCall(block, callIdx)>\
+                %endif
+            %endforeach
+        }
+        %closefile ADC_Buf
+        %if (chartIsFound == 1)
+            %<LibSetSourceFileSection(modelC,"Functions",ADC_Buf)>
+        %else
+            %<LibSetSourceFileSection(modelC_ADC,"Functions",ADC_Buf)>
+        %endif
+        %%Then increment channel number for next IT connection
+        %assign chOffset = chOffset + 1
+    %endif
+
+        %% Process output values
+    %if (ISEQUAL(DmaReq, "off")&&ISEQUAL(ItReq, "off"))
+        %if (ADC_RegNb > 0 )
+        {
+          uint16_t i;
+          /* Read regular %<ADC_Name> value */
+          for(i=0; i<%<ADC_RegNb>; i++) {
+            if(HAL_ADC_PollForConversion(&hadc%<adcNum>, G_%<ADC_Name>_PollTimeOut) == HAL_OK) {
+              %<ADC_Name>_RegularConvertedValue[i] = (uint16_t)HAL_ADC_GetValue(&hadc%<adcNum>);
+            }
+          }
+        }
+        %endif
+    %endif
+
+    %if (ISEQUAL(RgRk1, "on"))
+        %assign chVal = LibBlockOutputSignal(outPortIdx, "", "", 0)
+        /* Get regular rank1 output value from %<ADC_Name> regular value buffer */
+        %<chVal> = %<ADC_Name>_RegularConvertedValue[0];
+        %assign outPortIdx = outPortIdx + 1
+    %endif
+    %if (ISEQUAL(RgRk2, "on"))
+        %assign chVal = LibBlockOutputSignal(outPortIdx, "", "", 0)
+        /* Get regular rank2 output value from %<ADC_Name> regular value buffer. */
+        %<chVal> = %<ADC_Name>_RegularConvertedValue[1];
+        %assign outPortIdx = outPortIdx + 1
+    %endif
+    %if (ISEQUAL(RgRk3, "on"))
+        %assign chVal = LibBlockOutputSignal(outPortIdx, "", "", 0)
+        /* Get regular rank3 output value from %<ADC_Name> regular value buffer. */
+        %<chVal> = %<ADC_Name>_RegularConvertedValue[2];
+        %assign outPortIdx = outPortIdx + 1
+    %endif
+    %if (ISEQUAL(RgRk4, "on"))
+        %assign chVal = LibBlockOutputSignal(outPortIdx, "", "", 0)
+        /* Get regular rank4 output value from %<ADC_Name> regular value buffer. */
+        %<chVal> = %<ADC_Name>_RegularConvertedValue[3];
+        %assign outPortIdx = outPortIdx + 1
+    %endif
+    %if (ISEQUAL(RgRk5, "on"))
+        %assign chVal = LibBlockOutputSignal(outPortIdx, "", "", 0)
+        /* Get regular rank5 output value from %<ADC_Name> regular value buffer. */
+        %<chVal> = %<ADC_Name>_RegularConvertedValue[4];
+        %assign outPortIdx = outPortIdx + 1
+    %endif
+    %if (ISEQUAL(RgRk6, "on"))
+        %assign chVal = LibBlockOutputSignal(outPortIdx, "", "", 0)
+        /* Get regular rank6 output value from %<ADC_Name> regular value buffer. */
+        %<chVal> = %<ADC_Name>_RegularConvertedValue[5];
+        %assign outPortIdx = outPortIdx + 1
+    %endif
+    %if (ISEQUAL(RgRk7, "on"))
+        %assign chVal = LibBlockOutputSignal(outPortIdx, "", "", 0)
+        /* Get regular rank7 output value from %<ADC_Name> regular value buffer. */
+        %<chVal> = %<ADC_Name>_RegularConvertedValue[6];
+        %assign outPortIdx = outPortIdx + 1
+    %endif
+    %if (ISEQUAL(RgRk8, "on"))
+        %assign chVal = LibBlockOutputSignal(outPortIdx, "", "", 0)
+        /* Get regular rank8 output value from %<ADC_Name> regular value buffer. */
+        %<chVal> = %<ADC_Name>_RegularConvertedValue[7];
+        %assign outPortIdx = outPortIdx + 1
+    %endif
+    %if (ISEQUAL(RgRk9, "on"))
+        %assign chVal = LibBlockOutputSignal(outPortIdx, "", "", 0)
+        /* Get regular rank9 output value from %<ADC_Name> regular value buffer. */
+        %<chVal> = %<ADC_Name>_RegularConvertedValue[8];
+        %assign outPortIdx = outPortIdx + 1
+    %endif
+    %if (ISEQUAL(RgRk10, "on"))
+        %assign chVal = LibBlockOutputSignal(outPortIdx, "", "", 0)
+        /* Get regular rank10 output value from %<ADC_Name> regular value buffer. */
+        %<chVal> = %<ADC_Name>_RegularConvertedValue[9];
+        %assign outPortIdx = outPortIdx + 1
+    %endif
+    %if (ISEQUAL(RgRk11, "on"))
+        %assign chVal = LibBlockOutputSignal(outPortIdx, "", "", 0)
+        /* Get regular rank11 output value from %<ADC_Name> regular value buffer. */
+        %<chVal> = %<ADC_Name>_RegularConvertedValue[10];
+        %assign outPortIdx = outPortIdx + 1
+    %endif
+    %if (ISEQUAL(RgRk12, "on"))
+        %assign chVal = LibBlockOutputSignal(outPortIdx, "", "", 0)
+        /* Get regular rank12 output value from %<ADC_Name> regular value buffer. */
+        %<chVal> = %<ADC_Name>_RegularConvertedValue[11];
+        %assign outPortIdx = outPortIdx + 1
+    %endif
+    %if (ISEQUAL(RgRk13, "on"))
+        %assign chVal = LibBlockOutputSignal(outPortIdx, "", "", 0)
+        /* Get regular rank13 output value from %<ADC_Name> regular value buffer. */
+        %<chVal> = %<ADC_Name>_RegularConvertedValue[12];
+        %assign outPortIdx = outPortIdx + 1
+    %endif
+    %if (ISEQUAL(RgRk14, "on"))
+        %assign chVal = LibBlockOutputSignal(outPortIdx, "", "", 0)
+        /* Get regular rank14 output value from %<ADC_Name> regular value buffer. */
+        %<chVal> = %<ADC_Name>_RegularConvertedValue[13];
+        %assign outPortIdx = outPortIdx + 1
+    %endif
+
+    %if (ISEQUAL(RgRk15, "on"))
+        %assign chVal = LibBlockOutputSignal(outPortIdx, "", "", 0)
+        /* Get regular rank15 output value from %<ADC_Name> regular value buffer. */
+        %<chVal> = %<ADC_Name>_RegularConvertedValue[14];
+        %assign outPortIdx = outPortIdx + 1
+    %endif
+    %if (ISEQUAL(RgRk16, "on"))
+        %assign chVal = LibBlockOutputSignal(outPortIdx, "", "", 0)
+        /* Get regular rank16 output value from %<ADC_Name> regular value buffer. */
+        %<chVal> = %<ADC_Name>_RegularConvertedValue[15];
+        %assign outPortIdx = outPortIdx + 1
+    %endif
+
+    %if (ISEQUAL(InjRk1, "on"))
+        %assign chVal = LibBlockOutputSignal(outPortIdx, "", "", 0)
+        %if (ISEQUAL(DmaReq, "on")||ISEQUAL(ItReq, "on"))
+        /* Get injected rank1 output value from %<ADC_Name> injected value buffer. */
+        %<chVal> = %<ADC_Name>_InjectedConvertedValue[0];
+        %else
+        /* Get injected rank1 output value. */
+        %<chVal> = (uint16_t)HAL_ADCEx_InjectedGetValue(&hadc%<adcNum>,ADC_INJECTED_RANK_1);
+        %endif
+        %assign outPortIdx = outPortIdx + 1
+    %endif
+    %if (ISEQUAL(InjRk2, "on"))
+        %assign chVal = LibBlockOutputSignal(outPortIdx, "", "", 0)
+        %if (ISEQUAL(DmaReq, "on")||ISEQUAL(ItReq, "on"))
+        /* Get injected rank2 output value from %<ADC_Name> injected value buffer. */
+        %<chVal> = %<ADC_Name>_InjectedConvertedValue[1];
+        %else
+        /* Get injected rank2 output value. */
+        %<chVal> = (uint16_t)HAL_ADCEx_InjectedGetValue(&hadc%<adcNum>,ADC_INJECTED_RANK_2);
+        %endif
+        %assign outPortIdx = outPortIdx + 1
+    %endif
+    %if (ISEQUAL(InjRk3, "on"))
+        %assign chVal = LibBlockOutputSignal(outPortIdx, "", "", 0)
+        %if (ISEQUAL(DmaReq, "on")||ISEQUAL(ItReq, "on"))
+        /* Get injected rank3 output value from %<ADC_Name> injected value buffer. */
+        %<chVal> = %<ADC_Name>_InjectedConvertedValue[2];
+        %else
+        /* Get injected rank3 output value. */
+        %<chVal> = (uint16_t)HAL_ADCEx_InjectedGetValue(&hadc%<adcNum>,ADC_INJECTED_RANK_3);
+        %endif
+        %assign outPortIdx = outPortIdx + 1
+    %endif
+    %if (ISEQUAL(InjRk4, "on"))
+        %assign chVal = LibBlockOutputSignal(outPortIdx, "", "", 0)
+        %if (ISEQUAL(DmaReq, "on")||ISEQUAL(ItReq, "on"))
+        /* Get injected rank4 output value from %<ADC_Name> injected value buffer. */
+        %<chVal> = %<ADC_Name>_InjectedConvertedValue[3];
+        %else
+        /* Get injected rank4 output value. */
+        %<chVal> = (uint16_t)HAL_ADCEx_InjectedGetValue(&hadc%<adcNum>,ADC_INJECTED_RANK_4);
+        %endif
+        %assign outPortIdx = outPortIdx + 1
+    %endif
+
+
+   %if (ISEQUAL(ADC_Trig, "Not used"))
+        %if (ISEQUAL(DmaReq, "on"))
+         %%//DamReq = %<DmaReq> et ItReq = %<ItReq>
+        %elseif (ISEQUAL(ItReq, "on"))
+         %if (ADC_RegNb > 0)
+        /* Mode Scan, not continuous. */
+        /* Re-Start interrupt conversion for %<ADC_Name> regular channel. */
+        if (hadc%<adcNum>.Init.ContinuousConvMode == DISABLE) {
+          HAL_ADC_Start_IT(&hadc%<adcNum>);
+        }
+         %endif
+        %else
+            %if (ADC_RegNb > 0)
+            /* Re-Start %<ADC_Name> conversion */
+            HAL_ADC_Start(&hadc%<adcNum>);
+            %endif
+        %endif
+
+        %if (ISEQUAL(ItReq, "on"))
+            %if (ADC_InjNb > 0)
+            /* Re-Start interrupt conversion for %<ADC_Name> injected channel. */
+            HAL_ADCEx_InjectedStart_IT(&hadc%<adcNum>);
+            %endif
+        %else
+            %if (ADC_InjNb > 0)
+            /* Re-Start conversion for %<ADC_Name> injected channel*/
+            HAL_ADCEx_InjectedStart(&hadc%<adcNum>);
+            %endif
+        %endif
+   %endif
+
+%endfunction
+
+%% [EOF] ADC_Read.tlc

@@ -1,0 +1,166 @@
+%% Abstract: CAN Filter
+%%    Configure the CAN reception filter
+%%    Generated code is based on STM32 HAL Library files.
+%%
+%% Copyright 1990-2009 The MathWorks, Inc.
+%assign CodeFormat = "Embedded-C"
+%implements CAN_Filter "C"
+
+%%warning "---------->Start CAN_Filter"
+
+
+%if !EXISTS(::InsertIncludesToCAN)
+    %assign ::InsertIncludesToCAN  = TLC_TRUE
+%endif 
+
+%if !EXISTS(::InsertIncludesFromCAN)
+    %assign ::InsertIncludesFromCAN  = TLC_TRUE
+%endif 
+
+
+%assign CAN_name =  SFcnParamSettings.CAN_name
+%if !EXISTS(::VarDef_%<CAN_name>)
+    %assign ::VarDef_%<CAN_name>  = TLC_TRUE
+%endif
+
+%if !EXISTS(::SetConfigFilterFifo0%<CAN_name>)
+    %assign ::SetConfigFilterFifo0%<CAN_name>  = TLC_TRUE
+%endif
+
+%if !EXISTS(::SetConfigFilterFifo1%<CAN_name>)
+    %assign ::SetConfigFilterFifo1%<CAN_name>  = TLC_TRUE
+%endif
+
+
+%% Create function for CAN Filter:
+
+%% Code for system initialization:
+%function Start(block,system) Output
+
+    %assign CAN_name =  SFcnParamSettings.CAN_name
+    %% For HAL Filter configuration.
+    %assign CAN_FilterIdHigh = FEVAL("dec2hex",SFcnParamSettings.CAN_Filter_Id_High)
+    %assign CAN_FilterIdLow = FEVAL("dec2hex",SFcnParamSettings.CAN_Filter_Id_Low)
+    %assign CAN_FilterMaskIdHigh = FEVAL("dec2hex",SFcnParamSettings.CAN_Filter_Mask_Id_High)
+    %assign CAN_FilterMaskIdLow = FEVAL("dec2hex",SFcnParamSettings.CAN_Filter_Mask_Id_Low)
+    %assign CAN_FilterFIFOAssignment = SFcnParamSettings.CAN_Filter_FIFO_Assignment
+    %assign CAN_FilterBank = SFcnParamSettings.CAN_Filter_Bank
+    %assign CAN_FilterMode = SFcnParamSettings.CAN_Filter_Mode
+    %assign CAN_FilterScale = SFcnParamSettings.CAN_Filter_Scale
+    %assign CAN_FilterActivation = SFcnParamSettings.CAN_Filter_Activation
+    %assign CAN_SlaveStartFilterBank = SFcnParamSettings.CAN_Filter_Slave_Start_Bank
+
+    %if (ISEQUAL(CAN_name, "CAN"))
+        %assign CANNum = ""
+    %else
+        %assign CANNum = IDNUM("%<CAN_name>")[1]
+    %endif
+
+    %assign fifoNum = IDNUM(CAN_FilterFIFOAssignment)[1]
+
+    %if (ISEQUAL(CAN_FilterActivation, "on"))
+        %if (fifoNum == 0) && EXISTS(::SetConfigFilterFifo0%<CAN_name>) && (::SetConfigFilterFifo0%<CAN_name> == TLC_TRUE)
+            %assign ::SetConfigFilterFifo0%<CAN_name> = TLC_FALSE
+        {
+          /* HAL %<CAN_name> filter configuration structure definition. */
+          CAN_FilterTypeDef sFilterConfig = {0};
+          sFilterConfig.FilterIdHigh = 0x%<CAN_FilterIdHigh>;
+          sFilterConfig.FilterIdLow = 0x%<CAN_FilterIdLow>;
+          sFilterConfig.FilterMaskIdHigh = 0x%<CAN_FilterMaskIdHigh>;
+          sFilterConfig.FilterMaskIdLow = 0x%<CAN_FilterMaskIdLow>;
+          sFilterConfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+          sFilterConfig.FilterBank = %<CAN_FilterBank>;
+          sFilterConfig.FilterMode = %<CAN_FilterMode>;
+          sFilterConfig.FilterScale = %<CAN_FilterScale>;
+          sFilterConfig.FilterActivation = ENABLE;
+          sFilterConfig.SlaveStartFilterBank = %<CAN_SlaveStartFilterBank>;
+
+          /* Configure %<CAN_name> filter on dedicated FIFO%<fifoNum>. */
+          if(HAL_CAN_ConfigFilter(&hcan%<CANNum>, &sFilterConfig)!= HAL_OK) {
+            Error_Handler();
+          }
+        }
+        %elseif (fifoNum == 1) && EXISTS(::SetConfigFilterFifo1%<CAN_name>) && (::SetConfigFilterFifo1%<CAN_name> == TLC_TRUE)
+            %assign ::SetConfigFilterFifo1%<CAN_name> = TLC_FALSE
+        {
+          /* HAL %<CAN_name> filter configuration structure definition. */
+          CAN_FilterTypeDef sFilterConfig = {0};
+          sFilterConfig.FilterIdHigh = 0x%<CAN_FilterIdHigh>;
+          sFilterConfig.FilterIdLow = 0x%<CAN_FilterIdLow>;
+          sFilterConfig.FilterMaskIdHigh = 0x%<CAN_FilterMaskIdHigh>;
+          sFilterConfig.FilterMaskIdLow = 0x%<CAN_FilterMaskIdLow>;
+          sFilterConfig.FilterFIFOAssignment = CAN_FILTER_FIFO1;
+          sFilterConfig.FilterBank = %<CAN_FilterBank>;
+          sFilterConfig.FilterMode = %<CAN_FilterMode>;
+          sFilterConfig.FilterScale = %<CAN_FilterScale>;
+          sFilterConfig.FilterActivation = ENABLE;
+          sFilterConfig.SlaveStartFilterBank = %<CAN_SlaveStartFilterBank>;
+
+          /* Configure %<CAN_name> filter on dedicated FIFO%<fifoNum>. */
+          if(HAL_CAN_ConfigFilter(&hcan%<CANNum>, &sFilterConfig)!= HAL_OK) {
+            Error_Handler();
+          }
+        }
+        %endif
+    %endif
+%endfunction
+
+%% Code for CAN configuration call:
+%function BlockInstanceSetup(block, system) void
+
+    %%model.c and model.h files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+    %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+
+    %%model_CAN.h and model_CAN.c files
+    %assign SrcBaseName_CAN = "%<SrcBaseName>_CAN"
+    %assign modelH_CAN      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_CAN)
+    %assign modelC_CAN      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_CAN)
+
+    %%Include model.h to model_CAN.c
+    %if EXISTS(::InsertIncludesToCAN) && (::InsertIncludesToCAN == TLC_TRUE)
+        %assign ::InsertIncludesToCAN    = TLC_FALSE
+        %openfile CAN_Buf
+            #include "%<SrcBaseName>.h"
+            #include "%<SrcBaseName_CAN>.h"
+        %closefile CAN_Buf
+        %<LibSetSourceFileSection(modelC_CAN,"Includes",CAN_Buf)>
+    %endif
+
+    %%AND Include model_CAN.h to model.c
+    %if EXISTS(::InsertIncludesFromCAN) && (::InsertIncludesFromCAN == TLC_TRUE)
+        %assign ::InsertIncludesFromCAN    = TLC_FALSE
+        %openfile CAN_Buf
+            #include "%<SrcBaseName_CAN>.h"
+        %closefile CAN_Buf
+        %<LibSetSourceFileSection(modelH,"Includes",CAN_Buf)>
+
+        %openfile CAN_Buf
+            #include "STM32_Config.h"
+        %closefile CAN_Buf
+        %<LibSetSourceFileSection(modelH_CAN,"Includes",CAN_Buf)>
+    %endif
+
+    %%Then build model_CAN.h and model_CAN.c
+    %assign CAN_name =  SFcnParamSettings.CAN_name
+
+%% Code for required CAN external definition: in model_CAN.c file
+%if (ISEQUAL(CAN_name, "CAN"))
+    %assign CANNum = ""
+%else
+    %assign CANNum = IDNUM("%<CAN_name>")[1]
+%endif
+
+%if EXISTS(::VarDef_%<CAN_name>) && (::VarDef_%<CAN_name> == TLC_TRUE)
+    %assign ::VarDef_%<CAN_name> = TLC_FALSE
+    %openfile CAN_Buf
+    /* %<CAN_name> handler declaration. */
+    extern CAN_HandleTypeDef hcan%<CANNum>;
+    %closefile CAN_Buf
+    %<LibSetSourceFileSection(modelH_CAN,"Defines",CAN_Buf)>
+%endif
+
+%endfunction
+
+%% [EOF] CAN_Filter.tlc

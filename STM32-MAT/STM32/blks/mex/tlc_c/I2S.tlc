@@ -1,0 +1,1217 @@
+%%
+%% Abstract: I2S
+%%    STM32Fxxx I2S for the transmision of all the data
+%%
+
+%assign CodeFormat = "Embedded-C"
+%implements I2S  "C"
+
+%include "FunctionCalledAsChart.tlc"
+
+%assign I2Sx = SFcnParamSettings.I2Sx
+
+%if !EXISTS(::InsertIncludesToI2S)
+    %assign ::InsertIncludesToI2S = TLC_TRUE
+%endif
+%if !EXISTS(::InsertIncludesFromI2S)
+    %assign ::InsertIncludesFromI2S = TLC_TRUE
+%endif
+%if !EXISTS(::InsertI2S)
+    %assign ::InsertI2S = TLC_TRUE
+%endif
+
+
+%% *************************************************************************************
+%% ******************      Fonction : Start        *************************************
+%% *************************************************************************************
+%function Start(block,system) Output
+    %assign I2Sx = SFcnParamSettings.I2Sx
+    %assign Master_Slave = SFcnParamSettings.Master_Slave
+    %assign Half_Full = SFcnParamSettings.Half_Full
+    %assign Rx_Tx = SFcnParamSettings.Rx_Tx
+    %assign DataFormat = SFcnParamSettings.DataFormat
+    %assign Protocol = SFcnParamSettings.Protocol
+    %assign ptDataSent = SFcnParamSettings.ptDataSent
+    %assign Frequency = SFcnParamSettings.Frequency
+    %assign RealFrequency = SFcnParamSettings.RealFrequency
+    %assign FrequencyError = SFcnParamSettings.FrequencyError
+    %assign ClockPol = SFcnParamSettings.ClockPol
+    %assign I2S_Mode = SFcnParamSettings.I2S_Mode
+    %assign Timeout = SFcnParamSettings.Timeout
+    %assign TimeoutValue = SFcnParamSettings.TimeoutValue
+    %assign handler = SFcnParamSettings.handler
+    %assign NbI2S = SFcnParamSettings.NbI2S
+    %assign Error = SFcnParamSettings.Error
+    %assign RxHalfCplt = SFcnParamSettings.RxHalfCplt
+    %assign RxCplt = SFcnParamSettings.RxCplt
+    %assign TxHalfCplt = SFcnParamSettings.TxHalfCplt
+    %assign TxCplt = SFcnParamSettings.TxCplt
+    %assign RxTxCplt = SFcnParamSettings.RxTxCplt
+    %assign RxMode = SFcnParamSettings.RxMode
+    %assign TxMode = SFcnParamSettings.TxMode
+
+    %assign I2SNum = IDNUM("%<I2Sx>")[1]
+    %assign I2SNombre=IDNUM("%<NbI2S>")[1]
+
+    %openfile I2S_Buf
+    %if !EXISTS(::Initialization_%<I2Sx>)
+      %assign ::Initialization_%<I2Sx>  = TLC_TRUE
+        /* %<I2Sx> initialization */
+        %<I2Sx>_Initialization();
+    %endif
+        /* Interrupt vector initialization */
+      %if (ISEQUAL(Error, "on"))
+        %if !EXISTS(::ItError_%<I2Sx>)
+        %assign ::ItError_%<I2Sx>    = TLC_TRUE
+        /* Error interrupt function */
+        %<I2Sx>_DataLink.ItError = %<I2Sx>_ItErrorFcn;
+            %else
+        %exit Multiple %<I2Sx> block: Error interrupt already used.
+        %endif
+      %endif
+      %if (ISEQUAL(RxHalfCplt, "on"))
+        %if !EXISTS(::ItRxHalfCplt_%<I2Sx>)
+        %assign ::ItRxHalfCplt_%<I2Sx>    = TLC_TRUE
+        /* RxHalfCplt interrupt function */
+        %<I2Sx>_DataLink.ItRxHalfCplt = %<I2Sx>_ItRxHalfCplt;
+            %else
+        %exit Multiple %<I2Sx> block: RxHalfCplt interrupt already used.
+        %endif
+      %endif
+      %if (ISEQUAL(TxHalfCplt, "on"))
+        %if !EXISTS(::ItTxHalfCplt_%<I2Sx>)
+        %assign ::ItTxHalfCplt_%<I2Sx>    = TLC_TRUE
+        /* TxHalfCplt interrupt function */
+        %<I2Sx>_DataLink.ItTxHalfCplt = %<I2Sx>_ItTxHalfCplt;
+            %else
+        %exit Multiple %<I2Sx> block: TxHalfCplt interrupt already used.
+        %endif
+      %endif
+    %if (ISEQUAL(Half_Full, "HALF DUPLEX"))
+      %if (ISEQUAL(RxCplt, "on"))
+        %if !EXISTS(::ItRxCplt_%<I2Sx>)
+        %assign ::ItRxCplt_%<I2Sx>    = TLC_TRUE
+        /* RxCplt interrupt function */
+        %<I2Sx>_DataLink.ItRxCplt = %<I2Sx>_ItRxCplt;
+            %else
+        %exit Multiple %<I2Sx> block: RxCplt interrupt already used.
+        %endif
+      %endif
+      %if (ISEQUAL(TxCplt, "on"))
+        %if !EXISTS(::ItTxCplt_%<I2Sx>)
+        %assign ::ItTxCplt_%<I2Sx>    = TLC_TRUE
+        /* TxCplt interrupt function */
+        %<I2Sx>_DataLink.ItTxCplt = %<I2Sx>_ItTxCplt;
+            %else
+        %exit Multiple %<I2Sx> block: TxCplt interrupt already used.
+        %endif
+      %endif
+    %endif
+    %if (ISEQUAL(Half_Full, "FULL DUPLEX"))
+      %if (ISEQUAL(RxTxCplt, "on"))
+        %if !EXISTS(::ItTxRxCplt_%<I2Sx>)
+        %assign ::ItTxRxCplt_%<I2Sx>    = TLC_TRUE
+        /* RxTxCplt interrupt function */
+        %<I2Sx>_DataLink.ItTxRxCplt = %<I2Sx>_ItTxRxCplt;
+            %else
+        %exit Multiple %<I2Sx> block: RxTxCplt interrupt already used.
+        %endif
+      %endif
+    %endif
+    %closefile I2S_Buf
+    %<LibMdlStartCustomCode(I2S_Buf,"execution")>
+%endfunction
+
+
+%% *************************************************************************************
+%% ******************      Fonction : BlockInstanceSetup       *************************
+%% *************************************************************************************
+%function BlockInstanceSetup(block, system) void
+    %%model.c and model.h files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+    %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+    %%model_I2S.h and model_I2S.c files
+    %assign SrcBaseName_I2S = "%<SrcBaseName>_I2S"
+    %assign modelH_I2S      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_I2S)
+    %assign modelC_I2S      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_I2S)
+
+
+    %if EXISTS(::InsertIncludesToI2S) && (::InsertIncludesToI2S == TLC_TRUE)
+        %assign ::InsertIncludesToI2S    = TLC_FALSE
+        %openfile I2S_Buf
+            #include "%<SrcBaseName>.h"
+            #include "%<SrcBaseName_I2S>.h"
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelC_I2S,"Includes",I2S_Buf)>
+    %endif
+    %%AND Include model_I2S.h to model.c
+    %if EXISTS(::InsertIncludesFromI2S) && (::InsertIncludesFromI2S == TLC_TRUE)
+        %assign ::InsertIncludesFromI2S    = TLC_FALSE
+        %openfile I2S_Buf
+            #include "%<SrcBaseName_I2S>.h"
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelH,"Includes",I2S_Buf)>
+
+        %openfile I2S_Buf
+            #include "STM32_Config.h"
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelH_I2S,"Includes",I2S_Buf)>
+    %endif
+
+
+    %assign I2Sx = SFcnParamSettings.I2Sx
+    %assign Master_Slave = SFcnParamSettings.Master_Slave
+    %assign Half_Full = SFcnParamSettings.Half_Full
+    %assign Rx_Tx = SFcnParamSettings.Rx_Tx
+    %assign DataFormat = SFcnParamSettings.DataFormat
+    %assign Protocol = SFcnParamSettings.Protocol
+    %assign ptDataSent = SFcnParamSettings.ptDataSent
+    %assign Frequency = SFcnParamSettings.Frequency
+    %assign RealFrequency = SFcnParamSettings.RealFrequency
+    %assign FrequencyError = SFcnParamSettings.FrequencyError
+    %assign ClockPol = SFcnParamSettings.ClockPol
+    %assign I2S_Mode = SFcnParamSettings.I2S_Mode
+    %assign Timeout = SFcnParamSettings.Timeout
+    %assign TimeoutValue = SFcnParamSettings.TimeoutValue
+    %assign handler = SFcnParamSettings.handler
+    %assign NbI2S = SFcnParamSettings.NbI2S
+    %assign Error = SFcnParamSettings.Error
+    %assign RxHalfCplt = SFcnParamSettings.RxHalfCplt
+    %assign RxCplt = SFcnParamSettings.RxCplt
+    %assign TxHalfCplt = SFcnParamSettings.TxHalfCplt
+    %assign TxCplt = SFcnParamSettings.TxCplt
+    %assign RxTxCplt = SFcnParamSettings.RxTxCplt
+    %assign RxMode = SFcnParamSettings.RxMode
+    %assign TxMode = SFcnParamSettings.TxMode
+
+    %assign I2SNum = IDNUM("%<I2Sx>")[1]
+    %assign I2SNombre=IDNUM("%<NbI2S>")[1]
+
+    %% ***************************************************************************
+    %% **********************DECLARATION FOR I2S *********************************
+    %if EXISTS(::InsertI2S) && (::InsertI2S == TLC_TRUE)
+        %assign ::InsertI2S = TLC_FALSE
+        %openfile I2S_Buf
+        /**
+        * @brief I2S Mode enum definition
+        */
+        typedef enum
+        {
+            FULL_MASTER  = 0x00,    /*!< FULL DUPLEX MASTER   */
+            FULL_SLAVE,             /*!< FULL DUPLEX SLAVE */
+            HALF_MASTER_RX,         /*!< HALF DUPLEX MASTER RX */
+            HALF_MASTER_TX,         /*!< HALF DUPLEX MASTER TX */
+            HALF_SLAVE_RX,          /*!< HALF DUPLEX SLAVE RX */
+            HALF_SLAVE_TX,          /*!< HALF DUPLEX SLAVE TX */
+            NOT_DEFINED,            /*!< PROBLEM */
+        }I2S_TypeEnumDef;
+        /**
+        * @brief  I2S data information
+        */
+        typedef struct  {
+                 uint16_t              nb2Send;     /*!< Nb of uint16 to send*/
+                 uint16_t              nb2Rcv;      /*!< Nb of uint16 to send*/
+                 uint16_t              nbSent;      /*!< Nb sent uint16 */
+                 uint16_t              nbRcv;       /*!< Nb sent uint16 */
+                 I2S_TypeEnumDef       type;        /*!< I2S communication type */
+                 uint8_t               rxMode;      /*!< I2S communication mode 0=undefined, 1=IT 2=DMA 3=Polling */
+                 uint8_t               txMode;      /*!< I2S communication mode 0=undefined, 1=IT 2=DMA 3=Polling */
+                 int32_t               timeOut;     /*!< timeOut value for polling mode*/
+                 I2S_HandleTypeDef*    I2S_Handler; /*!< I2S handler of this struct info */
+                 void (* ItError)(void);
+                 void (* ItRxHalfCplt)(void);
+                 void (* ItRxCplt)(void);
+                 void (* ItTxHalfCplt)(void);
+                 void (* ItTxCplt)(void);
+                 void (* ItTxRxCplt)(void);
+        }I2S_DataLinkTypeDef;
+
+        /* Default communication Buffer sizes */
+        #define DEFAULT_RX_BUFFER_SIZE 32
+        #define DEFAULT_TX_BUFFER_SIZE 32
+
+        %if (%<NbI2S> > 1)
+        extern uint16_t G_NbI2SConf; /* Number of I2S configured */
+        /* Array of I2S data information */
+        extern I2S_DataLinkTypeDef*  G_I2S_Data[%<NbI2S>];
+        extern I2S_HandleTypeDef*    G_I2S_Handler[%<NbI2S>];
+        %else
+        extern I2S_DataLinkTypeDef*   G_I2S_Data;      /* Pointer to I2S data information*/
+        extern I2S_HandleTypeDef*     G_I2S_Handler;   /* Pointer to I2S handler */
+        %endif
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelH_I2S,"Defines",I2S_Buf)>
+
+        %openfile I2S_Buf
+        %if (%<NbI2S> > 1)
+        uint16_t               G_NbI2SConf = 0; /* Number of I2S configured */
+        /* Array of I2S data information */
+        I2S_DataLinkTypeDef*   G_I2S_Data[%<NbI2S>];
+        I2S_HandleTypeDef*     G_I2S_Handler[%<NbI2S>];
+        %else
+        I2S_DataLinkTypeDef*   G_I2S_Data;      /* Pointer to I2S data information*/
+        I2S_HandleTypeDef*     G_I2S_Handler;   /* Pointer to I2S handler */
+        %endif
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelC_I2S,"Defines",I2S_Buf)>
+    %endif
+
+    %% *************************************************************************************
+    %% **********************INITIALISATION OF MODULES I2Sx*********************************
+    %if !EXISTS(::BuffSizeCfg_%<I2Sx>)
+          %if !EXISTS(::BuffSizeCfg_%<I2Sx>)
+          %assign ::BuffSize_%<I2Sx>  = TLC_TRUE
+            %openfile I2S_Buf
+            %if (ISEQUAL(Half_Full, "HALF DUPLEX")&&ISEQUAL(Master_Slave, "SLAVE")&&ISEQUAL(Rx_Tx, "Receiver"))
+                /* %<I2Sx> Rx buffer default size*/
+                #define %<I2Sx>_RX_BUFFER_SIZE      DEFAULT_RX_BUFFER_SIZE
+            %elseif (ISEQUAL(Half_Full, "HALF DUPLEX")&&ISEQUAL(Master_Slave, "SLAVE")&&ISEQUAL(Rx_Tx, "Transmitter"))
+                /* %<I2Sx> Tx buffer default size*/
+                #define %<I2Sx>_TX_BUFFER_SIZE      DEFAULT_TX_BUFFER_SIZE
+            %else
+                /* %<I2Sx> Rx/Tx buffers default sizes*/
+                #define %<I2Sx>_RX_BUFFER_SIZE      DEFAULT_RX_BUFFER_SIZE
+                #define %<I2Sx>_TX_BUFFER_SIZE      DEFAULT_TX_BUFFER_SIZE
+            %endif
+            %closefile I2S_Buf
+            %<LibSetSourceFileSection(modelH_I2S,"Defines",I2S_Buf)>
+          %endif
+    %endif
+
+    %if !EXISTS(::Cfg_%<I2Sx>)
+        %assign ::Cfg_%<I2Sx>  = TLC_TRUE
+            %openfile I2S_Buf
+                /* %<I2Sx> handler */
+                extern I2S_HandleTypeDef hi2s%<I2SNum>;
+                %%test for DMA handler
+            %if (RxMode == 2)
+                extern DMA_HandleTypeDef hdma_I2S%<I2SNum>_rx;
+            %endif
+            %if (TxMode == 2)
+                extern DMA_HandleTypeDef hdma_I2S%<I2SNum>_tx;
+            %endif
+                /* %<I2Sx> Transmit data structure information*/
+                extern I2S_DataLinkTypeDef   %<I2Sx>_DataLink;
+            %closefile I2S_Buf
+            %<LibSetSourceFileSection(modelH_I2S,"Defines",I2S_Buf)>
+
+            %openfile I2S_Buf
+            %if (ISEQUAL(DataFormat, "16 Bits Data on 16 Bits Frame")||ISEQUAL(DataFormat, "16 Bits Data on 32 Bits Frame"))
+                /* %<I2Sx> is 16bit data length */
+                #define %<I2Sx>_DATA_TYPE  uint16_t
+            %elseif (ISEQUAL(DataFormat, "24 Bits Data on 32 Bits Frame")||ISEQUAL(DataFormat, "32 Bits Data on 32 Bits Frame"))
+                /* %<I2Sx> is 24bit or 32bit data length */
+                #define %<I2Sx>_DATA_TYPE  uint32_t
+            %else
+                /* %<I2Sx> data length unknown (default is 16bit) */
+                #define %<I2Sx>_DATA_TYPE  uint16_t
+            %endif
+                /* Pointers to %<I2Sx> buffers*/
+            %if (ISEQUAL(Half_Full, "FULL DUPLEX"))
+                extern %<I2Sx>_DATA_TYPE  %<I2Sx>_RxBuff[%<I2Sx>_RX_BUFFER_SIZE];
+                extern %<I2Sx>_DATA_TYPE  %<I2Sx>_TxBuff[%<I2Sx>_TX_BUFFER_SIZE];
+                extern %<I2Sx>_DATA_TYPE  *%<I2Sx>_ptRxBuff;
+                extern %<I2Sx>_DATA_TYPE  *%<I2Sx>_ptHalfRxBuff;
+                extern %<I2Sx>_DATA_TYPE  *%<I2Sx>_ptTxBuff;
+                extern %<I2Sx>_DATA_TYPE  *%<I2Sx>_ptHalfTxBuff;
+            %elseif (ISEQUAL(Half_Full, "HALF DUPLEX")&&ISEQUAL(Master_Slave, "SLAVE")&&ISEQUAL(Rx_Tx, "Receiver"))
+                extern %<I2Sx>_DATA_TYPE  %<I2Sx>_RxBuff[%<I2Sx>_RX_BUFFER_SIZE];
+                extern %<I2Sx>_DATA_TYPE  *%<I2Sx>_ptRxBuff;
+                extern %<I2Sx>_DATA_TYPE  *%<I2Sx>_ptHalfRxBuff;
+            %elseif (ISEQUAL(Half_Full, "HALF DUPLEX")&&ISEQUAL(Master_Slave, "SLAVE")&&ISEQUAL(Rx_Tx, "Transmitter"))
+                extern %<I2Sx>_DATA_TYPE  %<I2Sx>_TxBuff[%<I2Sx>_TX_BUFFER_SIZE];
+                extern %<I2Sx>_DATA_TYPE  *%<I2Sx>_ptTxBuff;
+                extern %<I2Sx>_DATA_TYPE  *%<I2Sx>_ptHalfTxBuff;
+            %else
+                extern %<I2Sx>_DATA_TYPE  %<I2Sx>_RxBuff[%<I2Sx>_RX_BUFFER_SIZE];
+                extern %<I2Sx>_DATA_TYPE  %<I2Sx>_TxBuff[%<I2Sx>_TX_BUFFER_SIZE];
+                extern %<I2Sx>_DATA_TYPE  *%<I2Sx>_ptRxBuff;
+                extern %<I2Sx>_DATA_TYPE  *%<I2Sx>_ptHalfRxBuff;
+                extern %<I2Sx>_DATA_TYPE  *%<I2Sx>_ptTxBuff;
+                extern %<I2Sx>_DATA_TYPE  *%<I2Sx>_ptHalfTxBuff;
+            %endif
+            %closefile I2S_Buf
+            %<LibSetSourceFileSection(modelH_I2S,"Declarations",I2S_Buf)>
+
+            %openfile I2S_Buf
+                /* %<I2Sx> data information*/
+              %if (ISEQUAL(Half_Full, "FULL DUPLEX"))
+                %<I2Sx>_DATA_TYPE %<I2Sx>_RxBuff[%<I2Sx>_RX_BUFFER_SIZE];
+                %<I2Sx>_DATA_TYPE %<I2Sx>_TxBuff[%<I2Sx>_TX_BUFFER_SIZE];
+                %<I2Sx>_DATA_TYPE *%<I2Sx>_ptRxBuff = %<I2Sx>_RxBuff;
+                %<I2Sx>_DATA_TYPE *%<I2Sx>_ptHalfRxBuff = &%<I2Sx>_RxBuff[%<I2Sx>_RX_BUFFER_SIZE/2-1];
+                %<I2Sx>_DATA_TYPE *%<I2Sx>_ptTxBuff = %<I2Sx>_TxBuff;
+                %<I2Sx>_DATA_TYPE *%<I2Sx>_ptHalfTxBuff = &%<I2Sx>_TxBuff[%<I2Sx>_TX_BUFFER_SIZE/2-1];
+              %elseif (ISEQUAL(Half_Full, "HALF DUPLEX")&&ISEQUAL(Master_Slave, "SLAVE")&&ISEQUAL(Rx_Tx, "Receiver"))
+                %<I2Sx>_DATA_TYPE  %<I2Sx>_RxBuff[%<I2Sx>_RX_BUFFER_SIZE];
+                %<I2Sx>_DATA_TYPE *%<I2Sx>_ptRxBuff = %<I2Sx>_RxBuff;
+                %<I2Sx>_DATA_TYPE *%<I2Sx>_ptHalfRxBuff = &%<I2Sx>_RxBuff[%<I2Sx>_RX_BUFFER_SIZE/2-1];
+              %elseif (ISEQUAL(Half_Full, "HALF DUPLEX")&&ISEQUAL(Master_Slave, "SLAVE")&&ISEQUAL(Rx_Tx, "Transmitter"))
+                %<I2Sx>_DATA_TYPE  %<I2Sx>_TxBuff[%<I2Sx>_TX_BUFFER_SIZE];
+                %<I2Sx>_DATA_TYPE *%<I2Sx>_ptTxBuff = %<I2Sx>_TxBuff;
+                %<I2Sx>_DATA_TYPE *%<I2Sx>_ptHalfTxBuff = &%<I2Sx>_TxBuff[%<I2Sx>_TX_BUFFER_SIZE/2-1];
+              %else
+                %<I2Sx>_DATA_TYPE %<I2Sx>_RxBuff[%<I2Sx>_RX_BUFFER_SIZE];
+                %<I2Sx>_DATA_TYPE %<I2Sx>_TxBuff[%<I2Sx>_TX_BUFFER_SIZE];
+                %<I2Sx>_DATA_TYPE *%<I2Sx>_ptRxBuff = %<I2Sx>_RxBuff;
+                %<I2Sx>_DATA_TYPE *%<I2Sx>_ptHalfRxBuff = &%<I2Sx>_RxBuff[%<I2Sx>_RX_BUFFER_SIZE/2-1];
+                %<I2Sx>_DATA_TYPE *%<I2Sx>_ptTxBuff = %<I2Sx>_TxBuff;
+                %<I2Sx>_DATA_TYPE *%<I2Sx>_ptHalfTxBuff = &%<I2Sx>_TxBuff[%<I2Sx>_TX_BUFFER_SIZE/2-1];
+              %endif
+                I2S_DataLinkTypeDef %<I2Sx>_DataLink;
+            %closefile I2S_Buf
+            %<LibSetSourceFileSection(modelC_I2S,"Defines",I2S_Buf)>
+    %endif
+
+    %% Initialization is defined once only per I2S
+    %if !EXISTS(::%<I2Sx>_INIT)
+        %assign ::%<I2Sx>_INIT  = TLC_TRUE
+        %openfile I2S_Buf
+        /* %<I2Sx>_Initialization prototyping */
+        void %<I2Sx>_Initialization(void);
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelH_I2S,"Definitions",I2S_Buf)>
+
+        %openfile I2S_Buf
+        /*******************************************************************************
+        * Function Name  : %<I2Sx>_Initialization
+        * Description    : Initialization of %<I2Sx>
+        * Input          : -
+        *******************************************************************************/
+        void %<I2Sx>_Initialization(void)
+        {
+            /*Store %<I2Sx> data information and its handler */
+        %if (%<NbI2S> > 1)
+            G_I2S_Data[G_NbI2SConf] = &%<I2Sx>_DataLink;
+            G_I2S_Handler[G_NbI2SConf] = &hi2s%<I2SNum>;
+            G_NbI2SConf++; /*Inc number of configured I2S */
+        %else
+            G_I2S_Data = &%<I2Sx>_DataLink;
+            G_I2S_Handler = &hi2s%<I2SNum>;
+        %endif
+            %<I2Sx>_DataLink.nb2Send = 0;
+            %<I2Sx>_DataLink.nb2Rcv = 0;
+            %<I2Sx>_DataLink.nbSent = 0;
+            %<I2Sx>_DataLink.nbRcv = 0;
+            %<I2Sx>_DataLink.rxMode = %<RxMode>;
+            %<I2Sx>_DataLink.txMode = %<TxMode>;
+        %if ((RxMode == 3) || (TxMode == 3))
+            %<I2Sx>_DataLink.timeOut = %<Timeout>;
+        %else
+            %<I2Sx>_DataLink.timeOut = -1;
+        %endif
+        %if (ISEQUAL(Half_Full, "FULL DUPLEX")&&ISEQUAL(Master_Slave, "MASTER"))
+            %<I2Sx>_DataLink.type = FULL_MASTER;
+        %elseif (ISEQUAL(Half_Full, "FULL DUPLEX")&&ISEQUAL(Master_Slave, "SLAVE"))
+            %<I2Sx>_DataLink.type = FULL_SLAVE;
+        %elseif (ISEQUAL(Half_Full, "HALF DUPLEX")&&ISEQUAL(Master_Slave, "MASTER")&&ISEQUAL(Rx_Tx, "Receiver"))
+            %<I2Sx>_DataLink.type = HALF_MASTER_RX;
+        %elseif (ISEQUAL(Half_Full, "HALF DUPLEX")&&ISEQUAL(Master_Slave, "MASTER")&&ISEQUAL(Rx_Tx, "Transmitter"))
+            %<I2Sx>_DataLink.type = HALF_MASTER_TX;
+        %elseif (ISEQUAL(Half_Full, "HALF DUPLEX")&&ISEQUAL(Master_Slave, "SLAVE")&&ISEQUAL(Rx_Tx, "Receiver"))
+            %<I2Sx>_DataLink.type = HALF_SLAVE_RX;
+        %elseif (ISEQUAL(Half_Full, "HALF DUPLEX")&&ISEQUAL(Master_Slave, "SLAVE")&&ISEQUAL(Rx_Tx, "Transmitter"))
+            %<I2Sx>_DataLink.type = HALF_SLAVE_TX;
+        %else
+            %<I2Sx>_DataLink.type = NOT_DEFINED;
+        %endif
+            %<I2Sx>_DataLink.I2S_Handler = &hi2s%<I2SNum>;
+%%            /* Enable hi2s%<I2SNum> */
+%%            __HAL_I2S_ENABLE(&hi2s%<I2SNum>);
+        }
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelC_I2S,"Functions",I2S_Buf)>
+    %endif
+
+    %if !EXISTS(::CALLBACK_INIT)
+        %assign ::CALLBACK_INIT  = TLC_TRUE
+           %openfile I2S_Buf
+           /*******************************************************************************
+           * Function Name  : HAL_I2S_ErrorCallback
+           * Description    : Transfer Error callbacks.
+           * Input          : I2S handler
+           *******************************************************************************/
+           void HAL_I2S_ErrorCallback(I2S_HandleTypeDef *hi2s)
+           {
+            %if(%<NbI2S> > 1)
+            uint16_t L_I2sHandleIdx = 0;/* Index to retreive I2S data information */
+            I2S_DataLinkTypeDef*   pL_I2S_Data = G_I2S_Data[0]; /* Pt to the list of I2S data information */
+            I2S_HandleTypeDef*     pL_I2S_Handler = G_I2S_Handler[0]; /* Pt to the list of I2S handler */
+            for(L_I2sHandleIdx = 0;L_I2sHandleIdx < %<NbI2S>;L_I2sHandleIdx++) {
+                pL_I2S_Handler = G_I2S_Handler[L_I2sHandleIdx];
+                if(pL_I2S_Handler == hi2s) {
+                    pL_I2S_Data = G_I2S_Data[L_I2sHandleIdx];
+                    break;
+                }
+            }
+            %else
+            I2S_DataLinkTypeDef*   pL_I2S_Data = G_I2S_Data; /* Pt to I2S data information */
+            I2S_HandleTypeDef*     pL_I2S_Handler = G_I2S_Handler; /* Pt to I2S handler */
+            %endif
+            if(pL_I2S_Handler == hi2s) {
+                if(pL_I2S_Data->ItError != NULL){
+                   /* Call IT function */
+                   pL_I2S_Data->ItError();
+                }
+            }
+           }
+           /*******************************************************************************
+           * Function Name  : HAL_I2S_TxRxCpltCallback
+           * Description    : Tx Half Transfer completed callbacks.
+           * Input          : I2S handler
+           *******************************************************************************/
+           void HAL_I2S_TxRxCpltCallback(I2S_HandleTypeDef *hi2s)
+           {
+            %if(%<NbI2S> > 1)
+            uint16_t L_I2sHandleIdx = 0;/* Index to retreive I2S data information */
+            I2S_DataLinkTypeDef*   pL_I2S_Data = G_I2S_Data[0]; /* Pt to the list of I2S data information */
+            I2S_HandleTypeDef*     pL_I2S_Handler = G_I2S_Handler[0]; /* Pt to the list of I2S handler */
+            for(L_I2sHandleIdx = 0;L_I2sHandleIdx < %<NbI2S>;L_I2sHandleIdx++) {
+                pL_I2S_Handler = G_I2S_Handler[L_I2sHandleIdx];
+                if(pL_I2S_Handler == hi2s) {
+                    pL_I2S_Data = G_I2S_Data[L_I2sHandleIdx];
+                    break;
+                }
+            }
+            %else
+            I2S_DataLinkTypeDef*   pL_I2S_Data = G_I2S_Data; /* Pt to I2S data information */
+            I2S_HandleTypeDef*     pL_I2S_Handler = G_I2S_Handler; /* Pt to I2S handler */
+            %endif
+            if(pL_I2S_Handler == hi2s) {
+                if(pL_I2S_Data->ItTxRxCplt != NULL){
+                   /* Call IT function */
+                   pL_I2S_Data->ItTxRxCplt();
+                }
+            }
+           }
+           /*******************************************************************************
+           * Function Name  : HAL_I2S_TxHalfCpltCallback
+           * Description    : Tx Half Transfer completed callbacks.
+           * Input          : I2S handler
+           *******************************************************************************/
+           void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
+           {
+            %if(%<NbI2S> > 1)
+            uint16_t L_I2sHandleIdx = 0;/* Index to retreive I2S data information */
+            I2S_DataLinkTypeDef*   pL_I2S_Data = G_I2S_Data[0]; /* Pt to the list of I2S data information */
+            I2S_HandleTypeDef*     pL_I2S_Handler = G_I2S_Handler[0]; /* Pt to the list of I2S handler */
+            for(L_I2sHandleIdx = 0;L_I2sHandleIdx < %<NbI2S>;L_I2sHandleIdx++) {
+                pL_I2S_Handler = G_I2S_Handler[L_I2sHandleIdx];
+                if(pL_I2S_Handler == hi2s) {
+                    pL_I2S_Data = G_I2S_Data[L_I2sHandleIdx];
+                    break;
+                }
+            }
+            %else
+            I2S_DataLinkTypeDef*   pL_I2S_Data = G_I2S_Data; /* Pt to I2S data information */
+            I2S_HandleTypeDef*     pL_I2S_Handler = G_I2S_Handler; /* Pt to I2S handler */
+            %endif
+            if(pL_I2S_Handler == hi2s) {
+                if(pL_I2S_Data->ItTxHalfCplt != NULL){
+                   /* Call IT function */
+                   pL_I2S_Data->ItTxHalfCplt();
+                }
+            }
+           }
+           /*******************************************************************************
+           * Function Name  : HAL_I2S_TxCpltCallback
+           * Description    : Tx Transfer completed callbacks.
+           * Input          : I2S handler
+           *******************************************************************************/
+           void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s)
+           {
+            %if(%<NbI2S> > 1)
+            uint16_t L_I2sHandleIdx = 0;/* Index to retreive I2S data information */
+            I2S_DataLinkTypeDef*   pL_I2S_Data = G_I2S_Data[0]; /* Pt to the list of I2S data information */
+            I2S_HandleTypeDef*     pL_I2S_Handler = G_I2S_Handler[0]; /* Pt to the list of I2S handler */
+            for(L_I2sHandleIdx = 0;L_I2sHandleIdx < %<NbI2S>;L_I2sHandleIdx++) {
+                pL_I2S_Handler = G_I2S_Handler[L_I2sHandleIdx];
+                if(pL_I2S_Handler == hi2s) {
+                    pL_I2S_Data = G_I2S_Data[L_I2sHandleIdx];
+                    break;
+                }
+            }
+            %else
+            I2S_DataLinkTypeDef*   pL_I2S_Data = G_I2S_Data; /* Pt to I2S data information */
+            I2S_HandleTypeDef*     pL_I2S_Handler = G_I2S_Handler; /* Pt to I2S handler */
+            %endif
+            if(pL_I2S_Handler == hi2s) {
+                if(pL_I2S_Data->ItTxCplt != NULL){
+                   /* Call IT function */
+                   pL_I2S_Data->ItTxCplt();
+                }
+            }
+           }
+           /*******************************************************************************
+           * Function Name  : HAL_I2S_RxHalfCpltCallback
+           * Description    : Rx Half Transfer completed callbacks.
+           * Input          : I2S handler
+           *******************************************************************************/
+           void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
+           {
+            %if(%<NbI2S> > 1)
+            uint16_t L_I2sHandleIdx = 0;/* Index to retreive I2S data information */
+            I2S_DataLinkTypeDef*   pL_I2S_Data = G_I2S_Data[0]; /* Pt to the list of I2S data information */
+            I2S_HandleTypeDef*     pL_I2S_Handler = G_I2S_Handler[0]; /* Pt to the list of I2S handler */
+            for(L_I2sHandleIdx = 0;L_I2sHandleIdx < %<NbI2S>;L_I2sHandleIdx++) {
+                pL_I2S_Handler = G_I2S_Handler[L_I2sHandleIdx];
+                if(pL_I2S_Handler == hi2s) {
+                    pL_I2S_Data = G_I2S_Data[L_I2sHandleIdx];
+                    break;
+                }
+            }
+            %else
+            I2S_DataLinkTypeDef*   pL_I2S_Data = G_I2S_Data; /* Pt to I2S data information */
+            I2S_HandleTypeDef*     pL_I2S_Handler = G_I2S_Handler; /* Pt to I2S handler */
+            %endif
+            if(pL_I2S_Handler == hi2s) {
+                if(pL_I2S_Data->ItRxHalfCplt != NULL){
+                   /* Call IT function */
+                   pL_I2S_Data->ItRxHalfCplt();
+                }
+            }
+           }
+           /*******************************************************************************
+           * Function Name  : HAL_I2S_RxCpltCallback
+           * Description    : Rx Transfer completed callbacks.
+           * Input          : I2S handler
+           *******************************************************************************/
+           void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s)
+           {
+            %if(%<NbI2S> > 1)
+            uint16_t L_I2sHandleIdx = 0;/* Index to retreive I2S data information */
+            I2S_DataLinkTypeDef*   pL_I2S_Data = G_I2S_Data[0]; /* Pt to the list of I2S data information */
+            I2S_HandleTypeDef*     pL_I2S_Handler = G_I2S_Handler[0]; /* Pt to the list of I2S handler */
+            for(L_I2sHandleIdx = 0;L_I2sHandleIdx < %<NbI2S>;L_I2sHandleIdx++) {
+                pL_I2S_Handler = G_I2S_Handler[L_I2sHandleIdx];
+                if(pL_I2S_Handler == hi2s) {
+                    pL_I2S_Data = G_I2S_Data[L_I2sHandleIdx];
+                    break;
+                }
+            }
+            %else
+            I2S_DataLinkTypeDef*   pL_I2S_Data = G_I2S_Data; /* Pt to I2S data information */
+            I2S_HandleTypeDef*     pL_I2S_Handler = G_I2S_Handler; /* Pt to I2S handler */
+            %endif
+            if(pL_I2S_Handler == hi2s) {
+                if(pL_I2S_Data->ItRxCplt != NULL){
+                   /* Call IT function */
+                   pL_I2S_Data->ItRxCplt();
+                }
+            }
+           }
+           %closefile I2S_Buf
+           %<LibSetSourceFileSection(modelC_I2S,"Functions",I2S_Buf)>
+    %endif
+%endfunction
+
+
+%% *************************************************************************************
+%% ******************      Fonction Outputs        *************************************
+%% *************************************************************************************
+%function Outputs(block, system) Output
+    %%model.c and model.h files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %%model_I2S.h and model_I2S.c files
+    %assign SrcBaseName_I2S = "%<SrcBaseName>_I2S"
+    %assign modelH_I2S      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_I2S)
+    %assign modelC_I2S      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_I2S)
+
+    %assign I2Sx = SFcnParamSettings.I2Sx
+    %assign Master_Slave = SFcnParamSettings.Master_Slave
+    %assign Half_Full = SFcnParamSettings.Half_Full
+    %assign Rx_Tx = SFcnParamSettings.Rx_Tx
+    %assign DataFormat = SFcnParamSettings.DataFormat
+    %assign Protocol = SFcnParamSettings.Protocol
+    %assign ptDataSent = SFcnParamSettings.ptDataSent
+    %assign Frequency = SFcnParamSettings.Frequency
+    %assign RealFrequency = SFcnParamSettings.RealFrequency
+    %assign FrequencyError = SFcnParamSettings.FrequencyError
+    %assign ClockPol = SFcnParamSettings.ClockPol
+    %assign I2S_Mode = SFcnParamSettings.I2S_Mode
+    %assign Timeout = SFcnParamSettings.Timeout
+    %assign TimeoutValue = SFcnParamSettings.TimeoutValue
+    %assign handler = SFcnParamSettings.handler
+    %assign NbI2S = SFcnParamSettings.NbI2S
+    %assign Error = SFcnParamSettings.Error
+    %assign RxHalfCplt = SFcnParamSettings.RxHalfCplt
+    %assign RxCplt = SFcnParamSettings.RxCplt
+    %assign TxHalfCplt = SFcnParamSettings.TxHalfCplt
+    %assign TxCplt = SFcnParamSettings.TxCplt
+    %assign RxTxCplt = SFcnParamSettings.RxTxCplt
+    %assign RxMode = SFcnParamSettings.RxMode
+    %assign TxMode = SFcnParamSettings.TxMode
+    %assign outputData = SFcnParamSettings.outputData
+    %assign I2SNum = IDNUM("%<I2Sx>")[1]
+    %assign I2SNombre=IDNUM("%<NbI2S>")[1]
+
+    %assign InputNum = 0
+//Half_Full:%<Half_Full> TxMode:%<TxMode> RxMode:%<RxMode> Master_Slave:%<Master_Slave> Rx_Tx:%<Rx_Tx>
+    %%definition of block ports
+    %if (ISEQUAL(Half_Full, "FULL DUPLEX"))
+      %%input
+      %assign Nb2SendRcv = LibBlockInputSignal(0, "", "", 0)
+      %if(ISEQUAL(ptDataSent, "on"))
+    %%NOT USED        %assign ptDataSend = LibBlockInputSignalAddr(1, "", "", 0)
+    %%        /* Copy data to send to %<I2Sx> send buffer */
+    %%        memcpy((uint16_t*)%<ptDataSend>,(uint16_t*)%<I2Sx>_TxBuff,(uint32_t)%<Nb2SendRcv>);
+      %endif
+      %%output
+      %if (TxMode == 1)
+          %%IT mode
+          /* %<I2Sx> is Full Duplex mode with data transmitted in interrupt mode*/
+          HAL_I2SEx_TransmitReceive_IT(%<I2Sx>_DataLink.I2S_Handler, (uint16_t*)%<I2Sx>_TxBuff, (uint16_t*)%<I2Sx>_RxBuff,(uint16_t)%<Nb2SendRcv>);
+          %<I2Sx>_DataLink.nb2Send = 0;
+          %<I2Sx>_DataLink.nb2Rcv = %<Nb2SendRcv>;
+          %<I2Sx>_DataLink.nbSent = %<Nb2SendRcv>;
+          %<I2Sx>_DataLink.nbRcv = 0;
+      %elseif (TxMode == 2)
+          %%DMA mode
+          /* %<I2Sx> is Full Duplex mode with DMA used to transmit data*/
+          HAL_I2SEx_TransmitReceive_DMA(%<I2Sx>_DataLink.I2S_Handler, (uint16_t*)%<I2Sx>_TxBuff, (uint16_t*)%<I2Sx>_RxBuff,(uint16_t)%<Nb2SendRcv>);
+          %<I2Sx>_DataLink.nb2Send = 0;
+          %<I2Sx>_DataLink.nb2Rcv = %<Nb2SendRcv>;
+          %<I2Sx>_DataLink.nbSent = %<Nb2SendRcv>;
+          %<I2Sx>_DataLink.nbRcv = 0;
+      %elseif (TxMode == 3)
+          %%POLLING mode
+          /* %<I2Sx> is Full Duplex mode with data transmitted in polling mode*/
+          HAL_I2SEx_TransmitReceive_IT(%<I2Sx>_DataLink.I2S_Handler, (uint16_t*)%<I2Sx>_TxBuff, (uint16_t*)%<I2Sx>_RxBuff,(uint16_t)%<Nb2SendRcv>,%<I2Sx>_DataLink.timeOut);
+            %if (ISEQUAL(Error, "on") || ISEQUAL(RxHalfCplt, "on") || ISEQUAL(RxCplt, "on") || ISEQUAL(TxHalfCplt, "on") || ISEQUAL(TxCplt, "on") || ISEQUAL(RxTxCplt, "on"))
+                %assign NbRcv = LibBlockOutputSignal(1, "", "", 0)
+                %assign ptDataRcv = LibBlockOutputSignal(2, "", "", 0)
+                %if (ISEQUAL(outputData, "on"))
+                {
+                 /* Copy the received data */
+                 int i;
+                 %assign y = LibBlockOutputSignal( 3, "i", "", 0)
+                 for (i = 0; i < %<Nb2SendRcv>; i++) {
+                    %<y> = %<I2Sx>_RxBuff[i];
+                 }
+                }
+                %endif
+            %else
+                %assign NbRcv = LibBlockOutputSignal(0, "", "", 0)
+                %assign ptDataRcv = LibBlockOutputSignal(1, "", "", 0)
+                %if (ISEQUAL(outputData, "on"))
+                {
+                 /* Copy the received data */
+                 int i;
+                 %assign y = LibBlockOutputSignal( 2, "i", "", 0)
+                 for (i = 0; i < %<Nb2SendRcv>; i++) {
+                    %<y> = %<I2Sx>_RxBuff[i];
+                 }
+                }
+                %endif
+        %endif
+          /* Set number of received data */
+          %<NbRcv> = %<Nb2SendRcv>;
+          /* Set received buffer address */
+          %<ptDataRcv> = (uint16_t*)&%<I2Sx>_RxBuff[0];
+          /* Update %<I2Sx>_DataLink */
+          %<I2Sx>_DataLink.nb2Send = %<Nb2SendRcv>;
+          %<I2Sx>_DataLink.nb2Rcv = %<Nb2SendRcv>;
+          %<I2Sx>_DataLink.nbSent = %<Nb2SendRcv>;
+          %<I2Sx>_DataLink.nbRcv = %<Nb2SendRcv>;
+    %endif
+    %elseif (ISEQUAL(Half_Full, "HALF DUPLEX")&&ISEQUAL(Master_Slave, "MASTER")&&ISEQUAL(Rx_Tx, "Receiver"))
+            %assign Nb2Rcv = LibBlockInputSignal(0, "", "", 0)
+          %if(ISEQUAL(ptDataSent, "on"))
+          %%NOT USED  %assign ptDataSend = LibBlockInputSignalAddr(1, "", "", 0)
+          %%  /* Copy %<Nb2Rcv> data to %<I2Sx> send buffer. Master send %<Nb2Rcv> data to receive %<Nb2Rcv> data from Slave */
+          %%  memcpy((uint16_t*)%<ptDataSend>,(uint16_t*)%<I2Sx>_TxBuff,(uint32_t)%<Nb2Rcv>);
+          %endif
+          %%output
+          %if (RxMode == 1)
+          %%IT mode
+          /* %<I2Sx> is Half Duplex, Master Receiver Interrupt mode.*/
+          HAL_I2S_Receive_IT(%<I2Sx>_DataLink.I2S_Handler, (uint16_t*)%<I2Sx>_RxBuff, (uint16_t)%<Nb2Rcv>);
+          %<I2Sx>_DataLink.nb2Send = 0;
+          %<I2Sx>_DataLink.nb2Rcv = %<Nb2Rcv>;
+          %<I2Sx>_DataLink.nbSent = 0;
+          %<I2Sx>_DataLink.nbRcv = 0;
+          %elseif (RxMode == 2)
+          %%DMA mode
+          /* %<I2Sx> is Half Duplex, Master Receiver DMA mode. */
+          HAL_I2S_Receive_DMA(%<I2Sx>_DataLink.I2S_Handler, (uint16_t*)%<I2Sx>_RxBuff, (uint16_t)%<Nb2Rcv>);
+          %<I2Sx>_DataLink.nb2Send = 0;
+          %<I2Sx>_DataLink.nb2Rcv = %<Nb2Rcv>;
+          %<I2Sx>_DataLink.nbSent = 0;
+          %<I2Sx>_DataLink.nbRcv = 0;
+          %elseif (RxMode == 3)
+          %%POLLING mode
+          /* %<I2Sx> is Half Duplex, Master Receiver Polling mode.*/
+          HAL_I2S_Receive(%<I2Sx>_DataLink.I2S_Handler, (uint16_t*)%<I2Sx>_RxBuff, (uint16_t)%<Nb2Rcv>, %<I2Sx>_DataLink.timeOut);
+            %if (ISEQUAL(Error, "on") || ISEQUAL(RxHalfCplt, "on") || ISEQUAL(RxCplt, "on") || ISEQUAL(TxHalfCplt, "on") || ISEQUAL(TxCplt, "on") || ISEQUAL(RxTxCplt, "on"))
+                %assign NbRcv = LibBlockOutputSignal(1, "", "", 0)
+                %assign ptDataRcv = LibBlockOutputSignal(2, "", "", 0)
+                %if (ISEQUAL(outputData, "on"))
+                {
+                 /* Copy the received data */
+                 int i;
+                 %assign y = LibBlockOutputSignal( 3, "i", "", 0)
+                 for (i = 0; i < %<Nb2SendRcv>; i++) {
+                    %<y> = %<I2Sx>_RxBuff[i];
+                 }
+                }
+                %endif
+            %else
+                %assign NbRcv = LibBlockOutputSignal(0, "", "", 0)
+                %assign ptDataRcv = LibBlockOutputSignal(1, "", "", 0)
+                %if (ISEQUAL(outputData, "on"))
+                {
+                 /* Copy the received data */
+                 int i;
+                 %assign y = LibBlockOutputSignal( 2, "i", "", 0)
+                 for (i = 0; i < %<Nb2SendRcv>; i++) {
+                    %<y> = %<I2Sx>_RxBuff[i];
+                 }
+                }
+                %endif
+            %endif
+          /* Set number of Data received*/
+          %<NbRcv> = %<Nb2Rcv>;
+          /* Received data are available from received buffer */
+          %<ptDataRcv> = (uint16_t*)&%<I2Sx>_RxBuff[0];
+          /* Update %<I2Sx>_DataLink */
+          %<I2Sx>_DataLink.nb2Send = 0;
+          %<I2Sx>_DataLink.nb2Rcv = %<Nb2Rcv>;
+          %<I2Sx>_DataLink.nbSent = 0;
+          %<I2Sx>_DataLink.nbRcv = %<Nb2Rcv>;
+          %endif
+          %if (TxMode == 1)
+          %%IT mode
+%%          /* %<I2Sx> is Half Duplex, Master Receiver Interrupt mode. Send %<Nb2Rcv> data to be able to receive %<Nb2Rcv>.*/
+%%          HAL_I2S_Transmit_IT(%<I2Sx>_DataLink.I2S_Handler, %<I2Sx>_TxBuff, (uint16_t)%<Nb2Rcv>);
+%%          %<I2Sx>_DataLink.nb2Send = 0;
+%%          %<I2Sx>_DataLink.nb2Rcv = %<Nb2Rcv>;
+%%          %<I2Sx>_DataLink.nbSent = %<Nb2Rcv>;
+%%          %<I2Sx>_DataLink.nbRcv = 0;
+          %elseif (TxMode == 2)
+          %%DMA mode
+%%          /* %<I2Sx> is Half Duplex, Master Receiver DMA mode. Send %<Nb2Rcv> data to be able to receive %<Nb2Rcv>.*/
+%%          HAL_I2S_Transmit_DMA(%<I2Sx>_DataLink.I2S_Handler, %<I2Sx>_TxBuff, (uint16_t)%<Nb2Rcv>);
+%%          %<I2Sx>_DataLink.nb2Send = 0;
+%%          %<I2Sx>_DataLink.nb2Rcv = %<Nb2Rcv>;
+%%          %<I2Sx>_DataLink.nbSent = %<Nb2Rcv>;
+%%          %<I2Sx>_DataLink.nbRcv = 0;
+          %elseif (TxMode == 3)
+          %%POLLING mode
+%%          /* %<I2Sx> is Half Duplex, Master Receiver Polling mode. Send %<Nb2Rcv> data to be able to receive %<Nb2Rcv>.*/
+%%          HAL_I2S_Transmit(%<I2Sx>_DataLink.I2S_Handler, %<I2Sx>_TxBuff, (uint16_t)%<Nb2Rcv>, %<I2Sx>_DataLink.timeOut);
+%%          /* Same number of received and sent data */
+%%          %<NbRcv> = %<Nb2Rcv>;
+%%          /* Received data are available from received buffer */
+%%          %<ptDataRcv> = %<I2Sx>_RxBuff;
+%%          %<I2Sx>_DataLink.nb2Send = %<Nb2Rcv>;
+%%          %<I2Sx>_DataLink.nb2Rcv = %<Nb2Rcv>;
+%%          %<I2Sx>_DataLink.nbSent = %<Nb2Rcv>;
+%%          %<I2Sx>_DataLink.nbRcv = %<Nb2Rcv>;
+    %endif
+    %elseif (ISEQUAL(Half_Full, "HALF DUPLEX")&&ISEQUAL(Master_Slave, "MASTER")&&ISEQUAL(Rx_Tx, "Transmitter"))
+            %assign Nb2Send = LibBlockInputSignal(0, "", "", 0)
+          %if(ISEQUAL(ptDataSent, "on"))
+          %%NOT USED  %assign ptDataSend = LibBlockInputSignalAddr(1, "", "", 0)
+          %%  /* Copy data to send to %<I2Sx> send buffer */
+          %%  memcpy((uint16_t*)%<ptDataSend>,(uint16_t*)%<I2Sx>_TxBuff,(uint32_t)%<Nb2Send>);
+          %endif
+          %%output
+          %if (TxMode == 3)
+            %if (ISEQUAL(Error, "on") || ISEQUAL(RxHalfCplt, "on") || ISEQUAL(RxCplt, "on") || ISEQUAL(TxHalfCplt, "on") || ISEQUAL(TxCplt, "on") || ISEQUAL(RxTxCplt, "on"))
+              %assign NbSent = LibBlockOutputSignal(1, "", "", 0)
+            %else
+              %assign NbSent = LibBlockOutputSignal(0, "", "", 0)
+            %endif
+          %endif
+          %if (TxMode == 1)
+          %%IT mode
+          /* %<I2Sx> is Half Duplex, Master Transmitter Interrupt mode. Send %<Nb2Send> data.*/
+          HAL_I2S_Transmit_IT(%<I2Sx>_DataLink.I2S_Handler, (uint16_t*)%<I2Sx>_TxBuff, (uint16_t)%<Nb2Send>);
+          %<I2Sx>_DataLink.nb2Send = %<Nb2Send>;
+          %<I2Sx>_DataLink.nb2Rcv = 0;
+          %<I2Sx>_DataLink.nbSent = %<Nb2Send>;
+          %<I2Sx>_DataLink.nbRcv = 0;
+          %elseif (TxMode == 2)
+          %%DMA mode
+          /* %<I2Sx> is Half Duplex, Master Transmitter DMA mode. Send %<Nb2Send> data.*/
+          HAL_I2S_Transmit_DMA(%<I2Sx>_DataLink.I2S_Handler, (uint16_t*)%<I2Sx>_TxBuff, (uint16_t)%<Nb2Send>);
+          %<I2Sx>_DataLink.nb2Send = %<Nb2Send>;
+          %<I2Sx>_DataLink.nb2Rcv = 0;
+          %<I2Sx>_DataLink.nbSent = %<Nb2Send>;
+          %<I2Sx>_DataLink.nbRcv = 0;
+          %elseif (TxMode == 3)
+          %%POLLING mode
+          /* %<I2Sx> is Half Duplex, Master Transmitter Polling mode. Send %<Nb2Send> data.*/
+          HAL_I2S_Transmit(%<I2Sx>_DataLink.I2S_Handler, (uint16_t*)%<I2Sx>_TxBuff, (uint16_t)%<Nb2Send>, %<I2Sx>_DataLink.timeOut);
+          /* Number of data sent */
+          %<NbSent> = %<Nb2Send>;
+          %<I2Sx>_DataLink.nb2Send = %<Nb2Send>;
+          %<I2Sx>_DataLink.nb2Rcv = 0;
+          %<I2Sx>_DataLink.nbSent = %<Nb2Send>;
+          %<I2Sx>_DataLink.nbRcv = 0;
+          %endif
+        %elseif (ISEQUAL(Half_Full, "HALF DUPLEX")&&ISEQUAL(Master_Slave, "SLAVE")&&ISEQUAL(Rx_Tx, "Receiver"))
+          %%input
+            %assign Nb2Rcv = LibBlockInputSignal(0, "", "", 0)
+          %%output
+          %if (RxMode == 1)
+          %%IT mode
+          /* %<I2Sx> is Half Duplex, Slave Receiver Interrupt mode. Receive %<Nb2Rcv> data.*/
+          HAL_I2S_Receive_IT(%<I2Sx>_DataLink.I2S_Handler, (uint16_t*)%<I2Sx>_RxBuff, (uint16_t)%<Nb2Rcv>);
+          %<I2Sx>_DataLink.nb2Send = 0;
+          %<I2Sx>_DataLink.nb2Rcv = %<Nb2Rcv>;
+          %<I2Sx>_DataLink.nbSent = %<Nb2Rcv>;
+          %<I2Sx>_DataLink.nbRcv = 0;
+          %elseif (RxMode == 2)
+          %%DMA mode
+          /* %<I2Sx> is Half Duplex, Slave receiver DMA mode. Receive %<Nb2Rcv> data.*/
+          HAL_I2S_Receive_DMA(%<I2Sx>_DataLink.I2S_Handler, (uint16_t*)%<I2Sx>_RxBuff, (uint16_t)%<Nb2Rcv>);
+          %<I2Sx>_DataLink.nb2Send = 0;
+          %<I2Sx>_DataLink.nb2Rcv = %<Nb2Rcv>;
+          %<I2Sx>_DataLink.nbSent = %<Nb2Rcv>;
+          %<I2Sx>_DataLink.nbRcv = 0;
+          %elseif (RxMode == 3)
+          %%POLLING mode
+          /* %<I2Sx> is Half Duplex, Slave receiver Polling mode. Receive %<Nb2Rcv> data.*/
+          HAL_I2S_Receive(%<I2Sx>_DataLink.I2S_Handler, (uint16_t*)%<I2Sx>_RxBuff, (uint16_t)%<Nb2Rcv>, %<I2Sx>_DataLink.timeOut);
+            %if (ISEQUAL(Error, "on") || ISEQUAL(RxHalfCplt, "on") || ISEQUAL(RxCplt, "on") || ISEQUAL(TxHalfCplt, "on") || ISEQUAL(TxCplt, "on") || ISEQUAL(RxTxCplt, "on"))
+                %assign NbRcv = LibBlockOutputSignal(1, "", "", 0)
+                %assign ptDataRcv = LibBlockOutputSignal(2, "", "", 0)
+                %if (ISEQUAL(outputData, "on"))
+                {
+                 /* Copy the received data */
+                 int i;
+                 %assign y = LibBlockOutputSignal( 3, "i", "", 0)
+                 for (i = 0; i < %<Nb2SendRcv>; i++) {
+                    %<y> = %<I2Sx>_RxBuff[i];
+                 }
+                }
+                %endif
+            %else
+                %assign NbRcv = LibBlockOutputSignal(0, "", "", 0)
+                %assign ptDataRcv = LibBlockOutputSignal(1, "", "", 0)
+                %if (ISEQUAL(outputData, "on"))
+                {
+                 /* Copy the received data */
+                 int i;
+                 %assign y = LibBlockOutputSignal( 2, "i", "", 0)
+                 for (i = 0; i < %<Nb2SendRcv>; i++) {
+                    %<y> = %<I2Sx>_RxBuff[i];
+                 }
+                }
+                %endif
+           %endif
+          /* Set number of received data */
+          %<NbRcv> = %<Nb2Rcv>;
+          /* Received data are available from received buffer */
+          %<ptDataRcv> = (uint16_t*)&%<I2Sx>_RxBuff[0];
+          /* Update %<I2Sx>_DataLink */
+          %<I2Sx>_DataLink.nb2Send = 0;
+          %<I2Sx>_DataLink.nb2Rcv = %<Nb2Rcv>;
+          %<I2Sx>_DataLink.nbSent = %<Nb2Rcv>;
+          %<I2Sx>_DataLink.nbRcv = %<Nb2Rcv>;
+    %endif
+    %elseif (ISEQUAL(Half_Full, "HALF DUPLEX")&&ISEQUAL(Master_Slave, "SLAVE")&&ISEQUAL(Rx_Tx, "Transmitter"))
+            %assign Nb2Send = LibBlockInputSignal(0, "", "", 0)
+          %if(ISEQUAL(ptDataSent, "on"))
+          %%NOT USED  %assign ptDataSend = LibBlockInputSignalAddr(1, "", "", 0)
+          %%  /* Copy data to send to %<I2Sx> send buffer */
+          %%  memcpy((uint16_t*)%<ptDataSend>,(uint16_t*)%<I2Sx>_TxBuff,(uint32_t)%<Nb2SendRcv>);
+          %endif
+          %%output
+          %if (TxMode == 3)
+            %if (ISEQUAL(Error, "on") || ISEQUAL(RxHalfCplt, "on") || ISEQUAL(RxCplt, "on") || ISEQUAL(TxHalfCplt, "on") || ISEQUAL(TxCplt, "on") || ISEQUAL(RxTxCplt, "on"))
+              %assign NbSent = LibBlockOutputSignal(1, "", "", 0)
+            %else
+              %assign NbSent = LibBlockOutputSignal(0, "", "", 0)
+            %endif
+          %endif
+          %if (TxMode == 1)
+          %%IT mode
+          /* %<I2Sx> is Half Duplex, Slave Transmitter Interrupt mode. Send %<Nb2Send> data.*/
+          HAL_I2S_Transmit_IT(%<I2Sx>_DataLink.I2S_Handler, (uint16_t*)%<I2Sx>_TxBuff, (uint16_t)%<Nb2Send>);
+          %<I2Sx>_DataLink.nb2Send = %<Nb2Send>;
+          %<I2Sx>_DataLink.nb2Rcv = 0;
+          %<I2Sx>_DataLink.nbSent = %<Nb2Send>;
+          %<I2Sx>_DataLink.nbRcv = 0;
+          %elseif (TxMode == 2)
+          %%DMA mode
+          /* %<I2Sx> is Half Duplex, Slave Transmitter DMA mode. Send %<Nb2Send> data.*/
+          HAL_I2S_Transmit_DMA(%<I2Sx>_DataLink.I2S_Handler, (uint16_t*)%<I2Sx>_TxBuff, (uint16_t)%<Nb2Send>);
+          %<I2Sx>_DataLink.nb2Send = %<Nb2Send>;
+          %<I2Sx>_DataLink.nb2Rcv = 0;
+          %<I2Sx>_DataLink.nbSent = %<Nb2Send>;
+          %<I2Sx>_DataLink.nbRcv = 0;
+          %elseif (TxMode == 3)
+          %%POLLING mode
+          /* %<I2Sx> is Half Duplex, Slave Transmitter Polling mode. Send %<Nb2Send> data.*/
+          HAL_I2S_Transmit(%<I2Sx>_DataLink.I2S_Handler, (uint16_t*)%<I2Sx>_TxBuff, (uint16_t)%<Nb2Send>, %<I2Sx>_DataLink.timeOut);
+          /* Number of data sent */
+          %<NbSent> = %<Nb2Send>;
+          %<I2Sx>_DataLink.nb2Send = %<Nb2Send>;
+          %<I2Sx>_DataLink.nb2Rcv = 0;
+          %<I2Sx>_DataLink.nbSent = %<Nb2Send>;
+          %<I2Sx>_DataLink.nbRcv = 0;
+         %endif
+    %endif
+
+    %assign OutputNum = 0
+    %assign chOffset = 0
+
+    %if (ISEQUAL(Error, "on") || ISEQUAL(RxHalfCplt, "on") || ISEQUAL(RxCplt, "on") || ISEQUAL(TxHalfCplt, "on") || ISEQUAL(TxCplt, "on") || ISEQUAL(RxTxCplt, "on"))
+        %assign OutputNum = 1
+    %endif
+
+        %%%%%%%% VERY IMPORTANT %%%%%%%%%
+        %%%  DO NOT CHANGE INTERRUPT  %%%
+        %%%     FUNCTION ORDER        %%%
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %if (ISEQUAL(Error, "on"))
+        %openfile I2S_Buf
+        /* %<I2Sx> Error IT function */
+        void %<I2Sx>_ItErrorFcn(void);
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelH_I2S,"Defines",I2S_Buf)>
+
+        %assign chartIsFound = 0
+        %openfile I2S_Buf
+        /*******************************************************************************
+        * Function Name  : %<I2Sx>_ItErrorFcn
+        * Description    : %<I2Sx> Error interrupt
+        * Input          : None
+        *******************************************************************************/
+        void %<I2Sx>_ItErrorFcn()
+        {
+            %foreach callIdx = NumSFcnSysOutputCalls
+                %if (ISEQUAL(callIdx, %<chOffset>))
+                    %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                        %assign wrnTxt = "No code will be generated for Error IRQ  "\
+                        "since it is not connected to a system."
+                        %<LibReportWarning(wrnTxt)>
+                        %continue
+                    %endif
+                    %%Is it connected to model including Chart
+                    %assign chartIsFound = FunctionCalledAsChart(callIdx)
+                    %% call the downstream system
+                    %<LibBlockExecuteFcnCall(block, callIdx)>\
+                %endif
+            %endforeach
+        }
+        %closefile I2S_Buf
+        %if (chartIsFound == 1)
+            %<LibSetSourceFileSection(modelC,"Functions",I2S_Buf)>
+        %else
+            %<LibSetSourceFileSection(modelC_I2S,"Functions",I2S_Buf)>
+        %endif
+        %%Then inc channel num for next IT connection
+        %assign chOffset = chOffset + 1
+    %endif
+
+    %if (ISEQUAL(RxHalfCplt, "on"))
+        %openfile I2S_Buf
+        /* %<I2Sx> RxHalfCplt IT function */
+        void %<I2Sx>_ItRxHalfCplt(void);
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelH_I2S,"Defines",I2S_Buf)>
+
+        %assign chartIsFound = 0
+        %openfile I2S_Buf
+        /*******************************************************************************
+        * Function Name  : %<I2Sx>_ItRxHalfCplt
+        * Description    : %<I2Sx> RxHalfCplt interrupt
+        * Input          : None
+        *******************************************************************************/
+        void %<I2Sx>_ItRxHalfCplt()
+        {
+            %foreach callIdx = NumSFcnSysOutputCalls
+                %if (ISEQUAL(callIdx, %<chOffset>))
+                    %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                        %assign wrnTxt = "No code will be generated for RxHalfCplt IRQ  "\
+                        "since it is not connected to a system."
+                        %<LibReportWarning(wrnTxt)>
+                        %continue
+                    %endif
+                    %%Is it connected to model including Chart
+                    %assign chartIsFound = FunctionCalledAsChart(callIdx)
+                    %% call the downstream system
+                    %<LibBlockExecuteFcnCall(block, callIdx)>\
+                %endif
+            %endforeach
+        }
+        %closefile I2S_Buf
+        %if (chartIsFound == 1)
+            %<LibSetSourceFileSection(modelC,"Functions",I2S_Buf)>
+        %else
+            %<LibSetSourceFileSection(modelC_I2S,"Functions",I2S_Buf)>
+        %endif
+        %%Then inc channel num for next IT connection
+        %assign chOffset = chOffset + 1
+    %endif
+
+    %if (ISEQUAL(RxCplt, "on"))
+        %openfile I2S_Buf
+        /* %<I2Sx> RxCplt IT function */
+        void %<I2Sx>_ItRxCplt(void);
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelH_I2S,"Defines",I2S_Buf)>
+
+        %assign chartIsFound = 0
+        %openfile I2S_Buf
+        /*******************************************************************************
+        * Function Name  : %<I2Sx>_ItRxCplt
+        * Description    : %<I2Sx> RxCplt interrupt
+        * Input          : None
+        *******************************************************************************/
+        void %<I2Sx>_ItRxCplt()
+        {
+            %foreach callIdx = NumSFcnSysOutputCalls
+                %if (ISEQUAL(callIdx, %<chOffset>))
+                    %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                        %assign wrnTxt = "No code will be generated for RxCplt IRQ  "\
+                        "since it is not connected to a system."
+                        %<LibReportWarning(wrnTxt)>
+                        %continue
+                    %endif
+                    %%Is it connected to model including Chart
+                    %assign chartIsFound = FunctionCalledAsChart(callIdx)
+                    %% call the downstream system
+                    %<LibBlockExecuteFcnCall(block, callIdx)>\
+                %endif
+            %endforeach
+        }
+        %closefile I2S_Buf
+        %if (chartIsFound == 1)
+            %<LibSetSourceFileSection(modelC,"Functions",I2S_Buf)>
+        %else
+            %<LibSetSourceFileSection(modelC_I2S,"Functions",I2S_Buf)>
+        %endif
+        %%Then inc channel num for next IT connection
+        %assign chOffset = chOffset + 1
+    %endif
+
+    %if (ISEQUAL(TxHalfCplt, "on"))
+        %openfile I2S_Buf
+        /* %<I2Sx> TxHalfCplt IT function */
+        void %<I2Sx>_ItTxHalfCplt(void);
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelH_I2S,"Defines",I2S_Buf)>
+
+        %assign chartIsFound = 0
+        %openfile I2S_Buf
+        /*******************************************************************************
+        * Function Name  : %<I2Sx>_ItTxHalfCplt
+        * Description    : %<I2Sx> TxHalfCplt interrupt
+        * Input          : None
+        *******************************************************************************/
+        void %<I2Sx>_ItTxHalfCplt()
+        {
+            %foreach callIdx = NumSFcnSysOutputCalls
+                %if (ISEQUAL(callIdx, %<chOffset>))
+                    %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                        %assign wrnTxt = "No code will be generated for TxHalfCplt IRQ  "\
+                        "since it is not connected to a system."
+                        %<LibReportWarning(wrnTxt)>
+                        %continue
+                    %endif
+                    %%Is it connected to model including Chart
+                    %assign chartIsFound = FunctionCalledAsChart(callIdx)
+                    %% call the downstream system
+                    %<LibBlockExecuteFcnCall(block, callIdx)>\
+                %endif
+            %endforeach
+        }
+        %closefile I2S_Buf
+        %if (chartIsFound == 1)
+            %<LibSetSourceFileSection(modelC,"Functions",I2S_Buf)>
+        %else
+            %<LibSetSourceFileSection(modelC_I2S,"Functions",I2S_Buf)>
+        %endif
+        %%Then inc channel num for next IT connection
+        %assign chOffset = chOffset + 1
+    %endif
+
+    %if (ISEQUAL(TxCplt, "on"))
+        %openfile I2S_Buf
+        /* %<I2Sx> TxCplt IT function */
+        void %<I2Sx>_ItTxCplt(void);
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelH_I2S,"Defines",I2S_Buf)>
+
+        %assign chartIsFound = 0
+        %openfile I2S_Buf
+        /*******************************************************************************
+        * Function Name  : %<I2Sx>_ItTxCplt
+        * Description    : %<I2Sx> TxCplt interrupt
+        * Input          : None
+        *******************************************************************************/
+        void %<I2Sx>_ItTxCplt()
+        {
+            %foreach callIdx = NumSFcnSysOutputCalls
+                %if (ISEQUAL(callIdx, %<chOffset>))
+                    %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                        %assign wrnTxt = "No code will be generated for TxCplt IRQ  "\
+                        "since it is not connected to a system."
+                        %<LibReportWarning(wrnTxt)>
+                        %continue
+                    %endif
+                    %%Is it connected to model including Chart
+                    %assign chartIsFound = FunctionCalledAsChart(callIdx)
+                    %% call the downstream system
+                    %<LibBlockExecuteFcnCall(block, callIdx)>\
+                %endif
+            %endforeach
+        }
+        %closefile I2S_Buf
+        %if (chartIsFound == 1)
+            %<LibSetSourceFileSection(modelC,"Functions",I2S_Buf)>
+        %else
+            %<LibSetSourceFileSection(modelC_I2S,"Functions",I2S_Buf)>
+        %endif
+        %%Then inc channel num for next IT connection
+        %assign chOffset = chOffset + 1
+    %endif
+
+    %if (ISEQUAL(RxTxCplt, "on"))
+        %openfile I2S_Buf
+        /* %<I2Sx> RxTxCplt IT function */
+        void %<I2Sx>_ItTxRxCplt(void);
+        %closefile I2S_Buf
+        %<LibSetSourceFileSection(modelH_I2S,"Defines",I2S_Buf)>
+
+        %assign chartIsFound = 0
+        %openfile I2S_Buf
+        /*******************************************************************************
+        * Function Name  : %<I2Sx>_ItTxRxCplt
+        * Description    : %<I2Sx> RxTxCplt interrupt
+        * Input          : None
+        *******************************************************************************/
+        void %<I2Sx>_ItTxRxCplt()
+        {
+            %foreach callIdx = NumSFcnSysOutputCalls
+                %if (ISEQUAL(callIdx, %<chOffset>))
+                    %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                        %assign wrnTxt = "No code will be generated for RxTxCplt IRQ  "\
+                        "since it is not connected to a system."
+                        %<LibReportWarning(wrnTxt)>
+                        %continue
+                    %endif
+                    %%Is it connected to model including Chart
+                    %assign chartIsFound = FunctionCalledAsChart(callIdx)
+                    %% call the downstream system
+                    %<LibBlockExecuteFcnCall(block, callIdx)>\
+                %endif
+            %endforeach
+        }
+        %closefile I2S_Buf
+        %if (chartIsFound == 1)
+            %<LibSetSourceFileSection(modelC,"Functions",I2S_Buf)>
+        %else
+            %<LibSetSourceFileSection(modelC_I2S,"Functions",I2S_Buf)>
+        %endif
+        %%Then inc channel num for next IT connection
+        %assign chOffset = chOffset + 1
+    %endif
+
+%endfunction
+%% [EOF] I2S.tlc

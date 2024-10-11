@@ -1,0 +1,159 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>CAN Filter block</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-09-19"><meta name="DC.source" content="help_CAN_Filter.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>CAN Filter block</h1><!--introduction--><p>Block used in the model to configure the CAN reception filters.</p><p>Depending on STM32CubeMx configuration.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#2">S-Function</a></li><li><a href="#3">CAN Filter parameters</a></li><li><a href="#5"><i>CAN Name</i></a></li><li><a href="#6"><i>Filter Activation</i></a></li><li><a href="#7"><i>FIFO</i></a></li><li><a href="#8"><i>Filter Mode</i></a></li><li><a href="#9"><i>Filter Scale</i></a></li><li><a href="#10"><i>Filter ID High/Low</i></a></li><li><a href="#11"><i>Filter Mask ID High/Low</i></a></li><li><a href="#12"><i>Filter Number</i></a></li><li><a href="#13"><i>Bank Number</i></a></li></ul></div><p>
+<A NAME="ANCRES"> </A>
+</p><h2 id="2">S-Function</h2><p><i>Nb Input:</i>  <b>0</b>.</p><p><i>Nb Output:</i> <b>0</b>.</p><p><img vspace="5" hspace="5" src="CAN\STM32_CAN_Filter.PNG" alt=""> </p><h2 id="3">CAN Filter parameters</h2><p><img vspace="5" hspace="5" src="CAN\STM32_CAN_Filter_Param.PNG" alt=""> </p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="5"><i>CAN Name</i></h2><p>Name of CAN communication channel selection (CAN or CAN1/CAN2 depending on STM32CubeMx configuration).</p><h2 id="6"><i>Filter Activation</i></h2><p>Filtering parameters are taken into account when it is activated.</p><p>Filters not used by the application should be left deactivated.</p><h2 id="7"><i>FIFO</i></h2><p>The FIFO associated to the reception filter (CAN_FIFO0 or CAN_FIFO1).</p><h2 id="8"><i>Filter Mode</i></h2><p>Can be MASK or LIST. To filter a group of identifiers, configure the Mask/Identifier registers in <b>mask</b> mode.</p><p>To select single identifiers, configure the Mask/Identifier registers in identifier <b>list</b> mode.</p><h2 id="9"><i>Filter Scale</i></h2><p>Filter Id are 16/32 bit.</p><div><ul><li><b>mapping:</b> <b>-------------------------------------------------------</b> <b><i>31XXXXXX24</i></b> ------ <b><i>23XXXXXX16</i></b></li><li><b>32-Bit filter - Mask&amp;List</b>  <i>IDH[31:16]</i> ------ <b>map</b> -------- <i>STID[10:3]</i> ------- <i>STID[2:0]+EXID[17:13]</i></li><li><b>mapping:</b> <b>-------------------------------------------------------</b> <b><i>15XXXXXX8</i></b> ------- <b><i>7XXXXXX0</i></b></li><li><b>32-Bit filter - Mask&amp;List</b>  <i>IDL[15:0]</i> ------ <b>map</b> --------- <i>EXID[12:5]</i> ------ <i>EXID[4:0]+IDE+RTR+0</i></li><li><b>16-Bit filter - Mask&amp;List</b>  <i>IDH[15:8]</i> ------ <b>map</b> --------- <i>STID[10:3]</i></li><li><b>16-Bit filter - Mask&amp;List</b>  <i>IDL[7:0]</i>  ------ <b>map</b> ---------------------------------- <i>STID[2:0]+RTR+IDE+EXID[17:15]</i></li></ul></div><h2 id="10"><i>Filter ID High/Low</i></h2><p>In <b>mask</b> mode the identifier registers are associated with mask registers specifying which bits of the identifier are handled as &#8220;must match&#8221; or as &#8220;don&#8217;t care&#8221;.</p><p>In <b>list</b> mode, the mask registers are used as identifier registers. Thus instead of defining an identifier and a mask, two identifiers are specified, doubling the number of single identifiers. All bits of the incoming identifier must match the bits specified in the filter registers.</p><h2 id="11"><i>Filter Mask ID High/Low</i></h2><p>In <b>mask</b> mode the mask registers is specifying which bits of the identifier are handled as &#8220;must match&#8221; or as &#8220;don&#8217;t care&#8221;.</p><p>In <b>list</b> mode, the mask registers are used as identifier registers.</p><h2 id="12"><i>Filter Number</i></h2><p>Each filter within a filter bank is numbered (called the Filter Number) from 0 to a maximum dependent on the mode and the scale of each of the filter banks.</p><h2 id="13"><i>Bank Number</i></h2><p>Up to 28 (0:27) or 14 (0:13) configurable and scalable filter banks.</p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% CAN Filter block
+% Block used in the model to configure the CAN reception filters.
+%
+% Depending on STM32CubeMx configuration.
+% 
+%%
+%
+% <html>
+% <A NAME="ANCRES"> </A>
+% </html>
+% 
+%% S-Function
+% _Nb Input:_  *0*.
+%
+% _Nb Output:_ *0*.
+%
+% <<CAN\STM32_CAN_Filter.PNG>>
+%
+%% CAN Filter parameters
+%%
+% 
+% <<CAN\STM32_CAN_Filter_Param.PNG>> 
+% 
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%% _CAN Name_
+% Name of CAN communication channel selection (CAN or CAN1/CAN2 depending
+% on STM32CubeMx configuration).
+%
+%% _Filter Activation_
+% Filtering parameters are taken into account when it is activated.
+%
+% Filters not used by the application should be left deactivated.
+%
+%% _FIFO_
+% The FIFO associated to the reception filter (CAN_FIFO0 or CAN_FIFO1).
+%
+%% _Filter Mode_
+% Can be MASK or LIST.
+% To filter a group of identifiers, configure the Mask/Identifier registers in *mask* mode.
+%
+% To select single identifiers, configure the Mask/Identifier registers in
+% identifier *list* mode.
+% 
+%% _Filter Scale_
+% Filter Id are 16/32 bit.
+%                                           
+% * *mapping:* *REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-* *_31XXXXXX24_* REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH *_23XXXXXX16_*
+% * *32-Bit filter - Mask&List*  _IDH[31:16]_ REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH *map* REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH _STID[10:3]_ REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH- _STID[2:0]+EXID[17:13]_ 
+% * *mapping:* *REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-* *_15XXXXXX8_* REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH- *_7XXXXXX0_*
+% * *32-Bit filter - Mask&List*  _IDL[15:0]_ REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH *map* REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH- _EXID[12:5]_ REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH _EXID[4:0]+IDE+RTR+0_
+% * *16-Bit filter - Mask&List*  _IDH[15:8]_ REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH *map* REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH- _STID[10:3]_
+% * *16-Bit filter - Mask&List*  _IDL[7:0]_  REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH *map* REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH _STID[2:0]+RTR+IDE+EXID[17:15]_
+%
+%
+%% _Filter ID High/Low_
+% In *mask* mode the identifier registers are associated with mask registers specifying which
+% bits of the identifier are handled as “must match” or as “don’t care”.
+%
+% In *list* mode, the mask registers are used as identifier registers. Thus instead of
+% defining an identifier and a mask, two identifiers are specified, doubling the number of single
+% identifiers. All bits of the incoming identifier must match the bits specified in the filter
+% registers.
+%
+%% _Filter Mask ID High/Low_
+% In *mask* mode the mask registers is specifying which
+% bits of the identifier are handled as “must match” or as “don’t care”.
+%
+% In *list* mode, the mask registers are used as identifier registers. 
+%
+%% _Filter Number_
+% Each filter within a filter bank is numbered (called the Filter Number) from 0 to a maximum
+% dependent on the mode and the scale of each of the filter banks.
+%
+%% _Bank Number_
+% Up to 28 (0:27) or 14 (0:13) configurable and scalable filter banks.
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+##### SOURCE END #####
+--></body></html>

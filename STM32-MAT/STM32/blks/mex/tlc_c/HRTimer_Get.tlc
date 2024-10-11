@@ -1,0 +1,505 @@
+%% Abstract: HRTimer_Get 
+%%    STM32 HR Timers Get Compare values 1 to 4 for Timer Master to timer E
+%%    Generated code is based on STM32 HAL Library files.
+%%
+%% Copyright 1990-2009 The MathWorks, Inc.
+%assign CodeFormat = "Embedded-C"
+%implements HRTimer_Get "C"
+
+%% %include "FunctionCalledAsChart.tlc"
+
+%%warning "---------->Enable HRTimers"
+
+%if !EXISTS(::CreateHRTimers)
+    %assign ::CreateHRTimers  = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertIncludesToHRTIM)
+    %assign ::InsertIncludesToHRTIM  = TLC_TRUE
+%endif 
+
+%if !EXISTS(::InsertIncludesFromHRTIM)
+    %assign ::InsertIncludesFromHRTIM  = TLC_TRUE
+%endif 
+
+%if !EXISTS(::InsertHRTIM)
+    %assign ::InsertHRTIM  = TLC_TRUE
+%endif 
+
+%assign ::CreateHRTimers  = TLC_TRUE
+%%trace CreateHRTimers  %<CreateHRTimers>
+
+
+%% Create function for HRTimers:
+%if EXISTS(CreateHRTimers) && (CreateHRTimers == TLC_TRUE)
+    %%assign ::CreateHRTimers = TLC_FALSE
+
+
+%% Code for system initialization:
+%function Start(block,system) Output
+%endfunction
+
+
+%% Code for HRTimers configuration call:
+%function BlockInstanceSetup(block, system) void
+    %%model.c and model.h files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+    %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+    %%model_HRTIM.h and model_HRTIM.c files
+    %assign SrcBaseName_HRTIM = "%<SrcBaseName>_HRTIM"
+    %assign modelH_HRTIM      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_HRTIM)
+    %assign modelC_HRTIM      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_HRTIM)
+    %%Include model.h to model_HRTIM.c 
+    %if EXISTS(::InsertIncludesToHRTIM) && (::InsertIncludesToHRTIM == TLC_TRUE)
+        %assign ::InsertIncludesToHRTIM    = TLC_FALSE		
+        %openfile HRTIM_Buf
+            #include "%<SrcBaseName>.h"
+            #include "%<SrcBaseName_HRTIM>.h"
+        %closefile HRTIM_Buf
+        %<LibSetSourceFileSection(modelC_HRTIM,"Includes",HRTIM_Buf)>
+    %endif
+    %%AND Include model_HRTIM.h to model.c
+    %if EXISTS(::InsertIncludesFromHRTIM) && (::InsertIncludesFromHRTIM == TLC_TRUE)
+        %assign ::InsertIncludesFromHRTIM    = TLC_FALSE		
+        %openfile HRTIM_Buf
+            #include "%<SrcBaseName_HRTIM>.h"
+        %closefile HRTIM_Buf
+        %<LibSetSourceFileSection(modelH,"Includes",HRTIM_Buf)>
+
+        %openfile HRTIM_Buf
+            #include "STM32_Config.h"
+        %closefile HRTIM_Buf
+        %<LibSetSourceFileSection(modelH_HRTIM,"Includes",HRTIM_Buf)>						
+    %endif
+
+    %%%%%%%%%%%%%%%%%%%%%% HRTIM %%%%%%%%%%%%%%%%%%%%%%%%%
+    %assign NbHRTim  = SFcnParamSettings.NbHRTim
+    %assign HRTIM_Name = SFcnParamSettings.HRTIM_Name
+    %assign A_Used         = SFcnParamSettings.A_Used
+    %assign A_Capt1_In     = SFcnParamSettings.A_Capt1_In
+    %assign A_Capt2_In     = SFcnParamSettings.A_Capt2_In
+    %assign B_Used         = SFcnParamSettings.B_Used
+    %assign B_Capt1_In     = SFcnParamSettings.B_Capt1_In
+    %assign B_Capt2_In     = SFcnParamSettings.B_Capt2_In
+    %assign C_Used         = SFcnParamSettings.C_Used
+    %assign C_Capt1_In     = SFcnParamSettings.C_Capt1_In
+    %assign C_Capt2_In     = SFcnParamSettings.C_Capt2_In
+    %assign D_Used         = SFcnParamSettings.D_Used
+    %assign D_Capt1_In     = SFcnParamSettings.D_Capt1_In
+    %assign D_Capt2_In     = SFcnParamSettings.D_Capt2_In
+    %assign E_Used         = SFcnParamSettings.E_Used
+    %assign E_Capt1_In     = SFcnParamSettings.E_Capt1_In
+    %assign E_Capt2_In     = SFcnParamSettings.E_Capt2_In
+    %assign F_Used         = SFcnParamSettings.F_Used
+    %assign F_Capt1_In     = SFcnParamSettings.F_Capt1_In
+    %assign F_Capt2_In     = SFcnParamSettings.F_Capt2_In
+
+    %% Code for required TIM external definition: in model_HRTIM.c file
+    %assign timNum = IDNUM("%<HRTIM_Name>")[1]
+
+    %%Initialization should be done once only
+    %if EXISTS(::InsertHRTIM) && (::InsertHRTIM == TLC_TRUE)
+
+    %openfile HRTIM_Buf
+        /* %<HRTIM_Name> handler */
+        extern HRTIM_HandleTypeDef hhrtim%<timNum>;
+    %closefile HRTIM_Buf
+    %<LibSetSourceFileSection(modelH_HRTIM,"Defines",HRTIM_Buf)>
+
+    %endif		
+%endfunction
+
+%% Function: Outputs ==========================================
+%% Abstract:
+%% HRTimers input value depending on pin config
+%%
+%function Outputs(block, system) Output
+    %%model.c and model.h files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+    %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+    %%model_HRTIM.h and model_HRTIM.c files
+    %assign SrcBaseName_HRTIM = "%<SrcBaseName>_HRTIM"
+    %assign modelH_HRTIM      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_HRTIM)
+    %assign modelC_HRTIM      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_HRTIM)
+
+    %%%%%%%%%%%%%%%%%%%%%% HRTIM %%%%%%%%%%%%%%%%%%%%%%%%%
+    %assign NbHRTim  = SFcnParamSettings.NbHRTim
+    %assign HRTIM_Name = SFcnParamSettings.HRTIM_Name
+    %assign M_Period = SFcnParamSettings.M_Period
+    %assign A_Period = SFcnParamSettings.A_Period
+    %assign B_Period = SFcnParamSettings.B_Period
+    %assign C_Period = SFcnParamSettings.C_Period
+    %assign D_Period = SFcnParamSettings.D_Period
+    %assign E_Period = SFcnParamSettings.E_Period
+    %assign F_Period = SFcnParamSettings.F_Period
+    %assign M_Used         = SFcnParamSettings.M_Used
+    %assign M_Comp1       = SFcnParamSettings.M_Comp1
+    %assign M_Comp2       = SFcnParamSettings.M_Comp2
+    %assign M_Comp3       = SFcnParamSettings.M_Comp3
+    %assign M_Comp4       = SFcnParamSettings.M_Comp4
+    %assign A_Used         = SFcnParamSettings.A_Used
+    %assign A_Capt1_In     = SFcnParamSettings.A_Capt1_In
+    %assign A_Capt2_In     = SFcnParamSettings.A_Capt2_In
+    %assign A_Comp1       = SFcnParamSettings.A_Comp1
+    %assign A_Comp2       = SFcnParamSettings.A_Comp2
+    %assign A_Comp3       = SFcnParamSettings.A_Comp3
+    %assign A_Comp4       = SFcnParamSettings.A_Comp4
+    %assign B_Used         = SFcnParamSettings.B_Used
+    %assign B_Capt1_In     = SFcnParamSettings.B_Capt1_In
+    %assign B_Capt2_In     = SFcnParamSettings.B_Capt2_In
+    %assign B_Comp1       = SFcnParamSettings.B_Comp1
+    %assign B_Comp2       = SFcnParamSettings.B_Comp2
+    %assign B_Comp3       = SFcnParamSettings.B_Comp3
+    %assign B_Comp4       = SFcnParamSettings.B_Comp4
+    %assign C_Used         = SFcnParamSettings.C_Used
+    %assign C_Capt1_In     = SFcnParamSettings.C_Capt1_In
+    %assign C_Capt2_In     = SFcnParamSettings.C_Capt2_In
+    %assign C_Comp1       = SFcnParamSettings.C_Comp1
+    %assign C_Comp2       = SFcnParamSettings.C_Comp2
+    %assign C_Comp3       = SFcnParamSettings.C_Comp3
+    %assign C_Comp4       = SFcnParamSettings.C_Comp4
+    %assign D_Used         = SFcnParamSettings.D_Used
+    %assign D_Capt1_In     = SFcnParamSettings.D_Capt1_In
+    %assign D_Capt2_In     = SFcnParamSettings.D_Capt2_In
+    %assign D_Comp1       = SFcnParamSettings.D_Comp1
+    %assign D_Comp2       = SFcnParamSettings.D_Comp2
+    %assign D_Comp3       = SFcnParamSettings.D_Comp3
+    %assign D_Comp4       = SFcnParamSettings.D_Comp4
+    %assign E_Used         = SFcnParamSettings.E_Used
+    %assign E_Capt1_In     = SFcnParamSettings.E_Capt1_In
+    %assign E_Capt2_In     = SFcnParamSettings.E_Capt2_In
+    %assign E_Comp1       = SFcnParamSettings.E_Comp1
+    %assign E_Comp2       = SFcnParamSettings.E_Comp2
+    %assign E_Comp3       = SFcnParamSettings.E_Comp3
+    %assign E_Comp4       = SFcnParamSettings.E_Comp4
+    %assign F_Used         = SFcnParamSettings.F_Used
+    %assign F_Capt1_In     = SFcnParamSettings.F_Capt1_In
+    %assign F_Capt2_In     = SFcnParamSettings.F_Capt2_In
+    %assign F_Comp1       = SFcnParamSettings.F_Comp1
+    %assign F_Comp2       = SFcnParamSettings.F_Comp2
+    %assign F_Comp3       = SFcnParamSettings.F_Comp3
+    %assign F_Comp4       = SFcnParamSettings.F_Comp4
+
+    %assign timNum = IDNUM("%<HRTIM_Name>")[1]
+    %assign OutputNum = 0 
+
+    %%Get MASTER TIMER registers value
+    %if ISEQUAL(M_Used,"on")
+        %if ISEQUAL(M_Period,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Master timer frequency register value */
+        %<y> = __HAL_HRTIM_GETPERIOD(&hhrtim%<timNum>, HRTIM_TIMERINDEX_MASTER);
+        %endif
+        %if ISEQUAL(M_Comp1,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer M compare 1 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_MASTER, HRTIM_COMPAREUNIT_1);
+        %endif
+        %if ISEQUAL(M_Comp2,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer M compare 2 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_MASTER, HRTIM_COMPAREUNIT_2);
+        %endif
+        %if ISEQUAL(M_Comp3,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer M compare 3 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_MASTER, HRTIM_COMPAREUNIT_3);
+        %endif
+        %if ISEQUAL(M_Comp4,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer M compare 4 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_MASTER, HRTIM_COMPAREUNIT_4);
+        %endif
+    %endif
+
+    %%Get TIMER A capture register value
+    %if ISEQUAL(A_Used,"on")
+        %if ISEQUAL(A_Period,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer A frequency register value */
+        %<y> = __HAL_HRTIM_GETPERIOD(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_A);
+        %endif
+        %if ISEQUAL(A_Capt1_In,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer A capture 1 register  */
+        %<y> = HAL_HRTIM_GetCapturedValue(&hhrtim%<timNum>,HRTIM_TIMERINDEX_TIMER_A,HRTIM_CAPTUREUNIT_1);
+        %endif  
+        %if ISEQUAL(A_Capt2_In,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer A capture 2 register  */
+        %<y> = HAL_HRTIM_GetCapturedValue(&hhrtim%<timNum>,HRTIM_TIMERINDEX_TIMER_A,HRTIM_CAPTUREUNIT_2);
+        %endif  
+        %if ISEQUAL(A_Comp1,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer A compare 1 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_A, HRTIM_COMPAREUNIT_1);
+        %endif
+        %if ISEQUAL(A_Comp2,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer A compare 2 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_A, HRTIM_COMPAREUNIT_2);
+        %endif
+        %if ISEQUAL(A_Comp3,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer A compare 3 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_A, HRTIM_COMPAREUNIT_3);
+        %endif
+        %if ISEQUAL(A_Comp4,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer A compare 4 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_A, HRTIM_COMPAREUNIT_4);
+        %endif
+    %endif
+
+    %%Get TIMER B capture register value
+    %if ISEQUAL(B_Used,"on")
+        %if ISEQUAL(B_Period,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer B frequency register value */
+        %<y> = __HAL_HRTIM_GETPERIOD(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_B);
+        %endif
+        %if ISEQUAL(B_Capt1_In,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer B capture 1 register  */
+        %<y> = HAL_HRTIM_GetCapturedValue(&hhrtim%<timNum>,HRTIM_TIMERINDEX_TIMER_B,HRTIM_CAPTUREUNIT_1);
+        %endif  
+        %if ISEQUAL(B_Capt2_In,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer B capture 2 register  */
+        %<y> = HAL_HRTIM_GetCapturedValue(&hhrtim%<timNum>,HRTIM_TIMERINDEX_TIMER_B,HRTIM_CAPTUREUNIT_2);
+        %endif  
+        %if ISEQUAL(B_Comp1,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer B compare 1 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_B, HRTIM_COMPAREUNIT_1);
+        %endif
+        %if ISEQUAL(B_Comp2,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer B compare 2 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_B, HRTIM_COMPAREUNIT_2);
+        %endif
+        %if ISEQUAL(B_Comp3,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer B compare 3 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_B, HRTIM_COMPAREUNIT_3);
+        %endif
+        %if ISEQUAL(B_Comp4,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer B compare 4 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_B, HRTIM_COMPAREUNIT_4);
+        %endif
+    %endif
+
+    %%Get TIMER C capture register value
+    %if ISEQUAL(C_Used,"on")
+        %if ISEQUAL(C_Period,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer C frequency register value */
+        %<y> = __HAL_HRTIM_GETPERIOD(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_C);
+        %endif
+        %if ISEQUAL(C_Capt1_In,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer C capture 1 register  */
+        %<y> = HAL_HRTIM_GetCapturedValue(&hhrtim%<timNum>,HRTIM_TIMERINDEX_TIMER_C,HRTIM_CAPTUREUNIT_1);
+        %endif  
+        %if ISEQUAL(C_Capt2_In,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer C capture 2 register  */
+        %<y> = HAL_HRTIM_GetCapturedValue(&hhrtim%<timNum>,HRTIM_TIMERINDEX_TIMER_C,HRTIM_CAPTUREUNIT_2);
+        %endif  
+        %if ISEQUAL(C_Comp1,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer C compare 1 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_C, HRTIM_COMPAREUNIT_1);
+        %endif
+        %if ISEQUAL(C_Comp2,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer C compare 2 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_C, HRTIM_COMPAREUNIT_2);
+        %endif
+        %if ISEQUAL(C_Comp3,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer C compare 3 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_C, HRTIM_COMPAREUNIT_3);
+        %endif
+        %if ISEQUAL(C_Comp4,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer C compare 4 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_C, HRTIM_COMPAREUNIT_4);
+        %endif
+    %endif
+
+    %%Get TIMER D capture register value
+    %if ISEQUAL(D_Used,"on")
+        %if ISEQUAL(D_Period,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer D frequency register value */
+        %<y> = __HAL_HRTIM_GETPERIOD(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_D);
+        %endif
+        %if ISEQUAL(D_Capt1_In,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer D capture 1 register  */
+        %<y> = HAL_HRTIM_GetCapturedValue(&hhrtim%<timNum>,HRTIM_TIMERINDEX_TIMER_D,HRTIM_CAPTUREUNIT_1);
+        %endif  
+        %if ISEQUAL(D_Capt2_In,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer D capture 2 register  */
+        %<y> = HAL_HRTIM_GetCapturedValue(&hhrtim%<timNum>,HRTIM_TIMERINDEX_TIMER_D,HRTIM_CAPTUREUNIT_2);
+        %endif  
+        %if ISEQUAL(D_Comp1,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer D compare 1 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_D, HRTIM_COMPAREUNIT_1);
+        %endif
+        %if ISEQUAL(D_Comp2,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer D compare 2 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_D, HRTIM_COMPAREUNIT_2);
+        %endif
+        %if ISEQUAL(D_Comp3,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer D compare 3 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_D, HRTIM_COMPAREUNIT_3);
+        %endif
+        %if ISEQUAL(D_Comp4,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer D compare 4 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_D, HRTIM_COMPAREUNIT_4);
+        %endif
+    %endif
+
+    %%Get TIMER E capture register value
+    %if ISEQUAL(E_Used,"on")
+        %if ISEQUAL(E_Period,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer E frequency register value */
+        %<y> = __HAL_HRTIM_GETPERIOD(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_E);
+        %endif
+        %if ISEQUAL(E_Capt1_In,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer E capture 1 register  */
+        %<y> = HAL_HRTIM_GetCapturedValue(&hhrtim%<timNum>,HRTIM_TIMERINDEX_TIMER_E,HRTIM_CAPTUREUNIT_1);
+        %endif  
+        %if ISEQUAL(E_Capt2_In,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer E capture 2 register  */
+        %<y> = HAL_HRTIM_GetCapturedValue(&hhrtim%<timNum>,HRTIM_TIMERINDEX_TIMER_E,HRTIM_CAPTUREUNIT_2);
+        %endif  
+        %if ISEQUAL(E_Comp1,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer E compare 1 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_E, HRTIM_COMPAREUNIT_1);
+        %endif
+        %if ISEQUAL(E_Comp2,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer E compare 2 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_E, HRTIM_COMPAREUNIT_2);
+        %endif
+        %if ISEQUAL(E_Comp3,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer E compare 3 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_E, HRTIM_COMPAREUNIT_3);
+        %endif
+        %if ISEQUAL(E_Comp4,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer E compare 4 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_E, HRTIM_COMPAREUNIT_4);
+        %endif
+    %endif
+
+    %%Get TIMER F capture register value
+    %if ISEQUAL(F_Used,"on")
+        %if ISEQUAL(F_Period,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer F frequency register value */
+        %<y> = __HAL_HRTIM_GETPERIOD(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_F);
+        %endif
+        %if ISEQUAL(F_Capt1_In,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer F capture 1 register  */
+        %<y> = HAL_HRTIM_GetCapturedValue(&hhrtim%<timNum>,HRTIM_TIMERINDEX_TIMER_F,HRTIM_CAPTUREUNIT_1);
+        %endif  
+        %if ISEQUAL(F_Capt2_In,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer F capture 2 register  */
+        %<y> = HAL_HRTIM_GetCapturedValue(&hhrtim%<timNum>,HRTIM_TIMERINDEX_TIMER_F,HRTIM_CAPTUREUNIT_2);
+        %endif  
+        %if ISEQUAL(F_Comp1,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer F compare 1 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_F, HRTIM_COMPAREUNIT_1);
+        %endif
+        %if ISEQUAL(F_Comp2,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer F compare 2 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_F, HRTIM_COMPAREUNIT_2);
+        %endif
+        %if ISEQUAL(F_Comp3,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer F compare 3 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_F, HRTIM_COMPAREUNIT_3);
+        %endif
+        %if ISEQUAL(F_Comp4,"on")
+        %assign y = LibBlockOutputSignal(OutputNum, "", "", 0) 
+        %assign OutputNum = %<OutputNum> + 1
+        /* Get Timer F compare 4 register  */
+        %<y> = __HAL_HRTIM_GETCOMPARE(&hhrtim%<timNum>, HRTIM_TIMERINDEX_TIMER_F, HRTIM_COMPAREUNIT_4);
+        %endif
+    %endif
+%endfunction
+
+
+%else
+%% ERROR HRTimers Enable MUST BE CALLED ONCE ONLY 
+%trace ERROR HRTimers Enable MUST BE CALLED ONCE ONLY 
+%endif 
+
+%% [EOF] HRTimer_Get.tlc

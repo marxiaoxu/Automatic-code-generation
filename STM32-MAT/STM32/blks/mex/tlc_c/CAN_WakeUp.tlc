@@ -1,0 +1,116 @@
+%% Abstract: CAN WakeUp
+%%    State WakeUp of selected CANx
+%%    Generated code is based on STM32 HAL Library files.
+%%
+%% Copyright 1990-2009 The MathWorks, Inc.
+%assign CodeFormat = "Embedded-C"
+%implements CAN_WakeUp "C"
+
+%%warning "---------->Start CAN_WakeUp"
+
+%if !EXISTS(::InsertIncludesToCAN)
+    %assign ::InsertIncludesToCAN  = TLC_TRUE
+%endif 
+
+%if !EXISTS(::InsertIncludesFromCAN)
+    %assign ::InsertIncludesFromCAN  = TLC_TRUE
+%endif 
+
+
+%assign CAN_name =  SFcnParamSettings.CAN_name
+%if !EXISTS(::VarDef_%<CAN_name>)
+    %assign ::VarDef_%<CAN_name>  = TLC_TRUE
+%endif 
+
+
+%% Create function for CAN WakeUp:
+
+%% Code for system initialization:
+
+%% Code for CAN configuration call:
+%function BlockInstanceSetup(block, system) void
+
+    %%model.c and model.h files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+    %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+
+    %%model_CAN.h and model_CAN.c files
+    %assign SrcBaseName_CAN = "%<SrcBaseName>_CAN"
+    %assign modelH_CAN      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_CAN)
+    %assign modelC_CAN      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_CAN)
+
+    %%Include model.h to model_CAN.c
+    %if EXISTS(::InsertIncludesToCAN) && (::InsertIncludesToCAN == TLC_TRUE)
+        %assign ::InsertIncludesToCAN    = TLC_FALSE		
+        %openfile CAN_Buf
+            #include "%<SrcBaseName>.h"
+            #include "%<SrcBaseName_CAN>.h"
+        %closefile CAN_Buf
+        %<LibSetSourceFileSection(modelC_CAN,"Includes",CAN_Buf)>
+    %endif
+
+    %%AND Include model_CAN.h to model.c
+    %if EXISTS(::InsertIncludesFromCAN) && (::InsertIncludesFromCAN == TLC_TRUE)
+        %assign ::InsertIncludesFromCAN = TLC_FALSE
+        %openfile CAN_Buf
+            #include "%<SrcBaseName_CAN>.h"
+        %closefile CAN_Buf
+        %<LibSetSourceFileSection(modelH,"Includes",CAN_Buf)>
+
+        %openfile CAN_Buf
+            #include "STM32_Config.h"
+        %closefile CAN_Buf
+        %<LibSetSourceFileSection(modelH_CAN,"Includes",CAN_Buf)>
+    %endif
+
+    %%Then build model_CAN.h and model_CAN.c
+    %assign CAN_name =  SFcnParamSettings.CAN_name
+
+%% Code for required CAN external definition: in model_CAN.c file
+%if (ISEQUAL(CAN_name, "CAN"))
+    %assign CANNum = ""
+%else
+    %assign CANNum = IDNUM("%<CAN_name>")[1]
+%endif
+
+%if EXISTS(::VarDef_%<CAN_name>) && (::VarDef_%<CAN_name> == TLC_TRUE)
+    %assign ::VarDef_%<CAN_name>    = TLC_FALSE		
+    %openfile CAN_Buf
+    /* %<CAN_name> handler declaration. */
+    extern CAN_HandleTypeDef hcan%<CANNum>;
+    %closefile CAN_Buf
+    %<LibSetSourceFileSection(modelH_CAN,"Defines",CAN_Buf)>
+%endif
+%endfunction
+
+%% Function: Outputs ==========================================
+%% Abstract:
+%% CAN_WakeUp input value depending on pin config
+%%
+%function Outputs(block, system) Output
+
+    %%model_CAN.h and model_CAN.c files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign SrcBaseName_CAN = "%<SrcBaseName>_CAN"
+    %assign modelH_CAN      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_CAN)
+    %assign modelC_CAN      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_CAN)
+
+    %assign CAN_name =  SFcnParamSettings.CAN_name
+
+    %if (ISEQUAL(CAN_name, "CAN"))
+        %assign CANNum = ""
+    %else
+        %assign CANNum = IDNUM("%<CAN_name>")[1]
+    %endif
+
+    {
+      /* Wakes up %<CAN_name> from sleep mode. */
+      if(HAL_CAN_WakeUp(&hcan%<CANNum>) != HAL_OK) {
+        Error_Handler();
+      }
+    }
+
+%endfunction
+
+%% [EOF] CAN_WakeUp.tlc

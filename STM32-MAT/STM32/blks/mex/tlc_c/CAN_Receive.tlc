@@ -1,0 +1,178 @@
+%% Abstract: CAN Receive 
+%%    Receive frame for selected CANx
+%%    Generated code is based on STM32 HAL Library files.
+%%
+%% Copyright 1990-2009 The MathWorks, Inc.
+%assign CodeFormat = "Embedded-C"
+%implements CAN_Receive "C"
+
+%%warning "---------->Start CAN_Receive"
+
+%if !EXISTS(::InsertIncludesToCAN)
+    %assign ::InsertIncludesToCAN  = TLC_TRUE
+%endif 
+
+%if !EXISTS(::InsertIncludesFromCAN)
+    %assign ::InsertIncludesFromCAN  = TLC_TRUE
+%endif 
+
+%assign CAN_name =  SFcnParamSettings.CAN_name
+%if !EXISTS(::VarDef_%<CAN_name>)
+    %assign ::VarDef_%<CAN_name>  = TLC_TRUE
+%endif 
+
+%if !EXISTS(::SetActivateRxFifo0Notification%<CAN_name>)
+    %assign ::SetActivateRxFifo0Notification%<CAN_name> = TLC_TRUE
+%endif
+
+%if !EXISTS(::SetActivateRxFifo1Notification%<CAN_name>)
+    %assign ::SetActivateRxFifo1Notification%<CAN_name> = TLC_TRUE
+%endif
+
+
+%% Create function for CAN Receive:
+
+
+%% Code for initialization fo Receive operation:
+%function Start(block,system) Output
+    %assign CAN_name =  SFcnParamSettings.CAN_name
+    %assign CAN_It =  SFcnParamSettings.CAN_It
+    %assign CAN_Fifo = SFcnParamSettings.CAN_Fifo
+
+    %if (ISEQUAL(CAN_name, "CAN"))
+        %assign CANNum = ""
+    %else
+        %assign CANNum = IDNUM("%<CAN_name>")[1]
+    %endif
+
+    %assign fifoNum = IDNUM(CAN_Fifo)[1]
+
+    {
+    %if (ISEQUAL(CAN_It, "on"))
+        %if (fifoNum == 0) && EXISTS(::SetActivateRxFifo0Notification%<CAN_name>) && (::SetActivateRxFifo0Notification%<CAN_name> == TLC_TRUE)
+            %assign ::SetActivateRxFifo0Notification%<CAN_name> = TLC_FALSE
+        /* Interrupt case. */
+        {
+          /* Activate CAN RX notifications on dedicated FIFO%<fifoNum>. */
+          const uint32_t activeITs = CAN_IT_RX_FIFO0_MSG_PENDING|CAN_IT_RX_FIFO0_FULL|CAN_IT_RX_FIFO0_OVERRUN;
+          if(HAL_CAN_ActivateNotification(&hcan%<CANNum>, activeITs) != HAL_OK) {
+            Error_Handler();
+          }
+        }
+        %elseif (fifoNum == 1) && EXISTS(::SetActivateRxFifo1Notification%<CAN_name>) && (::SetActivateRxFifo1Notification%<CAN_name> == TLC_TRUE)
+            %assign ::SetActivateRxFifo1Notification%<CAN_name> = TLC_FALSE
+        /* Interrupt case. */
+        {
+          /* Activate CAN RX notifications on dedicated FIFO%<fifoNum>. */
+          const uint32_t activeITs = CAN_IT_RX_FIFO1_MSG_PENDING|CAN_IT_RX_FIFO1_FULL|CAN_IT_RX_FIFO1_OVERRUN;
+          if(HAL_CAN_ActivateNotification(&hcan%<CANNum>, activeITs) != HAL_OK) {
+            Error_Handler();
+          }
+        }
+        %endif
+    %endif
+
+    %if EXISTS(::SetStart_%<CAN_name>) && (::SetStart_%<CAN_name> == TLC_TRUE)
+        %assign ::SetStart_%<CAN_name> = TLC_FALSE
+        /* Start %<CAN_name>. */
+        if(HAL_CAN_Start(&hcan%<CANNum>) != HAL_OK) {
+          Error_Handler();
+        }
+    %endif
+    }
+%endfunction
+
+%% Code for CAN configuration call:
+%function BlockInstanceSetup(block, system) void
+
+    %%model.c and model.h files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+    %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+
+    %%model_CAN.h and model_CAN.c files
+    %assign SrcBaseName_CAN = "%<SrcBaseName>_CAN"
+    %assign modelH_CAN      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_CAN)
+    %assign modelC_CAN      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_CAN)
+
+    %%Include model.h to model_CAN.c
+    %if EXISTS(::InsertIncludesToCAN) && (::InsertIncludesToCAN == TLC_TRUE)
+        %assign ::InsertIncludesToCAN    = TLC_FALSE
+        %openfile CAN_Buf
+            #include "%<SrcBaseName>.h"
+            #include "%<SrcBaseName_CAN>.h"
+        %closefile CAN_Buf
+        %<LibSetSourceFileSection(modelC_CAN,"Includes",CAN_Buf)>
+    %endif
+
+    %%AND Include model_CAN.h to model.c
+    %if EXISTS(::InsertIncludesFromCAN) && (::InsertIncludesFromCAN == TLC_TRUE)
+        %assign ::InsertIncludesFromCAN    = TLC_FALSE
+        %openfile CAN_Buf
+            #include "%<SrcBaseName_CAN>.h"
+        %closefile CAN_Buf
+        %<LibSetSourceFileSection(modelH,"Includes",CAN_Buf)>
+
+        %openfile CAN_Buf
+        #include "STM32_Config.h"
+        %closefile CAN_Buf
+        %<LibSetSourceFileSection(modelH_CAN,"Includes",CAN_Buf)>
+    %endif
+
+    %%Then build model_CAN.h and model_CAN.c
+    %assign CAN_name =  SFcnParamSettings.CAN_name
+    %assign CAN_It =  SFcnParamSettings.CAN_It
+
+%% Code for required CAN external definition: in model_CAN.c file
+%if (ISEQUAL(CAN_name, "CAN"))
+    %assign CANNum = ""
+%else
+    %assign CANNum = IDNUM("%<CAN_name>")[1]
+%endif
+
+%if EXISTS(::VarDef_%<CAN_name>) && (::VarDef_%<CAN_name> == TLC_TRUE)
+    %assign ::VarDef_%<CAN_name>    = TLC_FALSE
+    %openfile CAN_Buf
+        /* %<CAN_name> handler declaration. */
+        extern CAN_HandleTypeDef hcan%<CANNum>;
+    %closefile CAN_Buf
+    %<LibSetSourceFileSection(modelH_CAN,"Defines",CAN_Buf)>
+%endif
+
+%endfunction
+
+%% Function: Outputs ==========================================
+%% Abstract:
+%% Prepare reception of CAN messages.
+%%
+%function Outputs(block, system) Output
+
+    %%model_CAN.h and model_CAN.c files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign SrcBaseName_CAN = "%<SrcBaseName>_CAN"
+    %assign modelH_CAN      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_CAN)
+    %assign modelC_CAN      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_CAN)
+
+    %assign CAN_name =  SFcnParamSettings.CAN_name
+    %assign CAN_It =  SFcnParamSettings.CAN_It
+    %assign CAN_Fifo =  SFcnParamSettings.CAN_Fifo
+
+    %if (ISEQUAL(CAN_name, "CAN"))
+        %assign CANNum = ""
+    %else
+        %assign CANNum = IDNUM("%<CAN_name>")[1]
+    %endif
+
+    %assign fifoNum = IDNUM(CAN_Fifo)[1]
+    %assign CANRxFifo = "CAN_RX_FIFO%<fifoNum>"
+
+%if (ISEQUAL(CAN_It,"off"))
+     {
+       /* Polling case. */
+       /* Wait for reception, at least something available in FIFO. */
+       while(HAL_CAN_GetRxFifoFillLevel(&hcan%<CANNum>, %<CANRxFifo>) == 0);
+     }
+%endif
+%endfunction
+
+%% [EOF] CAN_Receive.tlc

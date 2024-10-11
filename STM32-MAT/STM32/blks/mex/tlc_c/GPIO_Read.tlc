@@ -1,0 +1,242 @@
+%% Abstract: GPIO Read
+%%    STM32 GPIO Read input bit value from selected GPIOx port.
+%%
+%% Copyright 1990-2009 The MathWorks, Inc.
+
+%implements GPIO_Read "C"
+
+%%warning "---------->Start GPIO_READ"
+
+%%GPIO LL or HAL dev ?
+%assign ::LL_Dev = FEVAL("ioc_isLLDev","GPIO")
+
+
+%% Create function for GPIO Read:
+
+
+%% Function: Outputs ==========================================
+%% Abstract:
+%% GPIO_Read input value for the given pins
+%%
+%function Outputs(block, system) Output
+    %assign Port_name =  SFcnParamSettings.Port_name
+    %assign Pin_0 =  SFcnParamSettings.Pin_0
+    %assign Pin_1 =  SFcnParamSettings.Pin_1
+    %assign Pin_2 =  SFcnParamSettings.Pin_2
+    %assign Pin_3 =  SFcnParamSettings.Pin_3
+    %assign Pin_4 =  SFcnParamSettings.Pin_4
+    %assign Pin_5 =  SFcnParamSettings.Pin_5
+    %assign Pin_6 =  SFcnParamSettings.Pin_6
+    %assign Pin_7 =  SFcnParamSettings.Pin_7
+    %assign Pin_8 =  SFcnParamSettings.Pin_8
+    %assign Pin_9 =  SFcnParamSettings.Pin_9
+    %assign Pin_10 =  SFcnParamSettings.Pin_10
+    %assign Pin_11 =  SFcnParamSettings.Pin_11
+    %assign Pin_12 =  SFcnParamSettings.Pin_12
+    %assign Pin_13 =  SFcnParamSettings.Pin_13
+    %assign Pin_14 =  SFcnParamSettings.Pin_14
+    %assign Pin_15 =  SFcnParamSettings.Pin_15
+
+    %assign OutputNum = 0
+    {
+    %if %<::LL_Dev> > 0
+    %% LL based development
+        %if (ISEQUAL(Pin_0, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)(%<Port_name>->IDR & LL_GPIO_PIN_0);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_1, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)(%<Port_name>->IDR & LL_GPIO_PIN_1);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_2, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)(%<Port_name>->IDR & LL_GPIO_PIN_2);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_3, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)(%<Port_name>->IDR & LL_GPIO_PIN_3);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_4, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)(%<Port_name>->IDR & LL_GPIO_PIN_4);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_5, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)(%<Port_name>->IDR & LL_GPIO_PIN_5);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_6, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)(%<Port_name>->IDR & LL_GPIO_PIN_6);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_7, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)(%<Port_name>->IDR & LL_GPIO_PIN_7);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_8, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)(%<Port_name>->IDR & LL_GPIO_PIN_8);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_9, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)(%<Port_name>->IDR & LL_GPIO_PIN_9);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_10, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)(%<Port_name>->IDR & LL_GPIO_PIN_10);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_11, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)(%<Port_name>->IDR & LL_GPIO_PIN_11);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_12, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)(%<Port_name>->IDR & LL_GPIO_PIN_12);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_13, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)(%<Port_name>->IDR & LL_GPIO_PIN_13);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_14, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)(%<Port_name>->IDR & LL_GPIO_PIN_14);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_15, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)(%<Port_name>->IDR & LL_GPIO_PIN_15);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+    %else
+    %% HAL based development
+        %if (ISEQUAL(Pin_0, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)HAL_GPIO_ReadPin(%<Port_name>, GPIO_PIN_0);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_1, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)HAL_GPIO_ReadPin(%<Port_name>, GPIO_PIN_1);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_2, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)HAL_GPIO_ReadPin(%<Port_name>, GPIO_PIN_2);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_3, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)HAL_GPIO_ReadPin(%<Port_name>, GPIO_PIN_3);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_4, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)HAL_GPIO_ReadPin(%<Port_name>, GPIO_PIN_4);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_5, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)HAL_GPIO_ReadPin(%<Port_name>, GPIO_PIN_5);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_6, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)HAL_GPIO_ReadPin(%<Port_name>, GPIO_PIN_6);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_7, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)HAL_GPIO_ReadPin(%<Port_name>, GPIO_PIN_7);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_8, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)HAL_GPIO_ReadPin(%<Port_name>, GPIO_PIN_8);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_9, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)HAL_GPIO_ReadPin(%<Port_name>, GPIO_PIN_9);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_10, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)HAL_GPIO_ReadPin(%<Port_name>, GPIO_PIN_10);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_11, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)HAL_GPIO_ReadPin(%<Port_name>, GPIO_PIN_11);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_12, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)HAL_GPIO_ReadPin(%<Port_name>, GPIO_PIN_12);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_13, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)HAL_GPIO_ReadPin(%<Port_name>, GPIO_PIN_13);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_14, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)HAL_GPIO_ReadPin(%<Port_name>, GPIO_PIN_14);
+        %assign OutputNum = OutputNum + 1
+        %endif
+
+        %if (ISEQUAL(Pin_15, "on"))
+        %assign pinVal = LibBlockOutputSignal(OutputNum, "", "", 0)
+        %<pinVal> = (boolean_T)HAL_GPIO_ReadPin(%<Port_name>, GPIO_PIN_15);
+        %assign OutputNum = OutputNum + 1
+        %endif
+    %%End of HAL dev
+    %endif
+    }
+%endfunction
+
+%% [EOF] GPIO_Read.tlc

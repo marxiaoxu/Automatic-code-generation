@@ -1,0 +1,312 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>SPI</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-06-13"><meta name="DC.source" content="help_SPI.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>SPI</h1><!--introduction--><p>Model used to generate an SPI procedure by the STM32, based on the HAL library.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#2">S-Function</a></li><li><a href="#4">SPI Block Parameters</a></li><li><a href="#6">SPI Name</a></li><li><a href="#8">Buffers Size</a></li><li><a href="#10">Timeout</a></li><li><a href="#12">Error</a></li><li><a href="#14">Reception complete</a></li><li><a href="#16">Transmission complete</a></li><li><a href="#17">Example using a Full Duplex Master Interrupt</a></li><li><a href="#19">Results and performance</a></li><li><a href="#20">Communication</a></li></ul></div><p>
+<A NAME="ANCRES"> </A>
+</p><h2 id="2">S-Function</h2><p>This model configures its inputs and outputs depending on STM32CubeMX configuration.</p><p><b>1. Full Duplex</b></p><p><i>Nb Input:</i>  <b>2</b></p><div><ul><li>Nb2Send : number of data to send</li><li>DataSend : data to send</li></ul></div><p><i>Nb Output:</i> <b>2</b></p><div><ul><li>NbSend : number of data sent</li><li>DataRcv : data received</li></ul></div><p><img vspace="5" hspace="5" src="SPI/full_duplex.PNG" alt=""> </p><p><b>2. Half Duplex</b></p><p><i>Nb Input:</i>  <b>2</b></p><div><ul><li>Nb2Send : number of data to send</li><li>DataSend : data to send</li></ul></div><p><i>Nb Output:</i> <b>2</b></p><div><ul><li>NbSend : number of data sent</li><li>DataRcv : data received</li></ul></div><p><img vspace="5" hspace="5" src="SPI/half_duplex.PNG" alt=""> </p><p><b>3. Transmit Only</b></p><p><i>Nb Input:</i> <b>2</b></p><div><ul><li>Nb2Send : number of data to send</li><li>DataSend : data to send</li></ul></div><p><i>Nb Output:</i> <b>1</b></p><div><ul><li>NbSend : number of data sent</li></ul></div><p><img vspace="5" hspace="5" src="SPI/transmit_only.PNG" alt=""> </p><p><b>4. Receive Only</b></p><p><i>Nb Input:</i> <b>1</b></p><div><ul><li>Nb2Rcv : number of data to receive</li></ul></div><p><i>Nb Output:</i> <b>2</b></p><div><ul><li>NbRcv : number of data received</li><li>DataRcv : data received</li></ul></div><p><img vspace="5" hspace="5" src="SPI/receive_only.PNG" alt=""> </p><p>Displayed on the model :</p><div><ol><li><i>SPIx</i> : Name of the SPI channel used.</li><li><i>Full_Duplex/Half_Duplex/Transmit_Only/Receive_Only</i> : the type of SPI use</li><li><i>MASTER/SLAVE</i> : Mode of the device.</li><li><i>IT/DMA_RX,DMA_TX,DMA_RX_TX/POLLING</i> : Data management of the IP</li><li><i>S Function name</i> : Model Name</li></ol></div><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="4">SPI Block Parameters</h2><p>Full Duplex SPI model interface.</p><p><img vspace="5" hspace="5" src="SPI/block_interface_full_duplex.PNG" alt=""> </p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="6">SPI Name</h2><p>Pop up list.</p><p>Only STM32CubeMX SPI configured are available.</p><p><img vspace="5" hspace="5" src="SPI/choix_SPI.PNG" alt=""> </p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="8">Buffers Size</h2><p><b>Buffer receive</b></p><p>This value <b>must fit exactly</b> the buffer size to be receive.</p><p><img vspace="5" hspace="5" src="SPI/Buffer_RCV.PNG" alt=""> </p><p>IMPORTANT : Buffer size parameter is an integer format.</p><p><b>Buffer send</b></p><p>This value must fit exactly send buffer size.</p><p><img vspace="5" hspace="5" src="SPI/Buffer_send.PNG" alt=""> </p><p>IMPORTANT : Buffer size parameter is an integer format.</p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="10">Timeout</h2><p>Timeout has to be fixed depending on application sensor used.</p><p><img vspace="5" hspace="5" src="SPI/Timeout.PNG" alt=""> </p><p>IMPORTANT : Timeout is an integer format in milliseconds.</p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="12">Error</h2><p>This option allows interrupt generation for SPI system error.</p><p><img vspace="5" hspace="5" src="SPI/IT_Error.PNG" alt=""> </p><p>It can be select for all mode and type of SPI.</p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="14">Reception complete</h2><p>This option allows interrupt generation for SPI end of reception.</p><p><img vspace="5" hspace="5" src="SPI/IT_Rcv.PNG" alt=""> </p><p>It can be selected for Full Duplex, Half Duplex or Receive Only mode.</p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="16">Transmission complete</h2><p>This option allows interrupt generation for SPI end of transmission.</p><p><img vspace="5" hspace="5" src="SPI/IT_Send.PNG" alt=""> </p><p>It can be selected for Full Duplex, Half Duplex or Transmit Only mode.</p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="17">Example using a Full Duplex Master Interrupt</h2><p>This example is based on STM32L053 Nucleo Kit. Nucleo Reference manual is available from <a href="http://www.st.com/">http://www.st.com/</a>.</p><p>Board is configured using STM32CubeMX tool and configuration file available in the example folder.</p><p>ADC used here for test/debugging purposes is a <i>Click Board</i>.</p><p><img vspace="5" hspace="5" src="SPI/global.PNG" alt=""> </p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><p><a href="matlab:open_system('SPI_Test')">Click to open example SPI</a></p><h2 id="19">Results and performance</h2><p>This is snapshot of this example results obtained on the oscilloscope.</p><h2 id="20">Communication</h2><p><img vspace="5" hspace="5" src="SPI/transmission_it_Full_duplex.PNG" alt=""> </p><div><ul><li>C1 : Data send to the ADC</li><li>C2 : data receive from the ADC</li><li>C3 : clock</li><li>C4 : chip select</li></ul></div><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% SPI
+% Model used to generate an SPI procedure by the STM32, based
+% on the HAL library.
+%%
+%
+% <html>
+% <A NAME="ANCRES"> </A>
+% </html>
+%
+%% S-Function
+%
+% This model configures its inputs and outputs depending on STM32CubeMX configuration.
+%
+% *1. Full Duplex*
+%
+% _Nb Input:_  *2*
+%
+% * Nb2Send : number of data to send
+% * DataSend : data to send
+%
+% _Nb Output:_ *2*
+%
+% * NbSend : number of data sent
+% * DataRcv : data received
+%
+% <<SPI/full_duplex.PNG>>
+%
+% *2. Half Duplex*
+%
+% _Nb Input:_  *2*
+%
+% * Nb2Send : number of data to send
+% * DataSend : data to send
+%
+% _Nb Output:_ *2*
+%
+% * NbSend : number of data sent
+% * DataRcv : data received
+%
+% <<SPI/half_duplex.PNG>>
+%
+% *3. Transmit Only*
+%
+% _Nb Input:_ *2*
+%
+% * Nb2Send : number of data to send
+% * DataSend : data to send
+%
+% _Nb Output:_ *1*
+%
+% * NbSend : number of data sent
+%
+% <<SPI/transmit_only.PNG>>
+%
+% *4. Receive Only*
+%
+% _Nb Input:_ *1*
+%
+% * Nb2Rcv : number of data to receive
+%
+% _Nb Output:_ *2*
+%
+% * NbRcv : number of data received
+% * DataRcv : data received
+%
+% <<SPI/receive_only.PNG>>
+%
+%%
+%
+%
+% Displayed on the model :
+%
+% # _SPIx_ : Name of the SPI channel used.
+% # _Full_Duplex/Half_Duplex/Transmit_Only/Receive_Only_ : the type of SPI
+% use
+% # _MASTER/SLAVE_ : Mode of the device.
+% # _IT/DMA_RX,DMA_TX,DMA_RX_TX/POLLING_ : Data management of the IP
+% # _S Function name_ : Model Name
+%
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+%% SPI Block Parameters
+% Full Duplex SPI model interface.
+%%
+%
+% <<SPI/block_interface_full_duplex.PNG>>
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+%% SPI Name
+% Pop up list.
+%
+% Only STM32CubeMX SPI configured are available.
+%
+%%
+%
+% <<SPI/choix_SPI.PNG>>
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+%% Buffers Size
+% *Buffer receive*
+%
+% This value *must fit exactly* the buffer size to be receive.
+%
+%%
+%
+% <<SPI/Buffer_RCV.PNG>>
+%
+% IMPORTANT : Buffer size parameter is an integer format.
+%
+% *Buffer send*
+%
+% This value must fit exactly send buffer size.
+%
+%
+% <<SPI/Buffer_send.PNG>>
+%
+% IMPORTANT : Buffer size parameter is an integer format.
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+%% Timeout
+% Timeout has to be fixed depending on application sensor used.
+%
+%%
+%
+% <<SPI/Timeout.PNG>>
+%
+% IMPORTANT : Timeout is an integer format in milliseconds.
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+%% Error
+% This option allows interrupt generation for SPI system error.
+%
+%%
+%
+% <<SPI/IT_Error.PNG>>
+%
+% It can be select for all mode and type of SPI.
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+%% Reception complete
+% This option allows interrupt generation for SPI end of reception.
+%%
+%
+% <<SPI/IT_Rcv.PNG>>
+%
+% It can be selected for Full Duplex, Half Duplex or
+% Receive Only mode.
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+%% Transmission complete
+% This option allows interrupt generation for SPI end of transmission.
+%
+% <<SPI/IT_Send.PNG>>
+%
+% It can be selected for Full Duplex, Half Duplex or
+% Transmit Only mode.
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+%% Example using a Full Duplex Master Interrupt
+% This example is based on STM32L053 Nucleo Kit.
+% Nucleo Reference manual is available from <http://www.st.com/>.
+%
+% Board is configured using STM32CubeMX tool and
+% configuration file available in the example folder.
+%
+% ADC used here for test/debugging purposes is a _Click Board_.
+%
+%%
+%
+% <<SPI/global.PNG>>
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+% <matlab:open_system('SPI_Test') Click to open example SPI>
+%
+%
+%% Results and performance
+% This is snapshot of this example results obtained on the oscilloscope.
+%
+%% Communication
+%
+% <<SPI/transmission_it_Full_duplex.PNG>>
+%
+% * C1 : Data send to the ADC
+% * C2 : data receive from the ADC
+% * C3 : clock
+% * C4 : chip select
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+##### SOURCE END #####
+--></body></html>

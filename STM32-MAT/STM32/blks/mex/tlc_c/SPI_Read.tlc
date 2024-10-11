@@ -1,0 +1,107 @@
+%% Abstract: SPI_Read
+%%    STM32Fxxx SPI_Read for the transmission of all the data
+%%
+%% Copyright 1990-2009 The MathWorks, Inc.
+
+%assign CodeFormat = "Embedded-C"
+%implements SPI_Read  "C"
+
+%assign SPIx =  SFcnParamSettings.SPIx
+
+%if !EXISTS(::InsertIncludesToSPI)
+    %assign ::InsertIncludesToSPI  = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertIncludesFromSPI)
+    %assign ::InsertIncludesFromSPI  = TLC_TRUE
+%endif
+
+%function Start(block,system) Output
+%endfunction
+
+    %function BlockInstanceSetup(block, system) void
+
+        %%model.c and model.h files
+        %assign SrcBaseName = LibGetMdlSrcBaseName()
+        %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+        %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+
+        %%model_SPI.h and model_SPI.c files
+        %assign SrcBaseName_SPI = "%<SrcBaseName>_SPI"
+        %assign modelH_SPI      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_SPI)
+        %assign modelC_SPI      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_SPI)
+
+        %assign SPIx =  SFcnParamSettings.SPIx
+        %assign outputData =  SFcnParamSettings.outputData
+
+        %if EXISTS(::InsertIncludesToSPI) && (::InsertIncludesToSPI == TLC_TRUE)
+            %assign ::InsertIncludesToSPI    = TLC_FALSE
+            %openfile SPI_Buf
+                #include "%<SrcBaseName>.h"
+                #include "%<SrcBaseName_SPI>.h"
+            %closefile SPI_Buf
+            %<LibSetSourceFileSection(modelC_SPI,"Includes",SPI_Buf)>
+        %endif
+
+        %%AND Include model_SPI.h to model.c
+        %if EXISTS(::InsertIncludesFromSPI) && (::InsertIncludesFromSPI == TLC_TRUE)
+            %assign ::InsertIncludesFromSPI    = TLC_FALSE
+            %openfile SPI_Buf
+                #include "%<SrcBaseName_SPI>.h"
+            %closefile SPI_Buf
+            %<LibSetSourceFileSection(modelH,"Includes",SPI_Buf)>
+
+            %openfile SPI_Buf
+                #include "STM32_Config.h"
+            %closefile SPI_Buf
+            %<LibSetSourceFileSection(modelH_SPI,"Includes",SPI_Buf)>
+        %endif
+
+        %if (ISEQUAL(outputData, "on"))
+            %if !EXISTS(::OutputData_%<SPIx>)
+            %assign ::OutputData_%<SPIx>  = TLC_TRUE
+            %openfile SPI_Buf
+            /* %<SPIx> Receive data buffer index*/
+            uint16_t G_%<SPIx>_Rx_idx;
+            %closefile SPI_Buf
+            %<LibSetSourceFileSection(modelC_SPI,"Declarations",SPI_Buf)>
+
+            %openfile SPI_Buf
+            /* %<SPIx> Receive data buffer index declaration*/
+            extern uint16_t G_%<SPIx>_Rx_idx;
+            %closefile SPI_Buf
+            %<LibSetSourceFileSection(modelH_SPI,"Declarations",SPI_Buf)>
+
+            %endif
+        %endif
+
+    %endfunction
+
+   %function Outputs(block, system) Output
+
+        %%model.c and model.h files
+        %assign SrcBaseName = LibGetMdlSrcBaseName()
+
+        %%model_SPI.h and model_SPI.c files
+        %assign SrcBaseName_SPI = "%<SrcBaseName>_SPI"
+        %assign modelH_SPI      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_SPI)
+        %assign modelC_SPI      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_SPI)
+
+        %assign SPIx =  SFcnParamSettings.SPIx
+        %assign outputData =  SFcnParamSettings.outputData
+
+        %assign NbRcv = LibBlockOutputSignal(0, "", "", 0)
+        %assign ptDataRcv = LibBlockOutputSignal(1, "", "", 0)
+
+        %<ptDataRcv> =  (uint32_T)&G_%<SPIx>_DataBufferRx[0];
+        %<NbRcv> = %<SPIx>_DataLink.nb2Rcv;
+
+        %if (ISEQUAL(outputData, "on"))
+            %assign DataRcv = LibBlockOutputSignalAddr(2, "", "", 0)
+        for(G_%<SPIx>_Rx_idx=0; G_%<SPIx>_Rx_idx<%<NbRcv>; G_%<SPIx>_Rx_idx++) {
+            *(char*)(%<DataRcv>+G_%<SPIx>_Rx_idx) = (uint16_T)G_%<SPIx>_DataBufferRx[G_%<SPIx>_Rx_idx];
+        }
+        %endif
+   %endfunction
+
+%% [EOF] SPI_Read.tlc

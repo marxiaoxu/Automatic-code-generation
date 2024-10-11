@@ -1,0 +1,26 @@
+%% Function: FunctionCalledAsChart ==========================================
+%% Abstract:
+%% Does connected functionCall contain Chart (stateFlow)
+%%
+	%function FunctionCalledAsChart(callIdx)
+        %%warning "----------> Start FunctionCalledAsChart()" %<callIdx>
+
+		%assign sysIdx = SFcnSystemOutputCall[callIdx].BlockToCall[0]
+		%assign blkIdx = SFcnSystemOutputCall[callIdx].BlockToCall[1]
+		%assign fcnCallBlock = System[sysIdx].Block[blkIdx]
+
+		%%Get system idx of the connected block
+	    %assign systemIdx = fcnCallBlock.SubsystemParamSettings.SystemIdx
+
+		%%Then look into this system to find a block of type SFBlockType = Chart 
+		%with System[systemIdx]
+			%foreach blockIdx = NumBlocks
+				%if (ISEQUAL(ISFIELD(Block[blockIdx],"SFBlockType"),TLC_TRUE))
+					%if (ISEQUAL(Block[blockIdx].SFBlockType,"Chart"))
+						%return 1
+					%endif
+				%endif
+			%endforeach							
+		%endwith							
+		%return 0
+	%endfunction

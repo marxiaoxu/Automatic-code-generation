@@ -1,0 +1,192 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>IWDG (Independent WatchDoG)</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-17"><meta name="DC.source" content="help_IWDG.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>IWDG (Independent WatchDoG)</h1><!--introduction--><p>Block used in the model to trigger a MCU reset when a refresh of the WatchDoG is not done before a timeout.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#2">S-Function</a></li><li><a href="#4">IWDG Block Interface</a></li><li><a href="#6">Reload and Custom Reload</a></li><li><a href="#8">Example using the IWDG and an I2C communication</a></li><li><a href="#10">Results and performance</a></li></ul></div><p>
+<A NAME="ANCRES"> </A>
+</p><h2 id="2">S-Function</h2><p><i>Nb Input:</i>  <b>0</b></p><p><i>Nb Output:</i> <b>0</b></p><p><img vspace="5" hspace="5" src="IWDG/Block.PNG" alt=""> </p><p>Displayed on the model :</p><div><ol><li>Period : Period of the timeout calculated in the block</li><li><i>S Function name</i> : Model Name</li></ol></div><h2 id="4">IWDG Block Interface</h2><p>Main interface of the IWDG model.</p><p><img vspace="5" hspace="5" src="IWDG/Interface.PNG" alt=""> </p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="6">Reload and Custom Reload</h2><p>Check box to be activated to check for the reliability of the value set in STM32CubeMX IWDG configuration step. If checked, the Custom Reload is used in the code. If not, the value is set up from the .ioc file generated by STM32CubeMX, and is disabled.</p><p><img vspace="5" hspace="5" src="IWDG/ReloadOn.PNG" alt=""> </p><p><img vspace="5" hspace="5" src="IWDG/ReloadOff.PNG" alt=""> </p><p>The Period is obtained by multiplying the Reload value by the LSI which is divided by the prescaler to be customized in the STM32CubeMX IWDG configuration applet.</p><h2 id="8">Example using the IWDG and an I2C communication</h2><p>This example is based on STM32F429i Discovery Kit and a STM32CubeMX configuration file available in the example folder. It is also given in the I2C_Write model help file. The sensor used here for test/debugging purposes is a <i>MikroE RTC CLICK</i> which integrates a PCF8583P,which is a a clock and calendar chip, based on a 2048 bit static CMOS1 RAM organized as 256 words by 8 bits. The ref. manual can be downloaded freely <a href="http://www.nxp.com/documents/data_sheet/PCF8583.pdf">here</a>.</p><p><img vspace="5" hspace="5" src="IWDG/IWDGTest.PNG" alt=""> </p><p>IMPORTANT :</p><div><ol><li>For the description of the I2C process included in this example, please refer to the I2C_Test example.</li><li>This example implies a 4-wire connection between the board and the sensor, where GND, 3.3V, SDA and SCL from the chip are respectively connected to GND, 3V, PB9 and PB6 on the STM32F429i Discovery Kit as configured by STM32CubeMX.</li><li>In order to have the blocksets processed in the right order, you must set up priorities for each block decreasingly (except for the configuration block).</li><li>You must set the time step of the solver at a value lower than the IWDG Timeout to visualize the case the MCU resets by unplugging the 3V3 wire for example.</li></ol></div><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><p><a href="matlab:open_system('I2C_Master_IWDG')">Click to open example I2C_Test_IWDG</a></p><h2 id="10">Results and performance</h2><p>This part is giving the results obtained on the oscilloscope with this example, in order to give a basis for debugging further applications using this library.</p><p>The I2C time sequence is given below, and is the same as in the I2C_Test example.</p><p><img vspace="5" hspace="5" src="WWDG/TrameTestWWDG.bmp" alt=""> </p><p>A scope is connected to the VRST pin of the board, which is pulled down to 0 when a MCU reset occurs. The timeout is 52.4ms and the window is therefore 46.70 (ms) &lt; refresh &lt; 52.43 (ms).</p><p>The figure below shows the 3 steps of the test. First the system operates properly, then one of the wires of the sensor is unplugged, which generates MCU reset (VRST state changes shown by the blue curve toggling), and finally the wire is plugged back, and the system keeps operating properly.</p><p><img vspace="5" hspace="5" src="IWDG/IWDGTrameTest.bmp" alt=""> </p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% IWDG (Independent WatchDoG)
+% Block used in the model to trigger a MCU reset when a refresh of the WatchDoG
+% is not done before a timeout.
+%
+%%
+%
+% <html>
+% <A NAME="ANCRES"> </A>
+% </html>
+%
+%% S-Function
+% _Nb Input:_  *0*
+%
+% _Nb Output:_ *0*
+%
+%%
+%
+% <<IWDG/Block.PNG>>
+%
+% Displayed on the model :
+%
+% # Period : Period of the timeout calculated in the block
+% # _S Function name_ : Model Name
+%
+%
+%% IWDG Block Interface
+% Main interface of the IWDG model.
+%%
+%
+% <<IWDG/Interface.PNG>>
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+%% Reload and Custom Reload
+% Check box to be activated to check for the reliability of the value
+% set in STM32CubeMX IWDG configuration step. If checked, the Custom Reload
+% is used in the code. If not, the value is set up from the .ioc file
+% generated by STM32CubeMX, and is disabled.
+%%
+% <<IWDG/ReloadOn.PNG>>
+%
+% <<IWDG/ReloadOff.PNG>>
+%
+% The Period is obtained by multiplying the Reload value by the LSI
+% which is divided by the prescaler to be customized in the STM32CubeMX
+% IWDG configuration applet.
+%
+%
+%% Example using the IWDG and an I2C communication
+%
+% This example is based on STM32F429i Discovery Kit and a STM32CubeMX
+% configuration file available in the example folder. It is also given in
+% the I2C_Write model help file.
+% The sensor used here for test/debugging purposes is a _MikroE RTC CLICK_
+% which integrates a PCF8583P,which is a a clock and calendar chip, based
+% on a 2048 bit static CMOS1 RAM organized as 256 words by 8 bits.
+% The ref. manual can be downloaded freely
+% <http://www.nxp.com/documents/data_sheet/PCF8583.pdf here>.
+%
+%%
+%
+% <<IWDG/IWDGTest.PNG>>
+%
+% IMPORTANT :
+%
+% # For the description of the I2C process included in this example, please
+% refer to the I2C_Test example.
+% # This example implies a 4-wire connection between the board and the
+% sensor, where GND, 3.3V, SDA and SCL from the chip are respectively
+% connected to GND, 3V, PB9 and PB6 on the STM32F429i Discovery Kit as
+% configured by STM32CubeMX.
+% # In order to have the blocksets processed in the right order, you must
+% set up priorities for each block decreasingly (except for the
+% configuration block).
+% # You must set the time step of the solver at a value lower than the IWDG
+% Timeout to visualize the case the MCU resets by unplugging the 3V3 wire
+% for example.
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+% <matlab:open_system('I2C_Master_IWDG') Click to open example I2C_Test_IWDG>
+%
+%% Results and performance
+%
+% This part is giving the results obtained on the oscilloscope with this
+% example, in order to give a basis for debugging further applications
+% using this library.
+%
+% The I2C time sequence is given below, and is the same as in the
+% I2C_Test example.
+%
+% <<WWDG/TrameTestWWDG.bmp>>
+%
+% A scope is connected to the VRST pin of the board,
+% which is pulled down to 0 when a MCU reset occurs. The timeout is 52.4ms
+% and the window is therefore 46.70 (ms) < refresh < 52.43 (ms).
+%
+% The figure below shows the 3 steps of the test. First the system operates
+% properly, then one of the wires of the sensor is unplugged, which
+% generates MCU reset (VRST state changes shown by the blue curve
+% toggling), and finally the wire is plugged back, and the system keeps
+% operating properly.
+%
+% <<IWDG/IWDGTrameTest.bmp>>
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+##### SOURCE END #####
+--></body></html>

@@ -1,0 +1,889 @@
+%% Abstract: SPI
+%%    STM32Fxxx SPI for the transmission of all the data
+%%
+%% Copyright 1990-2009 The MathWorks, Inc.
+
+%assign CodeFormat = "Embedded-C"
+%implements SPI  "C"
+
+%assign SPIx = SFcnParamSettings.SPIx
+
+%if !EXISTS(::InsertIncludesToSPI)
+    %assign ::InsertIncludesToSPI  = TLC_TRUE
+%endif
+%if !EXISTS(::InsertIncludesFromSPI)
+    %assign ::InsertIncludesFromSPI  = TLC_TRUE
+%endif
+
+%if !EXISTS(::CreateSPI)
+    %assign ::CreateSPI  = TLC_TRUE
+%endif
+
+%function Start(block,system) Output
+    %assign SPIx = SFcnParamSettings.SPIx
+    %assign Type_SPI = SFcnParamSettings.Type_SPI
+
+    %% Initialization is done once only per SPI
+    %if !EXISTS(::%<SPIx>_START)
+        %assign ::%<SPIx>_START  = TLC_TRUE
+        %openfile SPI_Buf
+        /* %<SPIx> initialization */
+        %<SPIx>_Initialization();
+        %closefile SPI_Buf
+        %<LibMdlStartCustomCode(SPI_Buf,"execution")>
+    %endif
+%endfunction
+
+%function BlockInstanceSetup(block, system) void
+    %%model.c and model.h files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+    %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+    %%model_SPI.h and model_SPI.c files
+    %assign SrcBaseName_SPI = "%<SrcBaseName>_SPI"
+    %assign modelH_SPI      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_SPI)
+    %assign modelC_SPI      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_SPI)
+
+    %if EXISTS(::InsertIncludesToSPI) && (::InsertIncludesToSPI == TLC_TRUE)
+        %assign ::InsertIncludesToSPI    = TLC_FALSE
+        %openfile SPI_Buf
+            #include "%<SrcBaseName>.h"
+            #include "%<SrcBaseName_SPI>.h"
+        %closefile SPI_Buf
+        %<LibSetSourceFileSection(modelC_SPI,"Includes",SPI_Buf)>
+    %endif
+
+    %%AND Include model_SPI.h to model.c
+    %if EXISTS(::InsertIncludesFromSPI) && (::InsertIncludesFromSPI == TLC_TRUE)
+        %assign ::InsertIncludesFromSPI    = TLC_FALSE
+            %openfile SPI_Buf
+                #include "%<SrcBaseName_SPI>.h"
+            %closefile SPI_Buf
+            %<LibSetSourceFileSection(modelH,"Includes",SPI_Buf)>
+
+            %openfile SPI_Buf
+                #include "STM32_Config.h"
+            %closefile SPI_Buf
+            %<LibSetSourceFileSection(modelH_SPI,"Includes",SPI_Buf)>
+        %endif
+
+        %assign SPIx = SFcnParamSettings.SPIx
+        %assign Device_Mode = SFcnParamSettings.Device_Mode
+        %assign Type_SPI = SFcnParamSettings.Type_SPI
+        %assign SPI_Mode = SFcnParamSettings.SPI_Mode
+        %assign Handler = SFcnParamSettings.Handler
+        %assign Buffer_Size_Rcv = SFcnParamSettings.Buffer_Size_Rcv
+        %assign Buffer_Size_Send = SFcnParamSettings.Buffer_Size_Send
+        %assign NbSPI = SFcnParamSettings.NbSPI
+        %assign Timeout = SFcnParamSettings.Timeout
+        %assign TimeoutValue = SFcnParamSettings.TimeoutValue
+        %assign NSS = SFcnParamSettings.NSS
+        %assign Error = SFcnParamSettings.Error
+        %assign CallBack = SFcnParamSettings.CallBack
+        %assign Transmission = SFcnParamSettings.Transmission
+        %assign TxOnly = SFcnParamSettings.TxOnly
+        %assign block_name = block.Identifier
+        %% %assign IRQ_TX = SFcnParamSettings.IRQ_TX
+        %assign outputData = SFcnParamSettings.outputData
+
+        %assign SPINum = IDNUM("%<SPIx>")[1]
+        %assign SPICount = IDNUM("%<NbSPI>")[1]
+        %assign Buffer_Send = IDNUM("%<Buffer_Size_Send>")[1]
+        %assign Buffer_Rcv = IDNUM("%<Buffer_Size_Rcv>")[1]
+
+        %if (ISEQUAL(outputData, "on"))
+            %if !EXISTS(::OutputData_%<SPIx>)
+            %assign ::OutputData_%<SPIx>  = TLC_TRUE
+            %openfile SPI_Buf
+            /* %<SPIx> Receive data buffer index*/
+            uint16_t G_%<SPIx>_Rx_idx;
+            %closefile SPI_Buf
+            %<LibSetSourceFileSection(modelC_SPI,"Declarations",SPI_Buf)>
+
+            %openfile SPI_Buf
+            /* %<SPIx> Receive data buffer index declaration*/
+            extern uint16_t G_%<SPIx>_Rx_idx;
+            %closefile SPI_Buf
+            %<LibSetSourceFileSection(modelH_SPI,"Declarations",SPI_Buf)>
+            %endif
+        %endif
+
+        %if EXISTS(::CreateSPI) && (::CreateSPI == TLC_TRUE)
+            %assign ::CreateSPI    = TLC_FALSE
+
+            %openfile SPI_Buf
+            /* SPI Rx Callback function pointer array */
+            void (*SPIx_Rx_Callback[%<NbSPI>])(void) = {
+            %roll Idx = [1:%<SPICount>], lcv = 10, block
+            NULL,
+            %endroll
+            };
+            /* SPI Tx Callback function pointer array */
+            void (*SPIx_Tx_Callback[%<NbSPI>])(void) = {
+            %roll Idx = [1:%<SPICount>], lcv = 10, block
+            NULL,
+            %endroll
+            };
+            /* SPI Timeout Error Callback function pointer array */
+            void (*SPIx_Er_Callback[%<NbSPI>])(void) = {
+            %roll Idx = [1:%<SPICount>], lcv = 10, block
+            NULL,
+            %endroll
+            };
+            /* Array of configured SPI */
+            SPI_HandleTypeDef* G_SPI_Handler[%<NbSPI>];
+            %closefile SPI_Buf
+            %<LibSetSourceFileSection(modelC_SPI,"Defines",SPI_Buf)>
+
+            %openfile SPI_Buf
+            /* SPI Rx Callback function pointer array declaration */
+            extern void (*SPIx_Rx_Callback[%<NbSPI>])(void);
+            /* SPI Tx Callback function pointer array declaration */
+            extern void (*SPIx_Tx_Callback[%<NbSPI>])(void);
+            /* SPI Timeout Error Callback function pointer array declaration*/
+            extern void (*SPIx_Er_Callback[%<NbSPI>])(void);
+            /* Array of configured SPI declaration*/
+            extern SPI_HandleTypeDef* G_SPI_Handler[%<NbSPI>];
+            %closefile SPI_Buf
+            %<LibSetSourceFileSection(modelH_SPI,"Declarations",SPI_Buf)>
+
+            %openfile SPI_Buf
+            /**
+            * @brief SPI Tx and RX State structures definition
+            */
+            typedef enum
+            {
+                   SPI_ON             = 0x00,    /*!< Tx_Rx SPI communication start   */
+                   SPI_OFF            = 0x01     /*!< Tx_Rx SPI communication stop */
+            }SPI_StatusTypeDef;
+            /**
+            * @brief  SPI data information
+            */
+            struct SPI_DataLinkTypeDef  {
+                   uint16_t                nb2Send;          /*!< Nb of char to send*/
+                   uint16_t                nb2Rcv;           /*!< Nb of char to send*/
+                   uint16_t                nbSent;           /*!< Nb sent char*/
+                   uint16_t                nbRcv;            /*!< Nb sent char*/
+                   uint16_t                nbMsgLost;        /*!< Nb lost msg (not enough space in ring buffer)*/
+                   uint16_t                bufferSizeSend;   /*!< Size of send ring buffer*/
+                   uint16_t                bufferSizeRcv;    /*!< Size of receive buffer*/
+                   uint8_t*                pt_StartTx_Buff;  /*!< point to ring buffer*/
+                   uint8_t*                pt_EndTx_Buff;    /*!< point to end ring buffer*/
+                   uint8_t*                pt_Tx_W;          /*!< point to free space*/
+                   uint8_t*                pt_Tx_R;          /*!< point to char to send*/
+                   uint8_t*                ptRcv;            /*!< Point to receive data value buffer*/
+                   __IO SPI_StatusTypeDef  status;           /*!< SPI send communication status.*/
+                   uint8_t                 type;             /*!< SPI communication type 0=transmit&receive, 1=transmitonly else=receiveonly */
+                   uint8_t                 mode;             /*!< SPI communication mode 0=DMA, 1=IT else=Polling */
+                   uint32_t                timeOut;          /*!< timeOut value for polling mode*/
+                   SPI_HandleTypeDef*      SPI_Handler;      /*!< SPI handler of this struct info */
+             };
+             %closefile SPI_Buf
+             %<LibSetSourceFileSection(modelH_SPI,"Defines",SPI_Buf)>
+
+             %openfile SPI_Buf
+             uint16_t     G_NbSPIConf = 0; /* Number of SPI configured */
+             /* Array of SPI data information */
+             struct SPI_DataLinkTypeDef*   G_SPI_Data[%<NbSPI>]; /* Pointer to SPI data information*/
+             %closefile SPI_Buf
+             %<LibSetSourceFileSection(modelC_SPI,"Defines",SPI_Buf)>
+
+             %openfile SPI_Buf
+             void     SPI_CopyDataFcn (uint8_t*, uint16_t , struct SPI_DataLinkTypeDef* );
+             void     SPI_SendDataFcn (struct SPI_DataLinkTypeDef* );
+             %closefile SPI_Buf
+             %<LibSetSourceFileSection(modelH_SPI,"Defines",SPI_Buf)>
+
+             %openfile SPI_Buf
+             /*******************************************************************************
+             * Function Name  : SPI_CopyDataFcn
+             * Description    : SPI copy msg to send to ring buffer (if possible)
+             * Input          : pointer to data to send , length(number) of data to send and
+             *                  ring buffer info
+             *******************************************************************************/
+             void  SPI_CopyDataFcn(uint8_t* ptSrc, uint16_t DataLength, struct SPI_DataLinkTypeDef* ptInfo)
+             {
+               uint16_t L_sizeMsg;
+               uint16_t L_idx;
+               /* Verify that ring buffer can store msg */
+               if((((uint32_t)ptInfo->pt_Tx_R > (uint32_t)ptInfo->pt_Tx_W)&&(((uint32_t)ptInfo->pt_Tx_R - (uint32_t)ptInfo->pt_Tx_W) >= DataLength))
+                 ||(((uint32_t)ptInfo->pt_Tx_R == (uint32_t)ptInfo->pt_Tx_W)&&ptInfo->nb2Send==0)
+                 ||((((uint32_t)ptInfo->pt_EndTx_Buff - (uint32_t)ptInfo->pt_Tx_W)+ ((uint32_t)ptInfo->pt_Tx_R - (uint32_t)ptInfo->pt_StartTx_Buff))>= DataLength)
+                 ){
+                 /* Enough space:
+                  between PtR and PtW : PtW revolve but has not reach PtR yet
+                  or PtR = ptW but not msg to send  = ring buffer empty
+                  or between (end of buffer an PtW) + (PtR - start buffer)
+                 */
+                 /* Copy msg to send to ring buffer */
+                 L_sizeMsg = 0;
+                 for(L_idx=0;L_idx<DataLength;L_idx++){
+                  *(char*)ptInfo->pt_Tx_W++ = *(char*)ptSrc++;
+                  L_sizeMsg++;
+                  if(ptInfo->pt_Tx_W == ptInfo->pt_EndTx_Buff){
+                     //Revolve buffer
+                     ptInfo->pt_Tx_W = ptInfo->pt_StartTx_Buff;
+                  }
+                 }
+                 /* update nb of data to send */
+                 ptInfo->nb2Send += L_sizeMsg; //No OS can be accessed from IT !
+               } else {
+                 /*Msg lost, not enough space to copy it in ring buffer */
+                 ptInfo->nbMsgLost++; //Message not all sent
+               }
+             }
+
+              /*******************************************************************************
+              * Function Name  : SPI_SendDataFcn
+              * Description    : SPI Send ring buffer management
+              * Input          : Ring buffer info
+              *******************************************************************************/
+              void SPI_SendDataFcn(struct SPI_DataLinkTypeDef* ptInfo)
+              {
+                uint16_t L_sizeMsg = 0;
+                uint16_t L_sizeMsg1 = 0;
+                uint16_t L_idx;
+                /* If SPI is not already running and data to send */
+                if(ptInfo->status != SPI_ON && ptInfo->nb2Send)
+                {
+                   ptInfo->status = SPI_ON;
+                   if((uint32_t)ptInfo->pt_Tx_R < (uint32_t)ptInfo->pt_Tx_W)
+                   {
+                     //L_sizeMsg = (uint32_t)ptInfo->pt_EndTx_Buff - (uint32_t)ptInfo->pt_Tx_R;
+                     L_sizeMsg = (uint32_t)ptInfo->pt_Tx_W - (uint32_t)ptInfo->pt_Tx_R;
+                   }
+                   if((uint32_t)ptInfo->pt_Tx_R >= (uint32_t)ptInfo->pt_Tx_W)
+                   {
+                     L_sizeMsg = ((uint32_t)ptInfo->pt_EndTx_Buff - (uint32_t)ptInfo->pt_Tx_R);
+                     L_sizeMsg1 = ((uint32_t)ptInfo->pt_Tx_W - (uint32_t)ptInfo->pt_StartTx_Buff);
+                   }
+                   /* Send all msg or end of ring buffer */
+                   //if(ptInfo->nb2Send <= L_sizeMsg)
+                   if(L_sizeMsg)
+                   {
+                      ptInfo->nbSent = L_sizeMsg;
+                      ptInfo->nbRcv = ptInfo->nb2Rcv;
+                      if(ptInfo->mode == 0) {
+                      /* SPI DMA send mode*/
+                          if((uint32_t)ptInfo->pt_Tx_R < (uint32_t)ptInfo->pt_Tx_W) {
+                            if(ptInfo->type == 0){
+                                HAL_SPI_TransmitReceive_DMA(ptInfo->SPI_Handler, ptInfo->pt_Tx_R,ptInfo->ptRcv, L_sizeMsg);
+                            } else {
+                                HAL_SPI_Transmit_DMA(ptInfo->SPI_Handler, ptInfo->pt_Tx_R, L_sizeMsg);
+                            }
+                          } else {
+                            if(ptInfo->type == 0){
+                                ptInfo->nbSent = L_sizeMsg;
+                                HAL_SPI_TransmitReceive_DMA(ptInfo->SPI_Handler, ptInfo->pt_Tx_R,ptInfo->ptRcv, L_sizeMsg);
+                                ptInfo->nbSent = L_sizeMsg1;
+                                HAL_SPI_TransmitReceive_DMA(ptInfo->SPI_Handler, ptInfo->pt_StartTx_Buff,ptInfo->ptRcv+(uint32_t)(ptInfo->pt_EndTx_Buff - (uint32_t)ptInfo->pt_Tx_R), L_sizeMsg1);
+                            } else {
+                                ptInfo->nbSent = L_sizeMsg;
+                                HAL_SPI_Transmit_DMA(ptInfo->SPI_Handler, ptInfo->pt_Tx_R, L_sizeMsg);
+                                ptInfo->nbSent = L_sizeMsg1;
+                                HAL_SPI_Transmit_DMA(ptInfo->SPI_Handler, ptInfo->pt_StartTx_Buff,L_sizeMsg1);
+                            }
+                            L_sizeMsg += L_sizeMsg1;
+                          }
+                      } else if (ptInfo->mode == 1) {
+                          /* SPI interrupt send mode*/
+                          if((uint32_t)ptInfo->pt_Tx_R < (uint32_t)ptInfo->pt_Tx_W){
+                            if(ptInfo->type == 0){
+                                HAL_SPI_TransmitReceive_IT(ptInfo->SPI_Handler, ptInfo->pt_Tx_R,ptInfo->ptRcv, L_sizeMsg);
+                            } else {
+                                HAL_SPI_Transmit_IT(ptInfo->SPI_Handler, ptInfo->pt_Tx_R, L_sizeMsg);
+                            }
+                          } else {
+                            if(ptInfo->type == 0){
+                                ptInfo->nbSent = L_sizeMsg;
+                                HAL_SPI_TransmitReceive_IT(ptInfo->SPI_Handler, ptInfo->pt_Tx_R,ptInfo->ptRcv, L_sizeMsg);
+                                ptInfo->nbSent = L_sizeMsg1;
+                                HAL_SPI_TransmitReceive_IT(ptInfo->SPI_Handler, ptInfo->pt_StartTx_Buff,ptInfo->ptRcv+(uint32_t)(ptInfo->pt_EndTx_Buff - (uint32_t)ptInfo->pt_Tx_R), L_sizeMsg1);
+                            } else {
+                                ptInfo->nbSent = L_sizeMsg;
+                                HAL_SPI_Transmit_IT(ptInfo->SPI_Handler, ptInfo->pt_Tx_R, L_sizeMsg);
+                                ptInfo->nbSent = L_sizeMsg1;
+                                HAL_SPI_Transmit_IT(ptInfo->SPI_Handler, ptInfo->pt_Tx_R, L_sizeMsg1);
+                            }
+                            L_sizeMsg += L_sizeMsg1;
+                          }
+                      } else {
+                           /* SPI pooling send mode*/
+                          if((uint32_t)ptInfo->pt_Tx_R < (uint32_t)ptInfo->pt_Tx_W){
+                            if(ptInfo->type == 0){
+                                HAL_SPI_TransmitReceive(ptInfo->SPI_Handler, ptInfo->pt_Tx_R,ptInfo->ptRcv, L_sizeMsg, ptInfo->timeOut);
+                            } else {
+                                HAL_SPI_Transmit(ptInfo->SPI_Handler, ptInfo->pt_Tx_R, L_sizeMsg, ptInfo->timeOut);
+                            }
+                          } else {
+                            if(ptInfo->type == 0){
+                                ptInfo->nbSent = L_sizeMsg;
+                                HAL_SPI_TransmitReceive(ptInfo->SPI_Handler, ptInfo->pt_Tx_R,ptInfo->ptRcv, L_sizeMsg, ptInfo->timeOut);
+                                ptInfo->nbSent = L_sizeMsg1;
+                                HAL_SPI_TransmitReceive(ptInfo->SPI_Handler, ptInfo->pt_StartTx_Buff,ptInfo->ptRcv+(uint32_t)(ptInfo->pt_EndTx_Buff - (uint32_t)ptInfo->pt_Tx_R), L_sizeMsg1, ptInfo->timeOut);
+                            } else {
+                                ptInfo->nbSent = L_sizeMsg;
+                                HAL_SPI_Transmit(ptInfo->SPI_Handler, ptInfo->pt_Tx_R, L_sizeMsg, ptInfo->timeOut);
+                                ptInfo->nbSent = L_sizeMsg1;
+                                HAL_SPI_Transmit(ptInfo->SPI_Handler, ptInfo->pt_StartTx_Buff, L_sizeMsg1, ptInfo->timeOut);
+                            }
+                            L_sizeMsg += L_sizeMsg1;
+                          }
+                          /* Update nb of data to send */
+                          if(L_sizeMsg <= ptInfo->nb2Send)
+                            ptInfo->nb2Send -= L_sizeMsg;
+                          else
+                            ptInfo->nb2Send = 0;
+                          /* SPI ready */
+                          ptInfo->status = SPI_OFF;
+                      }
+                   %if(ISEQUAL(NSS, "on"))
+                      __HAL_SPI_DISABLE(ptInfo->SPI_Handler);
+                   %endif
+                      /* Update ring buffer ptr*/
+                      for(L_idx=0;L_idx < L_sizeMsg;L_idx++)
+                      {
+                        ptInfo->pt_Tx_R++;
+                        if((uint32_t)ptInfo->pt_Tx_R >= (uint32_t)ptInfo->pt_EndTx_Buff)
+                        {
+                          ptInfo->pt_Tx_R = ptInfo->pt_StartTx_Buff;
+                        }
+                      }
+                   }
+                }
+              }
+              %closefile SPI_Buf
+              %<LibSetSourceFileSection(modelC_SPI,"Functions",SPI_Buf)>
+
+
+                %openfile SPI_Buf
+                /*******************************************************************************
+                * Function Name  : HAL_SPI_RxCpltCallback
+                * Description    : Rx Transfer completed callbacks.
+                * Input          : SPI handler
+                *******************************************************************************/
+                void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
+                {
+                  %if(ISEQUAL(NSS, "on"))
+                  __HAL_SPI_DISABLE(hspi);
+                  %endif
+                  for (unsigned int i = 0;i<%<NbSPI>;i++){
+                    if(G_SPI_Handler[i] == hspi){
+                      //if(SPIx_Rx_Callback[i] != NULL) {
+                        (*SPIx_Rx_Callback[i])();
+                      //}
+                      G_SPI_Data[i]->status = SPI_OFF;
+                      break;
+                    }
+                  }
+                }
+                %closefile SPI_Buf
+                %<LibSetSourceFileSection(modelC_SPI,"Functions",SPI_Buf)>
+
+
+                %openfile SPI_Buf
+                /*******************************************************************************
+                * Function Name  : HAL_SPI_TxCpltCallback
+                * Description    : Rx Transfer completed callbacks.
+                * Input          : SPI handler
+                *******************************************************************************/
+                void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
+                {
+                  %if(ISEQUAL(NSS, "on"))
+                  __HAL_SPI_DISABLE(hspi);
+                  %endif
+                  for (unsigned int i = 0;i<%<NbSPI>;i++){
+                    if(G_SPI_Handler[i] == hspi){
+                      //if(SPIx_Tx_Callback[i] != NULL) {
+                        (*SPIx_Tx_Callback[i])();
+                      //}
+                      /* Update nb of data to send */
+                      if(G_SPI_Data[i]->nbSent <= G_SPI_Data[i]->nb2Send)
+                        G_SPI_Data[i]->nb2Send -= G_SPI_Data[i]->nbSent;
+                      else
+                        G_SPI_Data[i]->nb2Send = 0;
+                      /* SPI ready */
+                      G_SPI_Data[i]->status = SPI_OFF;
+                      break;
+                    }
+                  }
+                }
+                %closefile SPI_Buf
+                %<LibSetSourceFileSection(modelC_SPI,"Functions",SPI_Buf)>
+
+
+                %openfile SPI_Buf
+                /*******************************************************************************
+                * Function Name  : HAL_SPI_TxRxCpltCallback
+                * Description    : Rx Transfer completed callbacks.
+                * Input          : SPI handler
+                *******************************************************************************/
+                void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
+                {
+                  %if(ISEQUAL(NSS, "on"))
+                  __HAL_SPI_DISABLE(hspi);
+                  %endif
+
+                  for (unsigned int i = 0;i<%<NbSPI>;i++){
+                    if(G_SPI_Handler[i] == hspi){
+                      //if(SPIx_Tx_Callback[i] != NULL) {
+                        (*SPIx_Tx_Callback[i])();
+                      //}
+                      //if(SPIx_Rx_Callback[i] != NULL) {
+                        (*SPIx_Rx_Callback[i])();
+                      //}
+                      /* Update nb of data to send */
+                      if(G_SPI_Data[i]->nbSent <= G_SPI_Data[i]->nb2Send)
+                        G_SPI_Data[i]->nb2Send -= G_SPI_Data[i]->nbSent;
+                      else
+                        G_SPI_Data[i]->nb2Send = 0;
+                      /* SPI ready */
+                      G_SPI_Data[i]->status = SPI_OFF;
+                      break;
+                    }
+                 }
+                }
+                %closefile SPI_Buf
+                %<LibSetSourceFileSection(modelC_SPI,"Functions",SPI_Buf)>
+
+
+                %openfile SPI_Buf
+                /*******************************************************************************
+                * Function Name  : HAL_SPI_ErrorCallback
+                * Description    : Transfer Error in the transmission.
+                * Input          : SPI handler
+                *******************************************************************************/
+                void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
+                {
+                  %if(ISEQUAL(NSS, "on"))
+                  __HAL_SPI_DISABLE(hspi);
+                  %endif
+                  for (unsigned int i = 0;i<%<NbSPI>;i++){
+                    if(G_SPI_Handler[i] == hspi){
+                      //if(SPIx_Er_Callback[i] != NULL) {
+                        (*SPIx_Er_Callback[i])();
+                      //}
+                      break;
+                    }
+                 }
+                }
+                %closefile SPI_Buf
+                %<LibSetSourceFileSection(modelC_SPI,"Functions",SPI_Buf)>
+        %endif
+
+        %if !EXISTS(::%<SPIx>_Def)
+             %assign ::%<SPIx>_Def  = TLC_TRUE
+             %openfile SPI_Buf
+                /* %<SPIx> transmit data buffers*/
+                uint8_t G_%<SPIx>_DataBufferTx[%<Buffer_Send>];
+                uint8_t G_%<SPIx>_DataBufferRx[%<Buffer_Rcv>];
+                /* %<SPIx> transmit data structure information*/
+                struct SPI_DataLinkTypeDef   %<SPIx>_DataLink;
+             %closefile SPI_Buf
+             %<LibSetSourceFileSection(modelC_SPI,"Defines",SPI_Buf)>
+
+             %openfile SPI_Buf
+             /* %<SPIx> handler */
+             extern SPI_HandleTypeDef hspi%<SPINum>;
+             %%test for DMA handler
+             %if (ISEQUAL(SPI_Mode, "IT_DMA_TX")||ISEQUAL(SPI_Mode, "DMA_TX")||ISEQUAL(SPI_Mode, "IT_DMA_RX_TX")||ISEQUAL(SPI_Mode, "DMA_RX_TX"))
+             extern DMA_HandleTypeDef hdma_SPI%<SPINum>_tx;
+             %endif
+             /* %<SPIx> Transmit data buffers*/
+             extern uint8_t G_%<SPIx>_DataBufferTx[];
+             extern uint8_t G_%<SPIx>_DataBufferRx[];
+             /* %<SPIx> Transmit data structure information*/
+             extern struct SPI_DataLinkTypeDef   %<SPIx>_DataLink;
+             %closefile SPI_Buf
+             %<LibSetSourceFileSection(modelH_SPI,"Defines",SPI_Buf)>
+        %endif
+
+        %if !EXISTS(::%<SPIx>_INIT)
+             %assign ::%<SPIx>_INIT  = TLC_TRUE
+             %openfile SPI_Buf
+             /* %<SPIx>_Initialization prototyping */
+             void %<SPIx>_Initialization(void);
+             %closefile SPI_Buf
+             %<LibSetSourceFileSection(modelH_SPI,"Defines",SPI_Buf)>
+             %openfile SPI_Buf
+             /*******************************************************************************
+             * Function Name  : %<SPIx>_Initialization
+             * Description    : Initialization function for %<SPIx>
+             * Input          : -
+             *******************************************************************************/
+             void %<SPIx>_Initialization(void)
+             {
+               /*Store %<SPIx> data information and its handler */
+               G_SPI_Data[G_NbSPIConf] = &%<SPIx>_DataLink;
+               G_SPI_Handler[G_NbSPIConf] = (void*)&hspi%<SPINum>;
+               %if(ISEQUAL(CallBack, "on"))
+               SPIx_Rx_Callback[G_NbSPIConf] = %<SPIx>_Rx_Callback;
+               %else
+               SPIx_Rx_Callback[G_NbSPIConf] = NULL;
+               %endif
+               %if(ISEQUAL(Transmission, "on"))
+               SPIx_Tx_Callback[G_NbSPIConf] = %<SPIx>_Tx_Callback;
+               %else
+               SPIx_Tx_Callback[G_NbSPIConf] = NULL;
+               %endif
+               %if(ISEQUAL(Error, "on"))
+               SPIx_Er_Callback[G_NbSPIConf] = %<SPIx>_Er_Callback;
+               %else
+               SPIx_Er_Callback[G_NbSPIConf] = NULL;
+               %endif
+               G_NbSPIConf++; /* Inc number of configured SPI */
+               /* Initialize SPI structure information */
+               %if (ISEQUAL(Type_SPI, "Receive_Only"))
+               %<SPIx>_DataLink.type = 2; //Receive mode only
+               %elseif (ISEQUAL(Type_SPI, "Transmit_Only"))
+               %<SPIx>_DataLink.type = 1; //Transmit mode only
+               %else
+               %<SPIx>_DataLink.type = 0; //Transmit&Receive
+               %endif
+               %if (ISEQUAL(SPI_Mode, "IT_DMA_TX")||ISEQUAL(SPI_Mode,"DMA_TX")||ISEQUAL(SPI_Mode, "IT_DMA_RX_TX")||ISEQUAL(SPI_Mode, "DMA_RX_TX"))
+               %<SPIx>_DataLink.mode = 0; //DMA Send mode
+               %elseif (ISEQUAL(SPI_Mode, "POLLING"))
+               %<SPIx>_DataLink.mode = 2; //Polling Send mode
+               %else
+               %<SPIx>_DataLink.mode = 1; //IT Send mode
+               %endif
+               %<SPIx>_DataLink.nb2Send = 0;
+               %<SPIx>_DataLink.nb2Rcv = 0;
+               %<SPIx>_DataLink.nbSent = 0;
+               %<SPIx>_DataLink.nbRcv = 0;
+               %<SPIx>_DataLink.nbMsgLost = 0;
+               %<SPIx>_DataLink.bufferSizeSend = %<Buffer_Send>;
+               %<SPIx>_DataLink.bufferSizeRcv = %<Buffer_Rcv>;
+               %<SPIx>_DataLink.pt_StartTx_Buff = G_%<SPIx>_DataBufferTx;
+               %<SPIx>_DataLink.pt_EndTx_Buff = &G_%<SPIx>_DataBufferTx[%<Buffer_Send>];
+               %<SPIx>_DataLink.pt_Tx_W = G_%<SPIx>_DataBufferTx;
+               %<SPIx>_DataLink.pt_Tx_R = G_%<SPIx>_DataBufferTx;
+               %<SPIx>_DataLink.ptRcv = G_%<SPIx>_DataBufferRx;
+               %<SPIx>_DataLink.status = SPI_OFF;
+               %<SPIx>_DataLink.timeOut = (uint32_t)%<Timeout>;
+               %<SPIx>_DataLink.SPI_Handler = (void*)&hspi%<SPINum>;
+               /* Enable %<SPINum> peripheral */
+               __HAL_SPI_ENABLE(&hspi%<SPINum>);
+             }
+             %closefile SPI_Buf
+             %<LibSetSourceFileSection(modelC_SPI,"Functions",SPI_Buf)>
+        %endif
+%endfunction
+
+
+%function Outputs(block, system) Output
+    %%model.c and model.h files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %%model_SPI.h and model_SPI.c files
+    %assign SrcBaseName_SPI = "%<SrcBaseName>_SPI"
+    %assign modelH_SPI      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_SPI)
+    %assign modelC_SPI      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_SPI)
+
+    %assign SPIx = SFcnParamSettings.SPIx
+    %assign Device_Mode = SFcnParamSettings.Device_Mode
+    %assign Type_SPI = SFcnParamSettings.Type_SPI
+    %assign SPI_Mode = SFcnParamSettings.SPI_Mode
+    %assign Handler = SFcnParamSettings.Handler
+    %assign Buffer_Size_Rcv = SFcnParamSettings.Buffer_Size_Rcv
+    %assign Buffer_Size_Send = SFcnParamSettings.Buffer_Size_Send
+    %assign NbSPI = SFcnParamSettings.NbSPI
+    %assign Timeout = SFcnParamSettings.Timeout
+    %assign TimeoutValue = SFcnParamSettings.TimeoutValue
+    %assign Error = SFcnParamSettings.Error
+    %assign CallBack = SFcnParamSettings.CallBack
+    %assign Transmission = SFcnParamSettings.Transmission
+    %assign TxOnly = SFcnParamSettings.TxOnly
+    %assign block_name = block.Identifier
+    %assign outputData = SFcnParamSettings.outputData
+
+    %if(ISEQUAL(Type_SPI, "Receive_Only"))
+        %if !EXISTS(::InsertIdxSPI)
+            %assign ::InsertIdxSPI  = TLC_TRUE
+        %endif
+    %endif
+    %assign CallBack = SFcnParamSettings.CallBack
+    %% %assign IRQ_TX = SFcnParamSettings.IRQ_TX
+    %assign SPINum = IDNUM("%<SPIx>")[1]
+    %assign SPICount = IDNUM("%<NbSPI>")[1]
+    %assign InputNum = 0
+
+    %%definition of block ports
+    %if(ISEQUAL(Type_SPI, "Receive_Only"))
+            %%input
+            %assign Nb2Rcv = LibBlockInputSignal(0, "", "", 0)
+            %%output
+            %if(ISEQUAL(SPI_Mode, "POLLING"))
+                %if(ISEQUAL(Error, "on")||ISEQUAL(CallBack, "on")||ISEQUAL(Transmission, "on"))
+                    %assign NbRcv = LibBlockOutputSignal(1, "", "", 0)
+%%                    %assign ptDataRcv = LibBlockOutputSignalAddr(2, "", "", 0)
+                    %assign ptDataRcv = LibBlockOutputSignal(2, "", "", 0)
+                    %if (ISEQUAL(outputData, "on"))
+                      %assign DataRcv = LibBlockOutputSignalAddr(3, "", "", 0)
+                    %endif
+                %else
+                    %assign NbRcv = LibBlockOutputSignal(0, "", "", 0)
+%%                    %assign ptDataRcv = LibBlockOutputSignalAddr(1, "", "", 0)
+                    %assign ptDataRcv = LibBlockOutputSignal(1, "", "", 0)
+                    %if (ISEQUAL(outputData, "on"))
+                      %assign DataRcv = LibBlockOutputSignalAddr(2, "", "", 0)
+                    %endif
+                %endif
+            %endif
+    %endif
+
+    %if(ISEQUAL(Type_SPI, "Transmit_Only"))
+            %%input
+            %assign Nb2Send = LibBlockInputSignal(0, "", "", 0)
+            %assign DataSend = LibBlockInputSignal(1, "", "", 0)
+            %%output
+            %if(ISEQUAL(Error, "on")||ISEQUAL(CallBack, "on")||ISEQUAL(Transmission, "on"))
+                %assign NbSend = LibBlockOutputSignal(1, "", "", 0)
+            %else
+                %assign NbSend = LibBlockOutputSignal(0, "", "", 0)
+            %endif
+    %endif
+
+    %if(ISEQUAL(Type_SPI, "Full_Duplex") || ISEQUAL(Type_SPI, "Half_Duplex"))
+            %%input
+            %assign Nb2Send = LibBlockInputSignal(0, "", "", 0)
+            %assign DataSend = LibBlockInputSignal(1, "", "", 0)
+            %%output
+            %if(ISEQUAL(Error, "on")||ISEQUAL(CallBack, "on")||ISEQUAL(Transmission, "on"))
+                %assign NbSend = LibBlockOutputSignal(1, "", "", 0)
+                %if(ISEQUAL(SPI_Mode, "POLLING")&&ISEQUAL(TxOnly, "off"))
+%%                    %assign ptDataRcv = LibBlockOutputSignalAddr(2, "", "", 0)
+                    %assign ptDataRcv = LibBlockOutputSignal(2, "", "", 0)
+                    %if (ISEQUAL(outputData, "on"))
+                      %assign DataRcv = LibBlockOutputSignalAddr(3, "", "", 0)
+                    %endif
+                %endif
+            %else
+                %assign NbSend = LibBlockOutputSignal(0, "", "", 0)
+                %if(ISEQUAL(SPI_Mode, "POLLING")&&ISEQUAL(TxOnly, "off"))
+%%                    %assign ptDataRcv = LibBlockOutputSignalAddr(1, "", "", 0)
+                    %assign ptDataRcv = LibBlockOutputSignal(1, "", "", 0)
+                    %if (ISEQUAL(outputData, "on"))
+                      %assign DataRcv = LibBlockOutputSignalAddr(2, "", "", 0)
+                    %endif
+                %endif
+            %endif
+    %endif
+
+
+    %assign Buffer_Send = IDNUM("%<Buffer_Size_Send>")[1]
+    %assign Buffer_Rcv = IDNUM("%<Buffer_Size_Rcv>")[1]
+
+    %if(ISEQUAL(Type_SPI, "Full_Duplex") || ISEQUAL(Type_SPI, "Half_Duplex"))
+        if(%<Nb2Send> != 0)
+        {
+            /* Copy data to send */
+            SPI_CopyDataFcn((uint8_t*)%<DataSend>, (uint16_t)%<Nb2Send>, &%<SPIx>_DataLink);
+        }
+        if(hspi%<SPINum>.State == HAL_SPI_STATE_READY)
+        {
+        %if(ISEQUAL(TxOnly, "on"))
+            /* Send only. No received */
+            %<SPIx>_DataLink.type = 1;
+        %else
+            /* Send and receive */
+            %<SPIx>_DataLink.type = 0;
+        %endif
+            %<SPIx>_DataLink.nb2Rcv = %<Nb2Send>;
+            SPI_SendDataFcn(&%<SPIx>_DataLink);
+            %<NbSend> = %<SPIx>_DataLink.nbSent;
+        }
+        %if(ISEQUAL(SPI_Mode, "POLLING")&&ISEQUAL(TxOnly, "off"))
+        %%*(%<ptDataRcv>) = (uint32_T)&G_%<SPIx>_DataBufferRx[0];
+        %<ptDataRcv> = (uint32_T)&G_%<SPIx>_DataBufferRx[0];
+        %if(ISEQUAL(Type_SPI, "Receive_Only"))
+        %<NbRcv> = %<SPIx>_DataLink.nb2Rcv;
+        %endif
+        %if (ISEQUAL(outputData, "on"))
+        for(G_%<SPIx>_Rx_idx=0; G_%<SPIx>_Rx_idx<%<SPIx>_DataLink.nb2Rcv; G_%<SPIx>_Rx_idx++) {
+            *(char*)(%<DataRcv>+G_%<SPIx>_Rx_idx) = (uint16_T)G_%<SPIx>_DataBufferRx[G_%<SPIx>_Rx_idx];
+        }
+        %endif
+        %endif
+    %endif
+
+    %if(ISEQUAL(Type_SPI, "Transmit_Only"))
+        if(%<Nb2Send> != 0)
+        {
+            /* Copy data to send */
+            SPI_CopyDataFcn((uint8_t*)%<DataSend>, (uint16_t)%<Nb2Send>, &%<SPIx>_DataLink);
+        }
+        if(hspi%<SPINum>.State == HAL_SPI_STATE_READY)
+        {
+            %<SPIx>_DataLink.nb2Rcv = %<Nb2Send>;
+            SPI_SendDataFcn(&%<SPIx>_DataLink);
+            %<NbSend> = %<SPIx>_DataLink.nbSent;
+        }
+    %endif
+
+    %if(ISEQUAL(Type_SPI, "Receive_Only"))
+            if(%<SPIx>_DataLink.status == SPI_OFF)
+            {
+                %<SPIx>_DataLink.ptRcv = G_%<SPIx>_DataBufferRx;
+                %<SPIx>_DataLink.nb2Rcv = %<Nb2Rcv>;
+                %if ( ISEQUAL(SPI_Mode, "POLLING"))
+                %<NbRcv> = 0;
+                %endif
+                /* %<SPIx> busy */
+                %<SPIx>_DataLink.status = SPI_ON;
+                %if (ISEQUAL(SPI_Mode, "DMA_RX")|| ISEQUAL(SPI_Mode, "IT_DMA_RX")||ISEQUAL(SPI_Mode, "IT_DMA_RX_TX"))
+                /* %<SPIx> DMA receive mode*/
+                HAL_SPI_Receive_DMA(&hspi%<SPINum>, G_%<SPIx>_DataBufferRx, %<Nb2Rcv>);
+                %elseif ( ISEQUAL(SPI_Mode, "POLLING"))
+                /* %<SPIx> pooling receive mode*/
+                HAL_SPI_Receive(&hspi%<SPINum>, G_%<SPIx>_DataBufferRx, %<Nb2Rcv>, %<SPIx>_DataLink.timeOut);
+                %else
+                /* %<SPIx> interrupt receive mode*/
+                HAL_SPI_Receive_IT(&hspi%<SPINum>, G_%<SPIx>_DataBufferRx, %<Nb2Rcv>);
+                %endif
+            }
+            %if ( ISEQUAL(SPI_Mode, "POLLING"))
+            //Polling mode = blocking!, data is available now
+            %<ptDataRcv> = (uint32_T)&G_%<SPIx>_DataBufferRx[0];
+            %%*(%<ptDataRcv>) = (uint32_T)G_%<SPIx>_DataBufferRx;
+            %<NbRcv> = %<SPIx>_DataLink.nb2Rcv;
+            %if (ISEQUAL(outputData, "on"))
+            for(G_%<SPIx>_Rx_idx=0; G_%<SPIx>_Rx_idx<%<NbRcv>; G_%<SPIx>_Rx_idx++) {
+                *(char*)(%<DataRcv>+G_%<SPIx>_Rx_idx) = (uint16_T)G_%<SPIx>_DataBufferRx[G_%<SPIx>_Rx_idx];
+            }
+            %endif
+            /* %<SPIx> ready */
+            %<SPIx>_DataLink.status = SPI_OFF;
+            %endif
+    %endif
+
+    %if(ISEQUAL(Error, "on"))
+        %openfile SPI_Buf
+        /* %<SPIx> Timeout Error Handler prototype */
+        void %<SPIx>_Er_Callback(void);
+        %closefile SPI_Buf
+        %<LibSetSourceFileSection(modelH_SPI,"Defines",SPI_Buf)>
+        %openfile SPI_Buf
+        /*******************************************************************************
+        * Function Name  : %<SPIx>_Er_Callback
+        * Description    : %<SPIx> Timeout callback error
+        * Input          : None
+        *******************************************************************************/
+        void %<SPIx>_Er_Callback()
+        {
+        %if(ISEQUAL(Error, "on"))
+                %foreach callIdx = NumSFcnSysOutputCalls
+                    %if (ISEQUAL(callIdx, 0))
+                        %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                            %assign wrnTxt = "No code will be generated for Read Error  "\
+                            "since it is not connected to a system."
+                            %<LibReportWarning(wrnTxt)>
+                            %continue
+                        %endif
+                        %% call the downstream system
+                        %<LibBlockExecuteFcnCall(block, callIdx)>\
+                    %endif
+                %endforeach
+        %endif
+        }
+        %closefile SPI_Buf
+        %<LibSetSourceFileSection(modelC_SPI,"Functions",SPI_Buf)>
+    %endif
+
+    %if(ISEQUAL(CallBack, "on"))
+        %openfile SPI_Buf
+        /* %<SPIx>_Rx_Callback prototype */
+        extern void %<SPIx>_Rx_Callback(void);
+        %closefile SPI_Buf
+        %<LibSetSourceFileSection(modelH_SPI,"Defines",SPI_Buf)>
+
+        %openfile SPI_Buf
+        /*******************************************************************************
+        * Function Name  : %<SPIx>_Rx_Callback
+        * Description    : Function called from SPI read complete callback
+        * Input          : None
+        *******************************************************************************/
+        void %<SPIx>_Rx_Callback()
+        {
+        %if(ISEQUAL(CallBack, "on"))
+                %foreach callIdx = NumSFcnSysOutputCalls
+                    %if (ISEQUAL(Error,"off") && ISEQUAL(callIdx, 0))
+                        %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                            %assign wrnTxt = "No code will be generated for Read complete  "\
+                            "since it is not connected to a system."
+                            %<LibReportWarning(wrnTxt)>
+                            %continue
+                        %endif
+                        %% call the downstream system
+                        %<LibBlockExecuteFcnCall(block, callIdx)>\
+                    %elseif  (ISEQUAL(Error,"on") && ISEQUAL(callIdx, 1))
+                        %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                            %assign wrnTxt = "No code will be generated for Read complete  "\
+                            "since it is not connected to a system."
+                            %<LibReportWarning(wrnTxt)>
+                            %continue
+                        %endif
+                        %% call the downstream system
+                        %<LibBlockExecuteFcnCall(block, callIdx)>\
+                    %endif
+                %endforeach
+        %endif
+        }
+        %closefile SPI_Buf
+        %<LibSetSourceFileSection(modelC_SPI,"Functions",SPI_Buf)>
+    %endif
+
+
+    %if(ISEQUAL(Transmission, "on"))
+        %openfile SPI_Buf
+        /* %<SPIx>_Tx_Callback prototype */
+        extern void %<SPIx>_Tx_Callback(void);
+        %closefile SPI_Buf
+        %<LibSetSourceFileSection(modelH_SPI,"Defines",SPI_Buf)>
+
+        %openfile SPI_Buf
+        /*******************************************************************************
+        * Function Name  : %<SPIx>_Tx_Callback
+        * Description    : Function called from SPI send complete callback
+        * Input          : None
+        *******************************************************************************/
+        void %<SPIx>_Tx_Callback()
+        {
+        %if(ISEQUAL(Transmission,"on"))
+                %foreach callIdx = NumSFcnSysOutputCalls
+                    %if (ISEQUAL(Error,"off") && ISEQUAL(callIdx, 0)&&ISEQUAL(CallBack,"off"))
+                        %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                            %assign wrnTxt = "No code will be generated for Transmission complete  "\
+                            "since it is not connected to a system."
+                            %<LibReportWarning(wrnTxt)>
+                            %continue
+                        %endif
+                        %% call the downstream system
+                        %<LibBlockExecuteFcnCall(block, callIdx)>\
+                    %elseif  (ISEQUAL(Error,"on") && ISEQUAL(callIdx, 1)&&ISEQUAL(CallBack,"off")||ISEQUAL(Error,"off") && ISEQUAL(callIdx, 1)&&ISEQUAL(CallBack,"on"))
+                        %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                            %assign wrnTxt = "No code will be generated for Transmission complete  "\
+                            "since it is not connected to a system."
+                            %<LibReportWarning(wrnTxt)>
+                            %continue
+                        %endif
+                        %% call the downstream system
+                        %<LibBlockExecuteFcnCall(block, callIdx)>\
+                    %elseif  (ISEQUAL(Error,"on") && ISEQUAL(callIdx, 2)&&ISEQUAL(CallBack,"on"))
+                        %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                            %assign wrnTxt = "No code will be generated for Transmission complete  "\
+                            "since it is not connected to a system."
+                            %<LibReportWarning(wrnTxt)>
+                            %continue
+                        %endif
+                        %% call the downstream system
+                        %<LibBlockExecuteFcnCall(block, callIdx)>\
+                    %endif
+                %endforeach
+        %endif
+        }
+        %closefile SPI_Buf
+        %<LibSetSourceFileSection(modelC_SPI,"Functions",SPI_Buf)>
+    %endif
+%endfunction
+
+%% [EOF] SPI_Read.tlc

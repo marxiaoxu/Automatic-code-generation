@@ -1,0 +1,768 @@
+%%
+%% Abstract: DAC Write
+%%    STM32 DAC Write input pin value to selected DACx port.
+%%
+
+%assign CodeFormat = "Embedded-C"
+%implements DAC_Write "C"
+
+%include "FunctionCalledAsChart.tlc"
+
+%if !EXISTS(::InsertIncludesToDAC)
+    %assign ::InsertIncludesToDAC = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertIncludesFromDAC)
+    %assign ::InsertIncludesFromDAC = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertDAC)
+    %assign ::InsertDAC = TLC_TRUE
+%endif
+
+%if !EXISTS(::Initialization_DAC)
+    %assign ::Initialization_DAC = TLC_TRUE
+%endif
+
+%assign DAC_Name = SFcnParamSettings.DAC_Name
+
+%if !EXISTS(::CpltTrans_%<DAC_Name>)
+    %assign ::CpltTrans_%<DAC_Name> = TLC_TRUE
+%endif
+%if !EXISTS(::HalfTrans_%<DAC_Name>)
+    %assign ::HalfTrans_%<DAC_Name> = TLC_TRUE
+%endif
+%if !EXISTS(::ErrorIt_%<DAC_Name>)
+    %assign ::ErrorIt_%<DAC_Name> = TLC_TRUE
+%endif
+%if !EXISTS(::UnderIt_%<DAC_Name>)
+    %assign ::UnderIt_%<DAC_Name> = TLC_TRUE
+%endif
+%if !EXISTS(::VarDef_%<DAC_Name>)
+    %assign ::VarDef_%<DAC_Name> = TLC_TRUE
+%endif
+%if !EXISTS(::CpltTransIt)
+    %assign ::CpltTransIt = TLC_TRUE
+%endif
+%if !EXISTS(::HalfTransIt)
+    %assign ::HalfTransIt = TLC_TRUE
+%endif
+%if !EXISTS(::ErrorIt_It)
+    %assign ::ErrorIt_It = TLC_TRUE
+%endif
+%if !EXISTS(::UnderIt_It)
+    %assign ::UnderIt_It = TLC_TRUE
+%endif
+
+%% Create function for DAC Write:
+
+
+%% Code for system initialization:
+%function Start(block,system) Output
+    %assign DAC_Name = SFcnParamSettings.DAC_Name
+    %assign Pin0 = SFcnParamSettings.Pin0
+    %assign Pin1 = SFcnParamSettings.Pin1
+    %assign Align = SFcnParamSettings.Align
+    %assign UsedDma = SFcnParamSettings.UsedDma
+    %assign DmaBuffCh1 = SFcnParamSettings.DmaBuffCh1
+    %assign DmaBuffCh2 = SFcnParamSettings.DmaBuffCh2
+    %assign CpltTrans = SFcnParamSettings.CpltTrans
+    %assign HalfTrans = SFcnParamSettings.HalfTrans
+    %assign ErrorIt = SFcnParamSettings.ErrorIt
+    %assign UnderIt = SFcnParamSettings.UnderIt
+    %assign NbDAC = SFcnParamSettings.NbDAC
+
+    %assign dacNum = IDNUM("%<DAC_Name>")[1]
+    %assign buff1Size = IDNUM("%<DmaBuffCh1>")[1]
+    %assign buff2Size = IDNUM("%<DmaBuffCh2>")[1]
+
+    %if dacNum == 0
+        %assign dacNum = ""
+    %endif
+
+    %%warning Start('%<SFcnParamSettings>')
+
+    %if !EXISTS(::Initialization_DAC) || (::Initialization_DAC == TLC_TRUE)
+        %assign ::Initialization_DAC = TLC_FALSE
+
+        %openfile DAC_Buf
+        {
+          /* %<DAC_Name> initialization */
+          /* Store %<DAC_Name> data information and its handler */
+        %if (%<NbDAC> > 1)
+          G_DAC_Conf[G_NbDacConf] = &%<DAC_Name>_Conf;
+          G_DAC_Handler[G_NbDacConf] = &hdac%<dacNum>;
+          G_NbDacConf++; /*Inc number of configured DAC */
+        %else
+          G_DAC_Conf = &%<DAC_Name>_Conf;
+          G_DAC_Handler = &hdac%<dacNum>;
+        %endif
+          /* Interrupt vector initialization */
+          %<DAC_Name>_Conf.CpltTrans = NULL;
+          %<DAC_Name>_Conf.HalfTrans = NULL;
+          %<DAC_Name>_Conf.ErrorIt = NULL;
+          %<DAC_Name>_Conf.UnderIt = NULL;
+        }
+        %closefile DAC_Buf
+        %<LibMdlStartCustomCode(DAC_Buf,"declaration")>
+    %endif
+
+    %openfile DAC_Buf
+    {
+    %if (ISEQUAL(CpltTrans, "on"))
+        %if !EXISTS(::CpltTrans_%<DAC_Name>) || (::CpltTrans_%<DAC_Name> == TLC_TRUE)
+            %assign ::CpltTrans_%<DAC_Name> = TLC_FALSE
+        /* Update DMA Transfer complete interrupt function */
+        %<DAC_Name>_Conf.CpltTrans = %<DAC_Name>_CpltTrans;
+        %else
+        %exit Multiple %<DAC_Name> DAC_Write block: Transfer complete interrupt already used.
+        %endif
+    %endif
+    %if (ISEQUAL(HalfTrans, "on"))
+        %if !EXISTS(::HalfTrans_%<DAC_Name>) || (::HalfTrans_%<DAC_Name> == TLC_TRUE)
+            %assign ::HalfTrans_%<DAC_Name> = TLC_FALSE
+        /* Update DMA Half Transfer complete interrupt function */
+        %<DAC_Name>_Conf.HalfTrans = %<DAC_Name>_HalfTrans;
+        %else
+        %exit Multiple %<DAC_Name> DAC_Write block: Half Transfer complete interrupt already used.
+        %endif
+    %endif
+    %if (ISEQUAL(ErrorIt, "on"))
+        %if !EXISTS(::ErrorIt_%<DAC_Name>) || (::ErrorIt_%<DAC_Name> == TLC_TRUE)
+            %assign ::ErrorIt_%<DAC_Name> = TLC_FALSE
+        /* Update DMA Error interrupt function */
+        %<DAC_Name>_Conf.ErrorIt = %<DAC_Name>_ErrorIt;
+        %else
+        %exit Multiple %<DAC_Name> DAC_Write block: Error interrupt already used.
+        %endif
+    %endif
+    %if (ISEQUAL(UnderIt, "on"))
+        %if !EXISTS(::UnderIt_%<DAC_Name>) || (::UnderIt_%<DAC_Name> == TLC_TRUE)
+            %assign ::UnderIt_%<DAC_Name> = TLC_FALSE
+        /* Update DMA Underrun interrupt function */
+        %<DAC_Name>_Conf.UnderIt = %<DAC_Name>_UnderIt;
+        %else
+        %exit Multiple %<DAC_Name> DAC_Write block: DMA Underrun interrupt already used.
+        %endif
+    %endif
+
+    %if (ISEQUAL(Align, "12bit_right"))
+        %assign Alignment = "DAC_ALIGN_12B_R"
+    %elseif (ISEQUAL(Align, "12bit_left"))
+        %assign Alignment = "DAC_ALIGN_12B_L"
+    %elseif (ISEQUAL(Align, "8bit_right"))
+        %assign Alignment = "DAC_ALIGN_8B_R"
+    %endif
+
+    %if (ISEQUAL(UsedDma, "on"))
+        %if (buff1Size)
+        /* Start DMA transfer for %<DAC_Name> channel 1 */
+        HAL_DAC_Start_DMA(&hdac%<dacNum>, DAC_CHANNEL_1, (uint32_t*)%<DAC_Name>_DmaCh1, %<buff1Size>, %<Alignment>);
+        %endif
+        %if (buff2Size)
+        /* Start DMA transfer for %<DAC_Name> channel 2 */
+        HAL_DAC_Start_DMA(&hdac%<dacNum>, DAC_CHANNEL_2, (uint32_t*)%<DAC_Name>_DmaCh2, %<buff2Size>, %<Alignment>);
+        %endif
+    %endif
+    }
+    %closefile DAC_Buf
+    %<LibMdlStartCustomCode(DAC_Buf,"execution")>
+%endfunction
+
+
+%% Code for DAC interrupt handler configuration:
+%function BlockInstanceSetup(block, system) void
+    %assign DAC_Name = SFcnParamSettings.DAC_Name
+    %assign Pin0 = SFcnParamSettings.Pin0
+    %assign Pin1 = SFcnParamSettings.Pin1
+    %assign Align = SFcnParamSettings.Align
+    %assign UsedDma = SFcnParamSettings.UsedDma
+    %assign DmaBuffCh1 = SFcnParamSettings.DmaBuffCh1
+    %assign DmaBuffCh2 = SFcnParamSettings.DmaBuffCh2
+    %assign CpltTrans = SFcnParamSettings.CpltTrans
+    %assign HalfTrans = SFcnParamSettings.HalfTrans
+    %assign ErrorIt = SFcnParamSettings.ErrorIt
+    %assign UnderIt = SFcnParamSettings.UnderIt
+    %assign NbDAC = SFcnParamSettings.NbDAC
+    %assign dacNum = IDNUM("%<DAC_Name>")[1]
+    %assign buff1Size = IDNUM("%<DmaBuffCh1>")[1]
+    %assign buff2Size = IDNUM("%<DmaBuffCh2>")[1]
+
+    %if dacNum == 0
+    %assign dacNum = ""
+    %endif
+
+    %%warning BlockInstanceSetup('%<SFcnParamSettings>')
+
+    %%model.c and model.h files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+    %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+    %%model_DAC.h and model_DAC.c files
+    %assign SrcBaseName_DAC = "%<SrcBaseName>_DAC"
+    %assign modelH_DAC      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_DAC)
+    %assign modelC_DAC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_DAC)
+    %%Include model.h to model_DAC.c
+    %if EXISTS(::InsertIncludesToDAC) && (::InsertIncludesToDAC == TLC_TRUE)
+        %assign ::InsertIncludesToDAC = TLC_FALSE
+        %openfile DAC_Buf
+            #include "%<SrcBaseName>.h"
+            #include "%<SrcBaseName_DAC>.h"
+        %closefile DAC_Buf
+        %<LibSetSourceFileSection(modelC_DAC,"Includes",DAC_Buf)>
+    %endif
+    %%AND Include model_DAC.h to model.c
+    %if EXISTS(::InsertIncludesFromDAC) && (::InsertIncludesFromDAC == TLC_TRUE)
+        %assign ::InsertIncludesFromDAC = TLC_FALSE
+        %openfile DAC_Buf
+            #include "%<SrcBaseName_DAC>.h"
+        %closefile DAC_Buf
+        %<LibSetSourceFileSection(modelH,"Includes",DAC_Buf)>
+
+        %openfile DAC_Buf
+            #include "STM32_Config.h"
+        %closefile DAC_Buf
+        %<LibSetSourceFileSection(modelH_DAC,"Includes",DAC_Buf)>
+    %endif
+
+    %if EXISTS(::InsertDAC) && (::InsertDAC == TLC_TRUE)
+        %assign ::InsertDAC = TLC_FALSE
+        %openfile DAC_Buf
+        /**
+         * @brief  DAC information
+         */
+        typedef struct {
+         void (* CpltTrans)(void);
+         void (* HalfTrans)(void);
+         void (* ErrorIt)(void);
+         void (* UnderIt)(void);
+        } DAC_ConfTypeDef;
+
+        %if (%<NbDAC> > 1)
+        /* Number of DAC configured */
+        extern uint16_t G_NbDacConf;
+        /* DAC informations */
+        extern DAC_ConfTypeDef* G_DAC_Conf[%<NbDAC>];
+        /* DAC handlers */
+        extern DAC_HandleTypeDef* G_DAC_Handler[%<NbDAC>];
+        %else
+        /* DAC informations */
+        extern DAC_ConfTypeDef* G_DAC_Conf;
+        /* DAC handler */
+        extern DAC_HandleTypeDef* G_DAC_Handler;
+        %endif
+        %closefile DAC_Buf
+        %<LibSetSourceFileSection(modelH_DAC,"Defines",DAC_Buf)>
+
+        %openfile DAC_Buf
+        %if (%<NbDAC> > 1)
+        /* Number of DAC configured */
+        uint16_t G_NbDacConf = 0;
+        /* DAC informations */
+        DAC_ConfTypeDef* G_DAC_Conf[%<NbDAC>];
+        /* DAC handlers */
+        DAC_HandleTypeDef* G_DAC_Handler[%<NbDAC>];
+        %else
+        /* DAC information */
+        DAC_ConfTypeDef* G_DAC_Conf;
+        /* DAC handler */
+        DAC_HandleTypeDef* G_DAC_Handler;
+        %endif
+
+        %if (ISEQUAL(UsedDma, "on"))
+        %if (buff1Size)
+        /* DMA buffer CH1 definition */
+         %if (ISEQUAL(Align, "8bit_right"))
+        uint8_t  %<DAC_Name>_DmaCh1Buff[%<buff1Size>] = {0};
+        uint8_t* %<DAC_Name>_DmaCh1 = %<DAC_Name>_DmaCh1Buff;
+         %else
+        uint16_t  %<DAC_Name>_DmaCh1Buff[%<buff1Size>] = {0};
+        uint16_t* %<DAC_Name>_DmaCh1 = %<DAC_Name>_DmaCh1Buff;
+         %endif
+        %endif
+        %if (buff2Size)
+        /* DMA buffer CH2 definition */
+         %if (ISEQUAL(Align, "8bit_right"))
+        uint8_t  %<DAC_Name>_DmaCh2Buff[%<buff2Size>] = {0};
+        uint8_t* %<DAC_Name>_DmaCh2 = %<DAC_Name>_DmaCh2Buff;
+         %else
+        uint16_t  %<DAC_Name>_DmaCh2Buff[%<buff2Size>] = {0};
+        uint16_t* %<DAC_Name>_DmaCh2 = %<DAC_Name>_DmaCh2Buff;
+         %endif
+        %endif
+        %endif
+
+        %closefile DAC_Buf
+        %<LibSetSourceFileSection(modelC_DAC,"Defines",DAC_Buf)>
+    %endif
+
+    %if !EXISTS(::VarDef_%<DAC_Name>) || (::VarDef_%<DAC_Name> == TLC_TRUE)
+        %assign ::VarDef_%<DAC_Name> = TLC_FALSE
+
+        %openfile DAC_Buf
+            /* %<DAC_Name> handler declarations. */
+            extern DAC_HandleTypeDef hdac%<dacNum>;
+            %if (ISEQUAL(UsedDma, "on"))
+                extern DMA_HandleTypeDef hdma_dac%<dacNum>;
+                %if (buff1Size)
+                    /* DMA buffer CH1 declaration */
+                     %if (ISEQUAL(Align, "8bit_right"))
+                        extern uint8_t  %<DAC_Name>_DmaCh1Buff[%<buff1Size>];
+                        extern uint8_t* %<DAC_Name>_DmaCh1;
+                     %else
+                        extern uint16_t  %<DAC_Name>_DmaCh1Buff[%<buff1Size>];
+                        extern uint16_t* %<DAC_Name>_DmaCh1;
+                     %endif
+                %endif
+                %if (buff2Size)
+                    /* DMA buffer CH2 declaration */
+                     %if (ISEQUAL(Align, "8bit_right"))
+                        extern uint8_t  %<DAC_Name>_DmaCh2Buff[%<buff2Size>];
+                        extern uint8_t* %<DAC_Name>_DmaCh2;
+                     %else
+                        extern uint16_t  %<DAC_Name>_DmaCh2Buff[%<buff2Size>];
+                        extern uint16_t* %<DAC_Name>_DmaCh2;
+                     %endif
+                %endif
+            %endif
+        %closefile DAC_Buf
+        %<LibSetSourceFileSection(modelH_DAC,"Defines",DAC_Buf)>
+
+        %openfile DAC_Buf
+        /* %<DAC_Name> information */
+        DAC_ConfTypeDef %<DAC_Name>_Conf;
+        %closefile DAC_Buf
+        %<LibSetSourceFileSection(modelC_DAC,"Defines",DAC_Buf)>
+
+        %openfile DAC_Buf
+        /* %<DAC_Name> information */
+        extern DAC_ConfTypeDef %<DAC_Name>_Conf;
+        %closefile DAC_Buf
+        %<LibSetSourceFileSection(modelH_DAC,"Defines",DAC_Buf)>
+    %endif
+
+    %%Callback function for IT conversion
+    %if ISEQUAL(CpltTrans, "on")
+     %if EXISTS(::CpltTransIt) && (::CpltTransIt == TLC_TRUE)
+         %assign ::CpltTransIt = TLC_FALSE
+     %openfile DAC_Buf
+     /**
+      * @brief  Conversion complete callback in non blocking mode for Channel1
+      * @param  hdac pointer to a DAC_HandleTypeDef structure that contains
+      *         the configuration information for the specified DAC.
+      * @retval None
+      */
+     void HAL_DAC_ConvCpltCallbackCh1(DAC_HandleTypeDef* hdac)
+     {
+        DAC_ConfTypeDef* pConf;
+        DAC_HandleTypeDef* pHandler;
+
+    %if(%<NbDAC> > 1)
+        {
+          uint16_t idx = 0;
+          for(idx = 0; idx < %<NbDAC>; idx++) {
+             pHandler = G_DAC_Handler[idx];
+             if(pHandler == hdac) {
+               pConf = G_DAC_Conf[idx];
+               break;
+             }
+          }
+        }
+    %else
+        pConf = G_DAC_Conf;
+        pHandler = G_DAC_Handler;
+    %endif
+
+        if(pHandler == hdac) {
+            if(pConf->CpltTrans != NULL){
+                /* Call DMA transfer complete function */
+                pConf->CpltTrans();
+            }
+        }
+     }
+    %closefile DAC_Buf
+    %<LibSetSourceFileSection(modelC_DAC,"Functions",DAC_Buf)>
+    %endif
+%endif
+
+%if ISEQUAL(HalfTrans, "on")
+     %if EXISTS(::HalfTransIt) && (::HalfTransIt == TLC_TRUE)
+         %assign ::HalfTransIt = TLC_FALSE
+     %openfile DAC_Buf
+     /**
+      * @brief  Conversion half DMA transfer callback in non blocking mode for Channel1
+      * @param  hdac pointer to a DAC_HandleTypeDef structure that contains
+      *         the configuration information for the specified DAC.
+      * @retval None
+      */
+     void HAL_DAC_ConvHalfCpltCallbackCh1(DAC_HandleTypeDef* hdac)
+     {
+        DAC_ConfTypeDef* pConf;
+        DAC_HandleTypeDef* pHandler;
+
+    %if(%<NbDAC> > 1)
+        {
+          uint16_t idx = 0;
+          for(idx = 0; idx < %<NbDAC>; idx++) {
+             pHandler = G_DAC_Handler[idx];
+             if(pHandler == hdac) {
+               pConf = G_DAC_Conf[idx];
+               break;
+             }
+          }
+        }
+    %else
+        pConf = G_DAC_Conf;
+        pHandler = G_DAC_Handler;
+    %endif
+
+    if(pHandler == hdac) {
+        if(pConf->HalfTrans != NULL){
+            /* Call DMA Half transfer complete function */
+            pConf->HalfTrans();
+        }
+      }
+     }
+    %closefile DAC_Buf
+    %<LibSetSourceFileSection(modelC_DAC,"Functions",DAC_Buf)>
+    %endif
+%endif
+
+%if ISEQUAL(ErrorIt, "on")
+     %if EXISTS(::ErrorIt_It) && (::ErrorIt_It == TLC_TRUE)
+         %assign ::ErrorIt_It = TLC_FALSE
+     %openfile DAC_Buf
+     /**
+      * @brief  Error DAC callback for Channel1.
+      * @param  hdac pointer to a DAC_HandleTypeDef structure that contains
+      *         the configuration information for the specified DAC.
+      * @retval None
+      */
+     void HAL_DAC_ErrorCallbackCh1(DAC_HandleTypeDef* hdac)
+     {
+        DAC_ConfTypeDef* pConf;
+        DAC_HandleTypeDef* pHandler;
+
+    %if(%<NbDAC> > 1)
+        {
+          uint16_t idx = 0;
+          for(idx = 0; idx < %<NbDAC>; idx++) {
+             pHandler = G_DAC_Handler[idx];
+             if(pHandler == hdac) {
+               pConf = G_DAC_Conf[idx];
+               break;
+             }
+          }
+        }
+    %else
+        pConf = G_DAC_Conf;
+        pHandler = G_DAC_Handler;
+    %endif
+
+        if(pHandler == hdac) {
+        /* Stop DMA */
+    %if (ISEQUAL(Pin0, "on"))
+          HAL_DAC_Stop_DMA(hdac, DAC_CHANNEL_1);
+    %elseif (ISEQUAL(Pin1, "on"))
+          HAL_DAC_Stop_DMA(hdac, DAC_CHANNEL_2);
+    %endif
+          if(pConf->ErrorIt != NULL){
+            /* Call DMA Error function */
+            pConf->ErrorIt();
+          }
+        }
+     }
+    %closefile DAC_Buf
+    %<LibSetSourceFileSection(modelC_DAC,"Functions",DAC_Buf)>
+    %endif
+%endif
+
+%if ISEQUAL(UnderIt, "on")
+     %if EXISTS(::UnderIt_It) && (::UnderIt_It == TLC_TRUE)
+         %assign ::UnderIt_It = TLC_FALSE
+     %openfile DAC_Buf
+     /**
+      * @brief  DMA underrun DAC callback for channel1.
+      * @param  hdac pointer to a DAC_HandleTypeDef structure that contains
+      *         the configuration information for the specified DAC.
+      * @retval None
+      */
+     void HAL_DAC_DMAUnderrunCallbackCh1(DAC_HandleTypeDef* hdac)
+     {
+        DAC_ConfTypeDef* pConf;
+        DAC_HandleTypeDef* pHandler;
+
+    %if(%<NbDAC> > 1)
+        {
+          uint16_t idx = 0;
+          for(idx = 0; idx < %<NbDAC>; idx++) {
+             pHandler = G_DAC_Handler[idx];
+             if(pHandler == hdac) {
+               pConf = G_DAC_Conf[idx];
+               break;
+             }
+          }
+        }
+    %else
+        pConf = G_DAC_Conf;
+        pHandler = G_DAC_Handler;
+    %endif
+
+        if(pHandler == hdac) {
+          /* Stop DMA */
+        %if (ISEQUAL(Pin0, "on"))
+          HAL_DAC_Stop_DMA(hdac, DAC_CHANNEL_1);
+        %elseif (ISEQUAL(Pin1, "on"))
+          HAL_DAC_Stop_DMA(hdac, DAC_CHANNEL_2);
+        %endif
+          if(pConf->UnderIt != NULL){
+            /* Call DMA Underrun function */
+            pConf->UnderIt();
+          }
+        }
+     }
+    %closefile DAC_Buf
+    %<LibSetSourceFileSection(modelC_DAC,"Functions",DAC_Buf)>
+    %endif
+%endif
+
+%endfunction
+
+
+%% Function: Outputs ==========================================
+%% Abstract:
+%% DAC_Write input value depending on pin config
+%%
+%function Outputs(block, system) Output
+    %%model.h and model.c files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+    %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+    %%model_DAC.h and model_DAC.c files
+    %assign SrcBaseName_DAC = "%<SrcBaseName>_DAC"
+    %assign modelH_DAC      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_DAC)
+    %assign modelC_DAC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_DAC)
+
+    %assign DAC_Name = SFcnParamSettings.DAC_Name
+    %assign Pin0 = SFcnParamSettings.Pin0
+    %assign Pin1 = SFcnParamSettings.Pin1
+    %assign Align = SFcnParamSettings.Align
+    %assign UsedDma = SFcnParamSettings.UsedDma
+    %assign DmaBuffCh1 = SFcnParamSettings.DmaBuffCh1
+    %assign DmaBuffCh2 = SFcnParamSettings.DmaBuffCh2
+    %assign CpltTrans = SFcnParamSettings.CpltTrans
+    %assign HalfTrans = SFcnParamSettings.HalfTrans
+    %assign ErrorIt = SFcnParamSettings.ErrorIt
+    %assign UnderIt = SFcnParamSettings.UnderIt
+    %assign NbDAC = SFcnParamSettings.NbDAC
+
+    %assign dacNum = IDNUM("%<DAC_Name>")[1]
+
+    %if dacNum == 0
+    %assign dacNum = ""
+    %endif
+
+    %assign chOffset = 0
+
+    %%warning Outputs('%<SFcnParamSettings>')
+
+    %%%%%%%% VERY IMPORTANT %%%%%%%%%
+    %%%  DO NOT CHANGE INTERRUPT  %%%
+    %%%     FUNCTION ORDER        %%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    %if (ISEQUAL(CpltTrans, "on"))
+        %assign chartIsFound = 0
+
+        %openfile DAC_Buf
+        /* %<DAC_Name> DMA transfer complete IT function */
+        void %<DAC_Name>_CpltTrans(void);
+        %closefile DAC_Buf
+        %<LibSetSourceFileSection(modelH_DAC,"Defines",DAC_Buf)>
+
+        %openfile DAC_Buf
+        /*******************************************************************************
+        * Function Name  : %<DAC_Name>_CpltTrans
+        * Description    : %<DAC_Name> DMA transfer complete interrupt
+        * Input          : None
+        *******************************************************************************/
+        void %<DAC_Name>_CpltTrans()
+        {
+            %foreach callIdx = NumSFcnSysOutputCalls
+                %if (ISEQUAL(callIdx, chOffset))
+                    %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                        %assign wrnTxt = "No code will be generated for DMA transfer complete interrupt  "\
+                        "since it is not connected to a system."
+                        %<LibReportWarning(wrnTxt)>
+                        %continue
+                    %endif
+                    %%Is it connected to model including Chart
+                    %assign chartIsFound = FunctionCalledAsChart(callIdx)
+                    %% call the downstream system
+                    %<LibBlockExecuteFcnCall(block, callIdx)>\
+                %endif
+            %endforeach
+        }
+        %closefile DAC_Buf
+        %if (chartIsFound == 1)
+            %<LibSetSourceFileSection(modelC,"Functions",DAC_Buf)>
+        %else
+            %<LibSetSourceFileSection(modelC_DAC,"Functions",DAC_Buf)>
+        %endif
+        %%Then increment channel number for next IT connection
+        %assign chOffset = chOffset + 1
+    %endif
+
+    %if (ISEQUAL(HalfTrans, "on"))
+        %assign chartIsFound = 0
+
+        %openfile DAC_Buf
+        /* %<DAC_Name> DMA transfer complete IT function */
+        void %<DAC_Name>_HalfTrans(void);
+        %closefile DAC_Buf
+        %<LibSetSourceFileSection(modelH_DAC,"Defines",DAC_Buf)>
+
+        %openfile DAC_Buf
+        /*******************************************************************************
+        * Function Name  : %<DAC_Name>_HalfTrans
+        * Description    : %<DAC_Name> DMA half transfer complete interrupt
+        * Input          : None
+        *******************************************************************************/
+        void %<DAC_Name>_HalfTrans()
+        {
+            %foreach callIdx = NumSFcnSysOutputCalls
+                %if (ISEQUAL(callIdx, chOffset))
+                    %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                        %assign wrnTxt = "No code will be generated for DMA half transfer complete interrupt  "\
+                        "since it is not connected to a system."
+                        %<LibReportWarning(wrnTxt)>
+                        %continue
+                    %endif
+                    %%Is it connected to model including Chart
+                    %assign chartIsFound = FunctionCalledAsChart(callIdx)
+                    %% call the downstream system
+                    %<LibBlockExecuteFcnCall(block, callIdx)>\
+                %endif
+            %endforeach
+        }
+        %closefile DAC_Buf
+        %if (chartIsFound == 1)
+            %<LibSetSourceFileSection(modelC,"Functions",DAC_Buf)>
+        %else
+            %<LibSetSourceFileSection(modelC_DAC,"Functions",DAC_Buf)>
+        %endif
+        %%Then increment channel number for next IT connection
+        %assign chOffset = chOffset + 1
+    %endif
+
+    %if (ISEQUAL(ErrorIt, "on"))
+        %assign chartIsFound = 0
+
+        %openfile DAC_Buf
+        /* %<DAC_Name> DMA transfer complete IT function */
+        void %<DAC_Name>_ErrorIt(void);
+        %closefile DAC_Buf
+        %<LibSetSourceFileSection(modelH_DAC,"Defines",DAC_Buf)>
+
+        %openfile DAC_Buf
+        /*******************************************************************************
+        * Function Name  : %<DAC_Name>_ErrorIt
+        * Description    : %<DAC_Name> DMA Error interrupt
+        * Input          : None
+        *******************************************************************************/
+        void %<DAC_Name>_ErrorIt()
+        {
+            %foreach callIdx = NumSFcnSysOutputCalls
+                %if (ISEQUAL(callIdx, chOffset))
+                    %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                        %assign wrnTxt = "No code will be generated for DMA error interrupt  "\
+                        "since it is not connected to a system."
+                        %<LibReportWarning(wrnTxt)>
+                        %continue
+                    %endif
+                    %%Is it connected to model including Chart
+                    %assign chartIsFound = FunctionCalledAsChart(callIdx)
+                    %% call the downstream system
+                    %<LibBlockExecuteFcnCall(block, callIdx)>\
+                %endif
+            %endforeach
+        }
+        %closefile DAC_Buf
+
+        %if (chartIsFound == 1)
+            %<LibSetSourceFileSection(modelC,"Functions",DAC_Buf)>
+        %else
+            %<LibSetSourceFileSection(modelC_DAC,"Functions",DAC_Buf)>
+        %endif
+        %%Then increment channel number for next IT connection
+        %assign chOffset = chOffset + 1
+    %endif
+
+    %if (ISEQUAL(UnderIt, "on"))
+        %assign chartIsFound = 0
+
+        %openfile DAC_Buf
+        /* %<DAC_Name> DMA transfer complete IT function */
+        void %<DAC_Name>_UnderIt(void);
+        %closefile DAC_Buf
+        %<LibSetSourceFileSection(modelH_DAC,"Defines",DAC_Buf)>
+
+        %openfile DAC_Buf
+        /*******************************************************************************
+        * Function Name  : %<DAC_Name>_UnderIt
+        * Description    : %<DAC_Name> DMA underrun interrupt
+        * Input          : None
+        *******************************************************************************/
+        void %<DAC_Name>_UnderIt()
+        {
+            %foreach callIdx = NumSFcnSysOutputCalls
+                %if (ISEQUAL(callIdx, chOffset))
+                    %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                        %assign wrnTxt = "No code will be generated for DMA underrun interrupt  "\
+                        "since it is not connected to a system."
+                        %<LibReportWarning(wrnTxt)>
+                        %continue
+                    %endif
+                    %%Is it connected to model including Chart
+                    %assign chartIsFound = FunctionCalledAsChart(callIdx)
+                    %% call the downstream system
+                    %<LibBlockExecuteFcnCall(block, callIdx)>\
+                %endif
+            %endforeach
+        }
+        %closefile DAC_Buf
+        %if (chartIsFound == 1)
+        %<LibSetSourceFileSection(modelC,"Functions",DAC_Buf)>
+        %else
+        %<LibSetSourceFileSection(modelC_DAC,"Functions",DAC_Buf)>
+        %endif
+        %%Then increment channel number for next IT connection
+        %assign chOffset = chOffset + 1
+    %endif
+
+    %if (ISEQUAL(Align, "12bit_right"))
+        %assign Alignment = "DAC_ALIGN_12B_R"
+    %elseif (ISEQUAL(Align, "12bit_left"))
+        %assign Alignment = "DAC_ALIGN_12B_L"
+    %elseif (ISEQUAL(Align, "8bit_right"))
+        %assign Alignment = "DAC_ALIGN_8B_R"
+    %endif
+
+    %assign InputNum = 0
+    {
+    %if (ISEQUAL(Pin0, "on"))
+    %assign pinVal = LibBlockInputSignal(InputNum, "", "", 0)
+      HAL_DAC_SetValue(&hdac%<dacNum>, DAC_CHANNEL_1, %<Alignment>, %<pinVal>);
+      HAL_DAC_Start(&hdac%<dacNum>, DAC_CHANNEL_1);
+    %assign InputNum = InputNum + 1
+    %endif
+
+    %if (ISEQUAL(Pin1, "on"))
+    %assign pinVal = LibBlockInputSignal(InputNum, "", "", 0)
+      HAL_DAC_SetValue(&hdac%<dacNum>, DAC_CHANNEL_2, %<Alignment>, %<pinVal>);
+      HAL_DAC_Start(&hdac%<dacNum>, DAC_CHANNEL_2);
+    %endif
+    }
+%endfunction
+
+%% [EOF] DAC_Write.tlc

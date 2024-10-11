@@ -1,0 +1,421 @@
+%% Abstract: GPIO Write
+%%    STM32 GPIO Write input pin value to selected GPIOx port.
+%%
+%% Copyright 1990-2009 The MathWorks, Inc.
+%assign CodeFormat = "Embedded-C"
+%implements GPIO_Write "C"
+
+%%warning "---------->Start GPIO_WRITE"
+
+%assign Port_name =  SFcnParamSettings.Port_name
+
+%if !EXISTS(::MaskWrite_%<Port_name>)
+    %assign ::MaskWrite_%<Port_name>  = TLC_TRUE
+%endif
+
+
+%% Create function for GPIO Write:
+
+
+%% Function: Outputs ==========================================
+%% Abstract:
+%% GPIO_Write write value for the given pins, toggle from selections
+%%
+%function Outputs(block, system) Output
+    %%warning "---------->Start GPIO_WRITE Outputs"
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+    %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+
+    %assign Port_name =  SFcnParamSettings.Port_name
+    %assign Pin0 =  SFcnParamSettings.Pin0
+    %assign Pin1 =  SFcnParamSettings.Pin1
+    %assign Pin2 =  SFcnParamSettings.Pin2
+    %assign Pin3 =  SFcnParamSettings.Pin3
+    %assign Pin4 =  SFcnParamSettings.Pin4
+    %assign Pin5 =  SFcnParamSettings.Pin5
+    %assign Pin6 =  SFcnParamSettings.Pin6
+    %assign Pin7 =  SFcnParamSettings.Pin7
+    %assign Pin8 =  SFcnParamSettings.Pin8
+    %assign Pin9 =  SFcnParamSettings.Pin9
+    %assign Pin10 =  SFcnParamSettings.Pin10
+    %assign Pin11 =  SFcnParamSettings.Pin11
+    %assign Pin12 =  SFcnParamSettings.Pin12
+    %assign Pin13 =  SFcnParamSettings.Pin13
+    %assign Pin14 =  SFcnParamSettings.Pin14
+    %assign Pin15 =  SFcnParamSettings.Pin15
+    %assign Toggle_Pin0 =  SFcnParamSettings.Toggle_Pin0
+    %assign Toggle_Pin1 =  SFcnParamSettings.Toggle_Pin1
+    %assign Toggle_Pin2 =  SFcnParamSettings.Toggle_Pin2
+    %assign Toggle_Pin3 =  SFcnParamSettings.Toggle_Pin3
+    %assign Toggle_Pin4 =  SFcnParamSettings.Toggle_Pin4
+    %assign Toggle_Pin5 =  SFcnParamSettings.Toggle_Pin5
+    %assign Toggle_Pin6 =  SFcnParamSettings.Toggle_Pin6
+    %assign Toggle_Pin7 =  SFcnParamSettings.Toggle_Pin7
+    %assign Toggle_Pin8 =  SFcnParamSettings.Toggle_Pin8
+    %assign Toggle_Pin9 =  SFcnParamSettings.Toggle_Pin9
+    %assign Toggle_Pin10 =  SFcnParamSettings.Toggle_Pin10
+    %assign Toggle_Pin11 =  SFcnParamSettings.Toggle_Pin11
+    %assign Toggle_Pin12 =  SFcnParamSettings.Toggle_Pin12
+    %assign Toggle_Pin13 =  SFcnParamSettings.Toggle_Pin13
+    %assign Toggle_Pin14 =  SFcnParamSettings.Toggle_Pin14
+    %assign Toggle_Pin15 =  SFcnParamSettings.Toggle_Pin15
+
+    %assign NbWrite = 0
+    %assign maskValue = 65535
+
+    %if (ISEQUAL(Pin0, "on") && ISEQUAL(Toggle_Pin0, "off"))
+    %assign NbWrite = NbWrite + 1
+    %assign maskValue = maskValue & 65534
+    %endif
+    %if (ISEQUAL(Pin1, "on") && ISEQUAL(Toggle_Pin1, "off"))
+    %assign NbWrite = NbWrite + 1
+    %assign maskValue = maskValue & 65533
+    %endif
+    %if (ISEQUAL(Pin2, "on") && ISEQUAL(Toggle_Pin2, "off"))
+    %assign NbWrite = NbWrite + 1
+    %assign maskValue = maskValue & 65531
+    %endif
+    %if (ISEQUAL(Pin3, "on") && ISEQUAL(Toggle_Pin3, "off"))
+    %assign NbWrite = NbWrite + 1
+    %assign maskValue = maskValue & 65527
+    %endif
+    %if (ISEQUAL(Pin4, "on") && ISEQUAL(Toggle_Pin4, "off"))
+    %assign NbWrite = NbWrite + 1
+    %assign maskValue = maskValue & 65519
+    %endif
+    %if (ISEQUAL(Pin5, "on") && ISEQUAL(Toggle_Pin5, "off"))
+    %assign NbWrite = NbWrite + 1
+    %assign maskValue = maskValue & 65503
+    %endif
+    %if (ISEQUAL(Pin6, "on") && ISEQUAL(Toggle_Pin6, "off"))
+    %assign NbWrite = NbWrite + 1
+    %assign maskValue = maskValue & 65471
+    %endif
+    %if (ISEQUAL(Pin7, "on") && ISEQUAL(Toggle_Pin7, "off"))
+    %assign NbWrite = NbWrite + 1
+    %assign maskValue = maskValue & 65407
+    %endif
+    %if (ISEQUAL(Pin8, "on") && ISEQUAL(Toggle_Pin8, "off"))
+    %assign NbWrite = NbWrite + 1
+    %assign maskValue = maskValue & 65279
+    %endif
+    %if (ISEQUAL(Pin9, "on") && ISEQUAL(Toggle_Pin9, "off"))
+    %assign NbWrite = NbWrite + 1
+    %assign maskValue = maskValue & 65023
+    %endif
+    %if (ISEQUAL(Pin10, "on") && ISEQUAL(Toggle_Pin10, "off"))
+    %assign NbWrite = NbWrite + 1
+    %assign maskValue = maskValue & 64511
+    %endif
+    %if (ISEQUAL(Pin11, "on") && ISEQUAL(Toggle_Pin11, "off"))
+    %assign NbWrite = NbWrite + 1
+    %assign maskValue = maskValue & 63487
+    %endif
+    %if (ISEQUAL(Pin12, "on") && ISEQUAL(Toggle_Pin12, "off"))
+    %assign NbWrite = NbWrite + 1
+    %assign maskValue = maskValue & 61439
+    %endif
+    %if (ISEQUAL(Pin13, "on") && ISEQUAL(Toggle_Pin13, "off"))
+    %assign NbWrite = NbWrite + 1
+    %assign maskValue = maskValue & 57343
+    %endif
+    %if (ISEQUAL(Pin14, "on") && ISEQUAL(Toggle_Pin14, "off"))
+    %assign NbWrite = NbWrite + 1
+    %assign maskValue = maskValue & 49151
+    %endif
+    %if (ISEQUAL(Pin15, "on") && ISEQUAL(Toggle_Pin15, "off"))
+    %assign NbWrite = NbWrite + 1
+    %assign maskValue = maskValue & 32767
+    %endif
+
+    %if (NbWrite >= 2)
+        %assign NbWrite = 0
+            %if !EXISTS(::MaskWrite_%<Port_name>) || (::MaskWrite_%<Port_name> == TLC_TRUE)
+                %assign ::MaskWrite_%<Port_name>    = TLC_FALSE
+                %openfile GPIO_Write_Buff
+                /* %<Port_name> output mask value definition. */
+                uint16_t %<Port_name>_maskWrite;
+                %closefile GPIO_Write_Buff
+                %<LibSetSourceFileSection(modelC,"Defines",GPIO_Write_Buff)>
+                %openfile GPIO_Write_Buff
+                /* %<Port_name> output mask value declaration. */
+                extern uint16_t %<Port_name>_maskWrite;
+                %closefile GPIO_Write_Buff
+                %<LibSetSourceFileSection(modelH,"Defines",GPIO_Write_Buff)>
+            %endif
+      {
+        /* Set %<Port_name> output mask value. */
+        %<Port_name>_maskWrite = %<Port_name>->ODR;
+        %assign maskValue = FEVAL("dec2hex",%<maskValue>)
+        %<Port_name>_maskWrite &= 0x%<maskValue> ;
+        %if (ISEQUAL(Pin0, "on") && ISEQUAL(Toggle_Pin0, "off"))
+        %assign pinVal = LibBlockInputSignal(NbWrite, "", "", 0)
+        %<Port_name>_maskWrite |= (uint16_t)%<pinVal> << 0;
+        %assign NbWrite = NbWrite + 1
+        %endif
+        %if (ISEQUAL(Pin1, "on") && ISEQUAL(Toggle_Pin1, "off"))
+        %assign pinVal = LibBlockInputSignal(NbWrite, "", "", 0)
+        %<Port_name>_maskWrite |= (uint16_t)%<pinVal> << 1;
+        %assign NbWrite = NbWrite + 1
+        %endif
+        %if (ISEQUAL(Pin2, "on") && ISEQUAL(Toggle_Pin2, "off"))
+        %assign pinVal = LibBlockInputSignal(NbWrite, "", "", 0)
+        %<Port_name>_maskWrite |= (uint16_t)%<pinVal> << 2;
+        %assign NbWrite = NbWrite + 1
+        %endif
+        %if (ISEQUAL(Pin3, "on") && ISEQUAL(Toggle_Pin3, "off"))
+        %assign pinVal = LibBlockInputSignal(NbWrite, "", "", 0)
+        %<Port_name>_maskWrite |= (uint16_t)%<pinVal> << 3;
+        %assign NbWrite = NbWrite + 1
+        %endif
+        %if (ISEQUAL(Pin4, "on") && ISEQUAL(Toggle_Pin4, "off"))
+        %assign pinVal = LibBlockInputSignal(NbWrite, "", "", 0)
+        %<Port_name>_maskWrite |= (uint16_t)%<pinVal> << 4;
+        %assign NbWrite = NbWrite + 1
+        %endif
+        %if (ISEQUAL(Pin5, "on") && ISEQUAL(Toggle_Pin5, "off"))
+        %assign pinVal = LibBlockInputSignal(NbWrite, "", "", 0)
+        %<Port_name>_maskWrite |= (uint16_t)%<pinVal> << 5;
+        %assign NbWrite = NbWrite + 1
+        %endif
+        %if (ISEQUAL(Pin6, "on") && ISEQUAL(Toggle_Pin6, "off"))
+        %assign pinVal = LibBlockInputSignal(NbWrite, "", "", 0)
+        %<Port_name>_maskWrite |= (uint16_t)%<pinVal> << 6;
+        %assign NbWrite = NbWrite + 1
+        %endif
+        %if (ISEQUAL(Pin7, "on") && ISEQUAL(Toggle_Pin7, "off"))
+        %assign pinVal = LibBlockInputSignal(NbWrite, "", "", 0)
+        %<Port_name>_maskWrite |= (uint16_t)%<pinVal> << 7;
+        %assign NbWrite = NbWrite + 1
+        %endif
+        %if (ISEQUAL(Pin8, "on") && ISEQUAL(Toggle_Pin8, "off"))
+        %assign pinVal = LibBlockInputSignal(NbWrite, "", "", 0)
+        %<Port_name>_maskWrite |= (uint16_t)%<pinVal> << 8;
+        %assign NbWrite = NbWrite + 1
+        %endif
+        %if (ISEQUAL(Pin9, "on") && ISEQUAL(Toggle_Pin9, "off"))
+        %assign pinVal = LibBlockInputSignal(NbWrite, "", "", 0)
+        %<Port_name>_maskWrite |= (uint16_t)%<pinVal> << 9;
+        %assign NbWrite = NbWrite + 1
+        %endif
+        %if (ISEQUAL(Pin10, "on") && ISEQUAL(Toggle_Pin10, "off"))
+        %assign pinVal = LibBlockInputSignal(NbWrite, "", "", 0)
+        %<Port_name>_maskWrite |= (uint16_t)%<pinVal> << 10;
+        %assign NbWrite = NbWrite + 1
+        %endif
+        %if (ISEQUAL(Pin11, "on") && ISEQUAL(Toggle_Pin11, "off"))
+        %assign pinVal = LibBlockInputSignal(NbWrite, "", "", 0)
+        %<Port_name>_maskWrite |= (uint16_t)%<pinVal> << 11;
+        %assign NbWrite = NbWrite + 1
+        %endif
+        %if (ISEQUAL(Pin12, "on") && ISEQUAL(Toggle_Pin12, "off"))
+        %assign pinVal = LibBlockInputSignal(NbWrite, "", "", 0)
+        %<Port_name>_maskWrite |= (uint16_t)%<pinVal> << 12;
+        %assign NbWrite = NbWrite + 1
+        %endif
+        %if (ISEQUAL(Pin13, "on") && ISEQUAL(Toggle_Pin13, "off"))
+        %assign pinVal = LibBlockInputSignal(NbWrite, "", "", 0)
+        %<Port_name>_maskWrite |= (uint16_t)%<pinVal> << 13;
+        %assign NbWrite = NbWrite + 1
+        %endif
+        %if (ISEQUAL(Pin14, "on") && ISEQUAL(Toggle_Pin14, "off"))
+        %assign pinVal = LibBlockInputSignal(NbWrite, "", "", 0)
+        %<Port_name>_maskWrite |= (uint16_t)%<pinVal> << 14;
+        %assign NbWrite = NbWrite + 1
+        %endif
+        %if (ISEQUAL(Pin15, "on") && ISEQUAL(Toggle_Pin15, "off"))
+        %assign pinVal = LibBlockInputSignal(NbWrite, "", "", 0)
+        %<Port_name>_maskWrite |= (uint16_t)%<pinVal> << 15;
+        %assign NbWrite = NbWrite + 1
+        %endif
+        /* Write %<Port_name> input value */
+        %<Port_name>->ODR =  (uint16_t)%<Port_name>_maskWrite;
+      }
+    %else
+      {
+        %assign InputNum = 0
+        %if (ISEQUAL(Pin0, "on") && ISEQUAL(Toggle_Pin0, "off"))
+        %assign pinVal = LibBlockInputSignal(InputNum, "", "", 0)
+        %assign InputNum = InputNum + 1
+        if(%<pinVal> == 0)
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_0, GPIO_PIN_RESET);
+        else
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_0, GPIO_PIN_SET);
+        %endif
+        %if (ISEQUAL(Pin1, "on") && ISEQUAL(Toggle_Pin1, "off"))
+        %assign pinVal = LibBlockInputSignal(InputNum, "", "", 0)
+        %assign InputNum = InputNum + 1
+        if(%<pinVal> == 0)
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_1, GPIO_PIN_RESET);
+        else
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_1, GPIO_PIN_SET);
+        %endif
+        %if (ISEQUAL(Pin2, "on") && ISEQUAL(Toggle_Pin2, "off"))
+        %assign pinVal = LibBlockInputSignal(InputNum, "", "", 0)
+        %assign InputNum = InputNum + 1
+        if(%<pinVal> == 0)
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_2, GPIO_PIN_RESET);
+        else
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_2, GPIO_PIN_SET);
+        %endif
+        %if (ISEQUAL(Pin3, "on") && ISEQUAL(Toggle_Pin3, "off"))
+        %assign pinVal = LibBlockInputSignal(InputNum, "", "", 0)
+        %assign InputNum = InputNum + 1
+        if(%<pinVal> == 0)
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_3, GPIO_PIN_RESET);
+        else
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_3, GPIO_PIN_SET);
+        %endif
+        %if (ISEQUAL(Pin4, "on") && ISEQUAL(Toggle_Pin4, "off"))
+        %assign pinVal = LibBlockInputSignal(InputNum, "", "", 0)
+        %assign InputNum = InputNum + 1
+        if(%<pinVal> == 0)
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_4, GPIO_PIN_RESET);
+        else
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_4, GPIO_PIN_SET);
+        %endif
+        %if (ISEQUAL(Pin5, "on") && ISEQUAL(Toggle_Pin5, "off"))
+        %assign pinVal = LibBlockInputSignal(InputNum, "", "", 0)
+        %assign InputNum = InputNum + 1
+        if(%<pinVal> == 0)
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_5, GPIO_PIN_RESET);
+        else
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_5, GPIO_PIN_SET);
+        %endif
+        %if (ISEQUAL(Pin6, "on") && ISEQUAL(Toggle_Pin6, "off"))
+        %assign pinVal = LibBlockInputSignal(InputNum, "", "", 0)
+        %assign InputNum = InputNum> + 1
+        if(%<pinVal> == 0)
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_6, GPIO_PIN_RESET);
+        else
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_6, GPIO_PIN_SET);
+        %endif
+        %if (ISEQUAL(Pin7, "on") && ISEQUAL(Toggle_Pin7, "off"))
+        %assign pinVal = LibBlockInputSignal(InputNum, "", "", 0)
+        %assign InputNum = InputNum + 1
+        if(%<pinVal> == 0)
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_7, GPIO_PIN_RESET);
+        else
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_7, GPIO_PIN_SET);
+        %endif
+        %if (ISEQUAL(Pin8, "on") && ISEQUAL(Toggle_Pin8, "off"))
+        %assign pinVal = LibBlockInputSignal(InputNum, "", "", 0)
+        %assign InputNum = InputNum + 1
+        if(%<pinVal> == 0)
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_8, GPIO_PIN_RESET);
+        else
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_8, GPIO_PIN_SET);
+        %endif
+        %if (ISEQUAL(Pin9, "on") && ISEQUAL(Toggle_Pin9, "off"))
+        %assign pinVal = LibBlockInputSignal(InputNum, "", "", 0)
+        %assign InputNum = InputNum + 1
+        if(%<pinVal> == 0)
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_9, GPIO_PIN_RESET);
+        else
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_9, GPIO_PIN_SET);
+        %endif
+        %if (ISEQUAL(Pin10, "on") && ISEQUAL(Toggle_Pin10, "off"))
+        %assign pinVal = LibBlockInputSignal(InputNum, "", "", 0)
+        %assign InputNum = InputNum + 1
+        if(%<pinVal> == 0)
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_10, GPIO_PIN_RESET);
+        else
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_10, GPIO_PIN_SET);
+        %endif
+        %if (ISEQUAL(Pin11, "on") && ISEQUAL(Toggle_Pin11, "off"))
+        %assign pinVal = LibBlockInputSignal(InputNum, "", "", 0)
+        %assign InputNum = InputNum + 1
+        if(%<pinVal> == 0)
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_11, GPIO_PIN_RESET);
+        else
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_11, GPIO_PIN_SET);
+        %endif
+        %if (ISEQUAL(Pin12, "on") && ISEQUAL(Toggle_Pin12, "off"))
+        %assign pinVal = LibBlockInputSignal(InputNum, "", "", 0)
+        %assign InputNum = InputNum + 1
+        if(%<pinVal> == 0)
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_12, GPIO_PIN_RESET);
+        else
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_12, GPIO_PIN_SET);
+        %endif
+        %if (ISEQUAL(Pin13, "on") && ISEQUAL(Toggle_Pin13, "off"))
+        %assign pinVal = LibBlockInputSignal(InputNum, "", "", 0)
+        %assign InputNum = InputNum + 1
+        if(%<pinVal> == 0)
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_13, GPIO_PIN_RESET);
+        else
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_13, GPIO_PIN_SET);
+        %endif
+        %if (ISEQUAL(Pin14, "on") && ISEQUAL(Toggle_Pin14, "off"))
+        %assign pinVal = LibBlockInputSignal(InputNum, "", "", 0)
+        %assign InputNum = InputNum + 1
+        if(%<pinVal> == 0)
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_14, GPIO_PIN_RESET);
+        else
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_14, GPIO_PIN_SET);
+        %endif
+        %if (ISEQUAL(Pin15, "on") && ISEQUAL(Toggle_Pin15, "off"))
+        %assign pinVal = LibBlockInputSignal(InputNum, "", "", 0)
+        %assign InputNum = InputNum + 1
+        if(%<pinVal> == 0)
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_15, GPIO_PIN_RESET);
+        else
+            HAL_GPIO_WritePin(%<Port_name>, GPIO_PIN_15, GPIO_PIN_SET);
+        %endif
+
+
+        %if (ISEQUAL(Toggle_Pin0, "on"))
+        HAL_GPIO_TogglePin(%<Port_name>, GPIO_PIN_0);
+        %endif
+        %if (ISEQUAL(Toggle_Pin1, "on"))
+        HAL_GPIO_TogglePin(%<Port_name>, GPIO_PIN_1);
+        %endif
+        %if (ISEQUAL(Toggle_Pin2, "on"))
+        HAL_GPIO_TogglePin(%<Port_name>, GPIO_PIN_2);
+        %endif
+        %if (ISEQUAL(Toggle_Pin3, "on"))
+        HAL_GPIO_TogglePin(%<Port_name>, GPIO_PIN_3);
+        %endif
+        %if (ISEQUAL(Toggle_Pin4, "on"))
+        HAL_GPIO_TogglePin(%<Port_name>, GPIO_PIN_4);
+        %endif
+        %if (ISEQUAL(Toggle_Pin5, "on"))
+        HAL_GPIO_TogglePin(%<Port_name>, GPIO_PIN_5);
+        %endif
+        %if (ISEQUAL(Toggle_Pin6, "on"))
+        HAL_GPIO_TogglePin(%<Port_name>, GPIO_PIN_6);
+        %endif
+        %if (ISEQUAL(Toggle_Pin7, "on"))
+        HAL_GPIO_TogglePin(%<Port_name>, GPIO_PIN_7);
+        %endif
+        %if (ISEQUAL(Toggle_Pin8, "on"))
+        HAL_GPIO_TogglePin(%<Port_name>, GPIO_PIN_8);
+        %endif
+        %if (ISEQUAL(Toggle_Pin9, "on"))
+        HAL_GPIO_TogglePin(%<Port_name>, GPIO_PIN_9);
+        %endif
+        %if (ISEQUAL(Toggle_Pin10, "on"))
+        HAL_GPIO_TogglePin(%<Port_name>, GPIO_PIN_10);
+        %endif
+        %if (ISEQUAL(Toggle_Pin11, "on"))
+        HAL_GPIO_TogglePin(%<Port_name>, GPIO_PIN_11);
+        %endif
+        %if (ISEQUAL(Toggle_Pin12, "on"))
+        HAL_GPIO_TogglePin(%<Port_name>, GPIO_PIN_12);
+        %endif
+        %if (ISEQUAL(Toggle_Pin13, "on"))
+        HAL_GPIO_TogglePin(%<Port_name>, GPIO_PIN_13);
+        %endif
+        %if (ISEQUAL(Toggle_Pin14, "on"))
+        HAL_GPIO_TogglePin(%<Port_name>, GPIO_PIN_14);
+        %endif
+        %if (ISEQUAL(Toggle_Pin15, "on"))
+        HAL_GPIO_TogglePin(%<Port_name>, GPIO_PIN_15);
+        %endif
+      }
+    %endif
+
+%endfunction
+
+%% [EOF] GPIO_Write.tlc

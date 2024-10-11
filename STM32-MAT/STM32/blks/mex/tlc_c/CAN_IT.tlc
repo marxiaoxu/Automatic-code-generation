@@ -1,0 +1,643 @@
+%% Abstract: CAN It
+%%    Interrupt processing for selected CANx
+%%    Generated code is based on STM32 HAL Library files.
+%%
+%assign CodeFormat = "Embedded-C"
+%implements CAN_IT "C"
+
+%include "FunctionCalledAsChart.tlc"
+
+%%warning "---------->Start CAN_IT"
+
+%if !EXISTS(::InsertIncludesToCAN)
+    %assign ::InsertIncludesToCAN  = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertIncludesFromCAN)
+    %assign ::InsertIncludesFromCAN  = TLC_TRUE
+%endif
+
+%assign CAN_name =  SFcnParamSettings.CAN_name
+%if !EXISTS(::VarDef_%<CAN_name>)
+    %assign ::VarDef_%<CAN_name>  = TLC_TRUE
+%endif
+
+%if !EXISTS(::SetActivateErrorNotification_%<CAN_name>)
+    %assign ::SetActivateErrorNotification_%<CAN_name> = TLC_TRUE
+%endif
+
+%if !EXISTS(::WeakDef_%<CAN_name>)
+    %assign ::WeakDef_%<CAN_name>  = TLC_TRUE
+%endif
+
+%if !EXISTS(::CAN_Rx_It_callback)
+    %assign ::CAN_Rx_It_callback  = TLC_TRUE
+%endif
+
+%if !EXISTS(::CAN_Tx_It_callback)
+    %assign ::CAN_Tx_It_callback  = TLC_TRUE
+%endif
+
+%if !EXISTS(::CAN_Error_It_callback)
+    %assign ::CAN_Error_It_callback  = TLC_TRUE
+%endif
+
+%% For DEBUG purposes only.
+%assign ::CAN_IT_GENERATE_DEBUG_COUNTER = TLC_FALSE
+
+%% Create function for CAN Interrupts:
+
+%% Code for system initialization:
+%function Start(block,system) Output
+    %assign CAN_name =  SFcnParamSettings.CAN_name
+    %assign CAN_It =  SFcnParamSettings.CAN_It
+    %assign CAN_RX_It =  SFcnParamSettings.CAN_RX_It
+    %assign CAN_TX_It =  SFcnParamSettings.CAN_TX_It
+    %assign CAN_ERROR_It =  SFcnParamSettings.CAN_ERROR_It
+
+    %if (ISEQUAL(CAN_It, "on") && ISEQUAL(CAN_RX_It, "on"))
+        /* Set Rx interrupt function for %<CAN_name> */
+        %if (ISEQUAL(CAN_name, "CAN") || ISEQUAL(CAN_name, "CAN1"))
+        Rx_ItFcn1 = %<CAN_name>_Rx_ItFcn;
+        %elseif (ISEQUAL(CAN_name, "CAN2"))
+        Rx_ItFcn2 = %<CAN_name>_Rx_ItFcn;
+        %endif
+    %endif
+
+    %if (ISEQUAL(CAN_It, "on") && ISEQUAL(CAN_TX_It, "on"))
+        /* Set Tx interrupt function for %<CAN_name> */
+        %if (ISEQUAL(CAN_name, "CAN") || ISEQUAL(CAN_name, "CAN1"))
+        Tx_ItFcn1 = %<CAN_name>_Tx_ItFcn;
+        %elseif (ISEQUAL(CAN_name, "CAN2"))
+        Tx_ItFcn2 = %<CAN_name>_Tx_ItFcn;
+        %endif
+    %endif
+
+    %if (ISEQUAL(CAN_It, "on") && ISEQUAL(CAN_ERROR_It, "on"))
+        /* Set Error interrupt function for %<CAN_name> */
+        %if (ISEQUAL(CAN_name, "CAN") || ISEQUAL(CAN_name, "CAN1"))
+        Error_ItFcn1 = %<CAN_name>_Error_ItFcn;
+        %elseif (ISEQUAL(CAN_name, "CAN2"))
+        Error_ItFcn2 = %<CAN_name>_Error_ItFcn;
+        %endif
+    %endif
+
+    %if EXISTS(::SetActivateErrorNotification_%<CAN_name>) && (::SetActivateErrorNotification_%<CAN_name> == TLC_TRUE)
+        %assign ::SetActivateErrorNotification_%<CAN_name> = TLC_FALSE
+
+        %if (ISEQUAL(CAN_name, "CAN"))
+            %assign CANNum = ""
+        %else
+            %assign CANNum = IDNUM("%<CAN_name>")[1]
+        %endif
+
+        %if (ISEQUAL(CAN_It, "on"))
+        /* Activate CAN Error notifications. */
+        {
+          const uint32_t activeITs = CAN_IT_ERROR_WARNING|CAN_IT_ERROR_PASSIVE|
+                                     CAN_IT_LAST_ERROR_CODE| CAN_IT_ERROR;
+          if(HAL_CAN_ActivateNotification(&hcan%<CANNum>, activeITs) != HAL_OK) {
+            Error_Handler();
+          }
+        }
+        %endif
+    %endif
+
+%endfunction
+
+
+%% Code for CAN configuration call:
+%function BlockInstanceSetup(block, system) void
+
+    %%model.c and model.h files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+    %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+
+    %%model_CAN.h and model_CAN.c files
+    %assign SrcBaseName_CAN = "%<SrcBaseName>_CAN"
+    %assign modelH_CAN      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_CAN)
+    %assign modelC_CAN      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_CAN)
+
+    %%Include model.h to model_CAN.c
+    %if EXISTS(::InsertIncludesToCAN) && (::InsertIncludesToCAN == TLC_TRUE)
+        %assign ::InsertIncludesToCAN    = TLC_FALSE
+        %openfile CAN_Buf
+            #include "%<SrcBaseName>.h"
+            #include "%<SrcBaseName_CAN>.h"
+        %closefile CAN_Buf
+        %<LibSetSourceFileSection(modelC_CAN,"Includes",CAN_Buf)>
+    %endif
+
+    %%AND Include model_CAN.h to model.c
+    %if EXISTS(::InsertIncludesFromCAN) && (::InsertIncludesFromCAN == TLC_TRUE)
+        %assign ::InsertIncludesFromCAN    = TLC_FALSE
+        %openfile CAN_Buf
+            #include "%<SrcBaseName_CAN>.h"
+        %closefile CAN_Buf
+        %<LibSetSourceFileSection(modelH,"Includes",CAN_Buf)>
+
+        %openfile CAN_Buf
+            #include "STM32_Config.h"
+        %closefile CAN_Buf
+        %<LibSetSourceFileSection(modelH_CAN,"Includes",CAN_Buf)>
+    %endif
+
+    %%Then build model_CAN.h and model_CAN.c
+    %assign CAN_name =  SFcnParamSettings.CAN_name
+
+%% Code for required CAN external definition: in model_CAN.c file
+%if (ISEQUAL(CAN_name, "CAN"))
+    %assign CANNum = ""
+%else
+    %assign CANNum = IDNUM("%<CAN_name>")[1]
+%endif
+
+%if EXISTS(::VarDef_%<CAN_name>) && (::VarDef_%<CAN_name> == TLC_TRUE)
+    %assign ::VarDef_%<CAN_name>    = TLC_FALSE
+    %openfile CAN_Buf
+        /* %<CAN_name> handler declaration. */
+        extern CAN_HandleTypeDef hcan%<CANNum>;
+    %closefile CAN_Buf
+    %<LibSetSourceFileSection(modelH_CAN,"Defines",CAN_Buf)>
+%endif
+
+%if EXISTS(::WeakDef_%<CAN_name>) && (::WeakDef_%<CAN_name> == TLC_TRUE)
+    %assign ::WeakDef_%<CAN_name>    = TLC_FALSE
+    %openfile CAN_Buf
+        /* Interrupt pointer callback function declaration. */
+    %if (ISEQUAL(CAN_name, "CAN") || ISEQUAL(CAN_name, "CAN1"))
+        extern void (* Rx_ItFcn1)(void);
+        extern void (* Tx_ItFcn1)(void);
+        extern void (* Error_ItFcn1)(void);
+    %endif
+    %if (ISEQUAL(CAN_name, "CAN2"))
+        extern void (* Rx_ItFcn2)(void);
+        extern void (* Tx_ItFcn2)(void);
+        extern void (* Error_ItFcn2)(void);
+    %endif
+    %closefile CAN_Buf
+    %<LibSetSourceFileSection(modelH_CAN,"Defines",CAN_Buf)>
+
+    %openfile CAN_Buf
+        /* Interrupt pointer callback function definition. */
+    %if (ISEQUAL(CAN_name, "CAN") || ISEQUAL(CAN_name, "CAN1"))
+        void (* Rx_ItFcn1)(void) = NULL;
+        void (* Tx_ItFcn1)(void) = NULL;
+        void (* Error_ItFcn1)(void) = NULL;
+    %endif
+    %if (ISEQUAL(CAN_name, "CAN2"))
+        void (* Rx_ItFcn2)(void) = NULL;
+        void (* Tx_ItFcn2)(void) = NULL;
+        void (* Error_ItFcn2)(void) = NULL;
+    %endif
+    %closefile CAN_Buf
+    %<LibSetSourceFileSection(modelC_CAN,"Defines",CAN_Buf)>
+%endif
+
+%if EXISTS(::CAN_Rx_It_callback) && (::CAN_Rx_It_callback == TLC_TRUE)
+    %assign ::CAN_Rx_It_callback    = TLC_FALSE
+    %openfile CAN_Buf
+        /**
+          * @brief  Rx FIFO 0 message pending callback.
+          * @param  hcan pointer to a CAN_HandleTypeDef structure that contains
+          *         the configuration information for the specified CAN.
+          * @retval None
+          */
+        void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
+        {
+          %if (ISEQUAL(CAN_name, "CAN") || ISEQUAL(CAN_name, "CAN1"))
+          if(Rx_ItFcn1 != NULL) {
+            Rx_ItFcn1();
+          }
+          %endif
+
+          %if (ISEQUAL(CAN_name, "CAN2"))
+          if((hcan->Instance == CAN2) && (Rx_ItFcn2 != NULL)) {
+            Rx_ItFcn2();
+          }
+          %endif
+          else {
+            Error_Handler();
+          }
+        }
+
+        /**
+          * @brief  Rx FIFO 1 message pending callback.
+          * @param  hcan pointer to a CAN_HandleTypeDef structure that contains
+          *         the configuration information for the specified CAN.
+          * @retval None
+          */
+        void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
+        {
+          %if (ISEQUAL(CAN_name, "CAN") || ISEQUAL(CAN_name, "CAN1"))
+          if(Rx_ItFcn1 != NULL) {
+            Rx_ItFcn1();
+          }
+          %endif
+
+          %if (ISEQUAL(CAN_name, "CAN2"))
+          if((hcan->Instance == CAN2) && (Rx_ItFcn2 != NULL)) {
+            Rx_ItFcn2();
+          }
+          %endif
+          else {
+            Error_Handler();
+          }
+        }
+
+        /**
+          * @brief  Rx FIFO 0 full callback.
+          * @param  hcan pointer to a CAN_HandleTypeDef structure that contains
+          *         the configuration information for the specified CAN.
+          * @retval None
+          */
+        void HAL_CAN_RxFifo0FullCallback(CAN_HandleTypeDef *hcan)
+        {
+          %if (ISEQUAL(CAN_name, "CAN") || ISEQUAL(CAN_name, "CAN1"))
+          if(Rx_ItFcn1 != NULL) {
+            Rx_ItFcn1();
+          }
+          %endif
+
+          %if (ISEQUAL(CAN_name, "CAN2"))
+          if((hcan->Instance == CAN2) && (Rx_ItFcn2 != NULL)) {
+            Rx_ItFcn2();
+          }
+          %endif
+          else {
+            Error_Handler();
+          }
+        }
+
+        /**
+          * @brief  Rx FIFO 1 full callback.
+          * @param  hcan pointer to a CAN_HandleTypeDef structure that contains
+          *         the configuration information for the specified CAN.
+          * @retval None
+          */
+        void HAL_CAN_RxFifo1FullCallback(CAN_HandleTypeDef *hcan)
+        {
+          %if (ISEQUAL(CAN_name, "CAN") || ISEQUAL(CAN_name, "CAN1"))
+          if(Rx_ItFcn1 != NULL) {
+            Rx_ItFcn1();
+          }
+          %endif
+
+          %if (ISEQUAL(CAN_name, "CAN2"))
+          if((hcan->Instance == CAN2) && (Rx_ItFcn2 != NULL)) {
+            Rx_ItFcn2();
+          }
+          %endif
+          else {
+            Error_Handler();
+          }
+        }
+    %closefile CAN_Buf
+    %<LibSetSourceFileSection(modelC_CAN,"Functions",CAN_Buf)>
+%endif
+
+%if EXISTS(::CAN_Tx_It_callback) && (::CAN_Tx_It_callback == TLC_TRUE)
+    %assign ::CAN_Tx_It_callback    = TLC_FALSE
+    %openfile CAN_Buf
+    /**
+      * @brief  Transmission Mailbox 0 complete callback.
+      * @param  hcan pointer to a CAN_HandleTypeDef structure that contains
+      *         the configuration information for the specified CAN.
+      * @retval None
+      */
+     void HAL_CAN_TxMailbox0CompleteCallback(CAN_HandleTypeDef *hcan)
+     {
+       /* Call CANx transmit complete function. */
+       %if (ISEQUAL(CAN_name, "CAN") || ISEQUAL(CAN_name, "CAN1"))
+       if(Tx_ItFcn1 != NULL) {
+         Tx_ItFcn1();
+       }
+       %endif
+
+       %if (ISEQUAL(CAN_name, "CAN2"))
+       if((hcan->Instance == CAN2) && (Tx_ItFcn2 != NULL)) {
+         Tx_ItFcn2();
+       }
+       %endif
+       else {
+         Error_Handler();
+       }
+     }
+
+    /**
+      * @brief  Transmission Mailbox 1 complete callback.
+      * @param  hcan pointer to a CAN_HandleTypeDef structure that contains
+      *         the configuration information for the specified CAN.
+      * @retval None
+      */
+     void HAL_CAN_TxMailbox1CompleteCallback(CAN_HandleTypeDef *hcan)
+     {
+       /* Call CANx transmit complete function. */
+       %if (ISEQUAL(CAN_name, "CAN") || ISEQUAL(CAN_name, "CAN1"))
+       if(Tx_ItFcn1 != NULL) {
+         Tx_ItFcn1();
+       }
+       %endif
+
+       %if (ISEQUAL(CAN_name, "CAN2"))
+       if((hcan->Instance == CAN2) && (Tx_ItFcn2 != NULL)) {
+         Tx_ItFcn2();
+       }
+       %endif
+       else {
+         Error_Handler();
+       }
+     }
+
+    /**
+      * @brief  Transmission Mailbox 2 complete callback.
+      * @param  hcan pointer to a CAN_HandleTypeDef structure that contains
+      *         the configuration information for the specified CAN.
+      * @retval None
+      */
+     void HAL_CAN_TxMailbox2CompleteCallback(CAN_HandleTypeDef *hcan)
+     {
+       /* Call CANx transmit complete function. */
+       %if (ISEQUAL(CAN_name, "CAN") || ISEQUAL(CAN_name, "CAN1"))
+       if(Tx_ItFcn1 != NULL) {
+         Tx_ItFcn1();
+       }
+       %endif
+
+       %if (ISEQUAL(CAN_name, "CAN2"))
+       if((hcan->Instance == CAN2) && (Tx_ItFcn2 != NULL)) {
+         Tx_ItFcn2();
+       }
+       %endif
+       else {
+         Error_Handler();
+       }
+     }
+
+    /**
+      * @brief  Transmission Mailbox 0 Cancellation callback.
+      * @param  hcan pointer to an CAN_HandleTypeDef structure that contains
+      *         the configuration information for the specified CAN.
+      * @retval None
+      */
+    void HAL_CAN_TxMailbox0AbortCallback(CAN_HandleTypeDef *hcan)
+    {
+        UNUSED(hcan);
+    }
+
+    /**
+      * @brief  Transmission Mailbox 1 Cancellation callback.
+      * @param  hcan pointer to an CAN_HandleTypeDef structure that contains
+      *         the configuration information for the specified CAN.
+      * @retval None
+      */
+    void HAL_CAN_TxMailbox1AbortCallback(CAN_HandleTypeDef *hcan)
+    {
+        UNUSED(hcan);
+    }
+
+    /**
+      * @brief  Transmission Mailbox 2 Cancellation callback.
+      * @param  hcan pointer to an CAN_HandleTypeDef structure that contains
+      *         the configuration information for the specified CAN.
+      * @retval None
+      */
+    void HAL_CAN_TxMailbox2AbortCallback(CAN_HandleTypeDef *hcan)
+    {
+        UNUSED(hcan);
+    }
+    /**
+      * @brief  Sleep callback.
+      * @param  hcan pointer to a CAN_HandleTypeDef structure that contains
+      *         the configuration information for the specified CAN.
+      * @retval None
+      */
+    void HAL_CAN_SleepCallback(CAN_HandleTypeDef *hcan)
+    {
+      UNUSED(hcan);
+    }
+
+    /**
+      * @param  hcan pointer to a CAN_HandleTypeDef structure that contains
+      *         the configuration information for the specified CAN.
+      * @retval None
+      */
+    void HAL_CAN_WakeUpFromRxMsgCallback(CAN_HandleTypeDef *hcan)
+    {
+      UNUSED(hcan);
+    }
+    %closefile CAN_Buf
+    %<LibSetSourceFileSection(modelC_CAN,"Functions",CAN_Buf)>
+%endif
+
+%if EXISTS(::CAN_Error_It_callback) && (::CAN_Error_It_callback == TLC_TRUE)
+    %assign ::CAN_Error_It_callback    = TLC_FALSE
+    %openfile CAN_Buf
+    /**
+      * @brief  Error CAN callback.
+      * @param  hcan pointer to a CAN_HandleTypeDef structure that contains
+      *         the configuration information for the specified CAN.
+      * @retval None
+      */
+     void HAL_CAN_ErrorCallback(CAN_HandleTypeDef* hcan)
+     {
+       /* Call CANx error function. */
+       %if (ISEQUAL(CAN_name, "CAN") || ISEQUAL(CAN_name, "CAN1"))
+       if(Error_ItFcn1 != NULL) {
+         Error_ItFcn1();
+       }
+       %endif
+
+       %if (ISEQUAL(CAN_name, "CAN2"))
+       else if((hcan->Instance == CAN2) && (Error_ItFcn2 != NULL)){
+         Error_ItFcn2();
+       }
+       %endif
+       else {
+         Error_Handler();
+       }
+    }
+    %closefile CAN_Buf
+    %<LibSetSourceFileSection(modelC_CAN,"Functions",CAN_Buf)>
+%endif
+
+%endfunction
+
+
+%% Function: Outputs ==========================================
+%% Abstract:
+%% Implement functions for interrupts involved by CAN.
+%%
+%function Outputs(block, system) Output
+
+    %%model_CAN.h and model_CAN.c files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign SrcBaseName_CAN = "%<SrcBaseName>_CAN"
+    %assign modelH_CAN      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_CAN)
+    %assign modelC_CAN      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_CAN)
+
+    %assign CAN_name =  SFcnParamSettings.CAN_name
+    %assign CAN_It =  SFcnParamSettings.CAN_It
+    %assign CAN_RX_It =  SFcnParamSettings.CAN_RX_It
+    %assign CAN_TX_It =  SFcnParamSettings.CAN_TX_It
+    %assign CAN_ERROR_It =  SFcnParamSettings.CAN_ERROR_It
+
+    %assign chOffset = 0
+
+    %%%%%%%% VERY IMPORTANT %%%%%%%%%
+    %%%  DO NOT CHANGE INTERRUPT  %%%
+    %%%     FUNCTION ORDER        %%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+        %if (ISEQUAL(CAN_It, "on") && ISEQUAL(CAN_RX_It, "on"))
+        %assign chartIsFound = 0
+
+        %openfile CAN_Buf
+        /* %<CAN_name> RX IT function */
+        void %<CAN_name>_Rx_ItFcn(void);
+        %closefile CAN_Buf
+        %<LibSetSourceFileSection(modelH_CAN,"Defines",CAN_Buf)>
+
+        %openfile CAN_Buf
+        /*******************************************************************************
+        * Function Name  : %<CAN_name>_Rx_ItFcn
+        * Description    : %<CAN_name> End of receive interrupt
+        * Input          : None
+        *******************************************************************************/
+        void %<CAN_name>_Rx_ItFcn()
+        {
+
+%if ::CAN_IT_GENERATE_DEBUG_COUNTER == TLC_TRUE
+         /* For debug. */
+         static volatile uint32_t DEBUG_%<CAN_name>_Rx_ItFcnCount = 0;
+         DEBUG_%<CAN_name>_Rx_ItFcnCount++;
+%endif
+
+                %foreach callIdx = NumSFcnSysOutputCalls
+                    %if (ISEQUAL(callIdx, chOffset))
+                        %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                            %assign wrnTxt = "No code will be generated for CAN Receive  "\
+                            "since it is not connected to a system."
+                            %<LibReportWarning(wrnTxt)>
+                            %continue
+                        %endif
+                        %%Is it connected to model including Chart
+                        %assign chartIsFound = FunctionCalledAsChart(callIdx)
+                        %% call the downstream system
+                        %<LibBlockExecuteFcnCall(block, callIdx)>\
+                    %endif
+                %endforeach
+        }
+        %closefile CAN_Buf
+        %if (chartIsFound == 1)
+            %<LibSetSourceFileSection(modelC,"Functions",CAN_Buf)>
+        %else
+            %<LibSetSourceFileSection(modelC_CAN,"Functions",CAN_Buf)>
+        %endif
+        %%Then increment channel number for next IT connection
+        %assign chOffset = chOffset + 1
+        %endif
+
+        %if (ISEQUAL(CAN_It, "on") && ISEQUAL(CAN_TX_It, "on"))
+        %assign chartIsFound = 0
+
+        %openfile CAN_Buf
+        /* %<CAN_name> TX IT function */
+        void %<CAN_name>_Tx_ItFcn(void);
+        %closefile CAN_Buf
+        %<LibSetSourceFileSection(modelH_CAN,"Defines",CAN_Buf)>
+
+        %openfile CAN_Buf
+        /*******************************************************************************
+        * Function Name  : %<CAN_name>_Tx_ItFcn
+        * Description    : %<CAN_name> End of transmit interrupt
+        * Input          : None
+        *******************************************************************************/
+        void %<CAN_name>_Tx_ItFcn()
+        {
+
+%if ::CAN_IT_GENERATE_DEBUG_COUNTER == TLC_TRUE
+         /* For debug. */
+         static volatile uint32_t DEBUG_%<CAN_name>_Tx_ItFcnCount = 0;
+         DEBUG_%<CAN_name>_Tx_ItFcnCount++;
+%endif
+
+                %foreach callIdx = NumSFcnSysOutputCalls
+                    %if (ISEQUAL(callIdx, chOffset))
+                        %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                            %assign wrnTxt = "No code will be generated for CAN Send  "\
+                            "since it is not connected to a system."
+                            %<LibReportWarning(wrnTxt)>
+                            %continue
+                        %endif
+                        %%Is it connected to model including Chart
+                        %assign chartIsFound = FunctionCalledAsChart(callIdx)
+                        %% call the downstream system
+                        %<LibBlockExecuteFcnCall(block, callIdx)>\
+                    %endif
+                %endforeach
+        }
+        %closefile CAN_Buf
+        %if (chartIsFound == 1)
+            %<LibSetSourceFileSection(modelC,"Functions",CAN_Buf)>
+        %else
+            %<LibSetSourceFileSection(modelC_CAN,"Functions",CAN_Buf)>
+        %endif
+        %%Then increment channel number for next IT connection
+        %assign  chOffset = chOffset + 1
+        %endif
+
+        %if (ISEQUAL(CAN_It, "on") && ISEQUAL(CAN_ERROR_It, "on"))
+        %assign chartIsFound = 0
+
+        %openfile CAN_Buf
+        /* %<CAN_name> ERROR IT function */
+        void %<CAN_name>_Error_ItFcn(void);
+        %closefile CAN_Buf
+        %<LibSetSourceFileSection(modelH_CAN,"Defines",CAN_Buf)>
+
+        %openfile CAN_Buf
+        /*******************************************************************************
+        * Function Name  : %<CAN_name>_Error_ItFcn
+        * Description    : %<CAN_name> Error processing function
+        * Input          : None
+        *******************************************************************************/
+        void %<CAN_name>_Error_ItFcn()
+        {
+
+%if ::CAN_IT_GENERATE_DEBUG_COUNTER == TLC_TRUE
+          /* For debug. */
+          static volatile uint32_t DEBUG_%<CAN_name>_Error_ItFcnCount = 0;
+          DEBUG_%<CAN_name>_Error_ItFcnCount++;
+%endif
+
+                %foreach callIdx = NumSFcnSysOutputCalls
+                    %if (ISEQUAL(callIdx, chOffset))
+                        %if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+                            %assign wrnTxt = "No code will be generated for CAN Error  "\
+                            "since it is not connected to a system."
+                            %<LibReportWarning(wrnTxt)>
+                            %continue
+                        %endif
+                        %%Is it connected to model including Chart
+                        %assign chartIsFound = FunctionCalledAsChart(callIdx)
+                        %% call the downstream system
+                        %<LibBlockExecuteFcnCall(block, callIdx)>\
+                    %endif
+                %endforeach
+        }
+        %closefile CAN_Buf
+
+        %if (chartIsFound == 1)
+            %<LibSetSourceFileSection(modelC,"Functions",CAN_Buf)>
+        %else
+            %<LibSetSourceFileSection(modelC_CAN,"Functions",CAN_Buf)>
+        %endif
+        %%Then increment channel number for next IT connection
+        %assign  chOffset = chOffset + 1
+        %endif
+
+%endfunction
+
+%% [EOF] CAN_IT.tlc

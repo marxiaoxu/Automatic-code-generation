@@ -1,0 +1,200 @@
+%% Abstract: HRTimer_Stop 
+%%    STM32 HR Timers Stop Timer A to Timer E Outputs 1/2
+%%    Generated code is based on STM32 HAL Library files.
+%%
+%% Copyright 1990-2009 The MathWorks, Inc.
+%assign CodeFormat = "Embedded-C"
+%implements HRTimer_Stop "C"
+
+%% %include "FunctionCalledAsChart.tlc"
+
+%%warning "---------->Stop HRTimers"
+
+%if !EXISTS(::CreateHRTimers)
+    %assign ::CreateHRTimers  = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertIncludesToHRTIM)
+    %assign ::InsertIncludesToHRTIM  = TLC_TRUE
+%endif 
+
+%if !EXISTS(::InsertIncludesFromHRTIM)
+    %assign ::InsertIncludesFromHRTIM  = TLC_TRUE
+%endif 
+
+%if !EXISTS(::InsertHRTIM)
+    %assign ::InsertHRTIM  = TLC_TRUE
+%endif 
+
+%assign ::CreateHRTimers  = TLC_TRUE
+%%trace CreateHRTimers  %<CreateHRTimers>
+
+
+%% Create function for HRTimers:
+%if EXISTS(CreateHRTimers) && (CreateHRTimers == TLC_TRUE)
+    %%assign ::CreateHRTimers = TLC_FALSE
+
+
+%% Code for system initialization:
+%function Start(block,system) Output
+%endfunction
+
+
+%% Code for HRTimers configuration call:
+%function BlockInstanceSetup(block, system) void
+    %%model.c and model.h files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+    %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+    %%model_HRTIM.h and model_HRTIM.c files
+    %assign SrcBaseName_HRTIM = "%<SrcBaseName>_HRTIM"
+    %assign modelH_HRTIM      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_HRTIM)
+    %assign modelC_HRTIM      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_HRTIM)
+    %%Include model.h to model_HRTIM.c 
+    %if EXISTS(::InsertIncludesToHRTIM) && (::InsertIncludesToHRTIM == TLC_TRUE)
+        %assign ::InsertIncludesToHRTIM    = TLC_FALSE		
+        %openfile HRTIM_Buf
+            #include "%<SrcBaseName>.h"
+            #include "%<SrcBaseName_HRTIM>.h"
+        %closefile HRTIM_Buf
+        %<LibSetSourceFileSection(modelC_HRTIM,"Includes",HRTIM_Buf)>
+    %endif
+    %%AND Include model_HRTIM.h to model.c
+    %if EXISTS(::InsertIncludesFromHRTIM) && (::InsertIncludesFromHRTIM == TLC_TRUE)
+        %assign ::InsertIncludesFromHRTIM    = TLC_FALSE		
+        %openfile HRTIM_Buf
+            #include "%<SrcBaseName_HRTIM>.h"
+        %closefile HRTIM_Buf
+        %<LibSetSourceFileSection(modelH,"Includes",HRTIM_Buf)>
+
+        %openfile HRTIM_Buf
+            #include "STM32_Config.h"
+        %closefile HRTIM_Buf
+        %<LibSetSourceFileSection(modelH_HRTIM,"Includes",HRTIM_Buf)>						
+    %endif
+
+    %%%%%%%%%%%%%%%%%%%%%% HRTIM %%%%%%%%%%%%%%%%%%%%%%%%%
+    %assign NbHRTim  = SFcnParamSettings.NbHRTim
+    %assign HRTIM_Name = SFcnParamSettings.HRTIM_Name
+
+    %assign TA1_Stop = SFcnParamSettings.TA1_Stop
+    %assign TA2_Stop = SFcnParamSettings.TA2_Stop
+    %assign TB1_Stop = SFcnParamSettings.TB1_Stop
+    %assign TB2_Stop = SFcnParamSettings.TB2_Stop
+    %assign TC1_Stop = SFcnParamSettings.TC1_Stop
+    %assign TC2_Stop = SFcnParamSettings.TC2_Stop
+    %assign TD1_Stop = SFcnParamSettings.TD1_Stop
+    %assign TD2_Stop = SFcnParamSettings.TD2_Stop
+    %assign TE1_Stop = SFcnParamSettings.TE1_Stop
+    %assign TE2_Stop = SFcnParamSettings.TE2_Stop
+    %assign TF1_Stop = SFcnParamSettings.TF1_Stop
+    %assign TF2_Stop = SFcnParamSettings.TF2_Stop
+
+    %% Code for required TIM external definition: in model_HRTIM.c file
+    %assign timNum = IDNUM("%<HRTIM_Name>")[1]
+
+    %%Initialization should be done once only
+    %if EXISTS(::InsertHRTIM) && (::InsertHRTIM == TLC_TRUE)
+        %openfile HRTIM_Buf
+            /* %<HRTIM_Name> handler */
+            extern HRTIM_HandleTypeDef hhrtim%<timNum>;
+        %closefile HRTIM_Buf
+        %<LibSetSourceFileSection(modelH_HRTIM,"Defines",HRTIM_Buf)>
+    %endif		
+%endfunction
+
+
+%% Function: Outputs ==========================================
+%% Abstract:
+%% HRTimers input value depending on pin config
+%%
+%function Outputs(block, system) Output
+    %%model.c and model.h files
+    %assign SrcBaseName = LibGetMdlSrcBaseName()
+    %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+    %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+    %%model_HRTIM.h and model_HRTIM.c files
+    %assign SrcBaseName_HRTIM = "%<SrcBaseName>_HRTIM"
+    %assign modelH_HRTIM      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_HRTIM)
+    %assign modelC_HRTIM      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_HRTIM)
+
+    %%%%%%%%%%%%%%%%%%%%%% HRTIM %%%%%%%%%%%%%%%%%%%%%%%%%
+    %assign NbHRTim  = SFcnParamSettings.NbHRTim
+    %assign HRTIM_Name = SFcnParamSettings.HRTIM_Name
+    %assign TA1_Stop = SFcnParamSettings.TA1_Stop
+    %assign TA2_Stop = SFcnParamSettings.TA2_Stop
+    %assign TB1_Stop = SFcnParamSettings.TB1_Stop
+    %assign TB2_Stop = SFcnParamSettings.TB2_Stop
+    %assign TC1_Stop = SFcnParamSettings.TC1_Stop
+    %assign TC2_Stop = SFcnParamSettings.TC2_Stop
+    %assign TD1_Stop = SFcnParamSettings.TD1_Stop
+    %assign TD2_Stop = SFcnParamSettings.TD2_Stop
+    %assign TE1_Stop = SFcnParamSettings.TE1_Stop
+    %assign TE2_Stop = SFcnParamSettings.TE2_Stop
+    %assign TF1_Stop = SFcnParamSettings.TF1_Stop
+    %assign TF2_Stop = SFcnParamSettings.TF2_Stop
+
+    %assign timNum = IDNUM("%<HRTIM_Name>")[1]
+
+    %if ISEQUAL(TA1_Stop,"on")
+    /* Stop Timer A output 1 */
+    HAL_HRTIM_WaveformOutputStop(&hhrtim%<timNum>, HRTIM_OUTPUT_TA1);
+    %endif
+    %if ISEQUAL(TA2_Stop,"on")
+    /* Stop Timer A output 2 */
+    HAL_HRTIM_WaveformOutputStop(&hhrtim%<timNum>, HRTIM_OUTPUT_TA2);
+    %endif
+
+    %if ISEQUAL(TB1_Stop,"on")
+    /* Stop Timer B output 1 */
+    HAL_HRTIM_WaveformOutputStop(&hhrtim%<timNum>, HRTIM_OUTPUT_TB1);
+    %endif
+    %if ISEQUAL(TB2_Stop,"on")
+    /* Stop Timer B output 2 */
+    HAL_HRTIM_WaveformOutputStop(&hhrtim%<timNum>, HRTIM_OUTPUT_TB2);
+    %endif
+
+    %if ISEQUAL(TC1_Stop,"on")
+    /* Stop Timer C output 1 */
+    HAL_HRTIM_WaveformOutputStop(&hhrtim%<timNum>, HRTIM_OUTPUT_TC1);
+    %endif
+    %if ISEQUAL(TC2_Stop,"on")
+    /* Stop Timer C output 2 */
+    HAL_HRTIM_WaveformOutputStop(&hhrtim%<timNum>, HRTIM_OUTPUT_TC2);
+    %endif
+
+    %if ISEQUAL(TD1_Stop,"on")
+    /* Stop Timer D output 1 */
+    HAL_HRTIM_WaveformOutputStop(&hhrtim%<timNum>, HRTIM_OUTPUT_TD1);
+    %endif
+    %if ISEQUAL(TD2_Stop,"on")
+    /* Stop Timer D output 2 */
+    HAL_HRTIM_WaveformOutputStop(&hhrtim%<timNum>, HRTIM_OUTPUT_TD2);
+    %endif
+
+    %if ISEQUAL(TE1_Stop,"on")
+    /* Stop Timer E output 1 */
+    HAL_HRTIM_WaveformOutputStop(&hhrtim%<timNum>, HRTIM_OUTPUT_TE1);
+    %endif
+    %if ISEQUAL(TE2_Stop,"on")
+    /* Stop Timer E output 2 */
+    HAL_HRTIM_WaveformOutputStop(&hhrtim%<timNum>, HRTIM_OUTPUT_TE2);
+    %endif
+
+    %if ISEQUAL(TF1_Stop,"on")
+    /* Stop Timer F output 1 */
+    HAL_HRTIM_WaveformOutputStop(&hhrtim%<timNum>, HRTIM_OUTPUT_TF1);
+    %endif
+    %if ISEQUAL(TF2_Stop,"on")
+    /* Stop Timer F output 2 */
+    HAL_HRTIM_WaveformOutputStop(&hhrtim%<timNum>, HRTIM_OUTPUT_TF2);
+    %endif
+
+%endfunction
+
+%else
+%% ERROR HRTimers Enable MUST BE CALLED ONCE ONLY 
+%trace ERROR HRTimers Enable MUST BE CALLED ONCE ONLY 
+%endif 
+
+%% [EOF] HRTimer_Enable.tlc

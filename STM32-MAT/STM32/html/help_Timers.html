@@ -1,0 +1,312 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Timers configuration block</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-11-12"><meta name="DC.source" content="help_Timers.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Timers configuration block</h1><!--introduction--><p>Block used in the model to set up to 4 channels of STM32 Timers that have been configured from STM32CubeMx. It also enables connection to management of interruption.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#2">S-Function</a></li><li><a href="#4">Parameters</a></li><li><a href="#6"><i>Timer</i></a></li><li><a href="#8">CLOCK</a></li><li><a href="#9"><i>APB timer clock</i></a></li><li><a href="#10"><i>Internal clock division</i></a></li><li><a href="#11"><i>Set timer clock</i></a></li><li><a href="#12"><i>Prescaler</i></a></li><li><a href="#13"><i>Timer clock</i></a></li><li><a href="#14">OUTPUT CHANNELS</a></li><li><a href="#15"><i>Variable output channel frequency</i></a></li><li><a href="#17"><i>Set output channel frequency</i></a></li><li><a href="#18"><i>Counter period (ARR register)</i></a></li><li><a href="#19"><i>Fixed output channel frequency value</i></a></li><li><a href="#20">PARAMETERS</a></li><li><a href="#21"><i>Counter mode</i></a></li><li><a href="#23"><i>global DMA</i></a></li><li><a href="#24"><i>Channel interrupt available</i></a></li><li><a href="#25"><i>UP / TRG / COM / BRK</i></a></li><li><a href="#26">Channel configuration</a></li><li><a href="#27"><i>CHx Enable</i></a></li><li><a href="#28"><i>CHxN Enable</i></a></li><li><a href="#29"><i>Channel mode</i></a></li><li><a href="#30"><i>DMA used</i></a></li><li><a href="#31"><i>Enable interrupt</i></a></li><li><a href="#32"><i>Duty cycle is an input port</i></a></li><li><a href="#33"><i>Set duty cycle</i></a></li><li><a href="#34"><i>Outpuy duty cycle(%)</i></a></li><li><a href="#35"><i>CHx pulse value</i></a></li><li><a href="#36"><i>Edge</i></a></li><li><a href="#37"><i>Prescaler Division Ratio</i></a></li></ul></div><p>
+<A NAME="ANCRES"> </A>
+</p><h2 id="2">S-Function</h2><p><i>Nb Input:</i>  <b>0 to 5</b> <i>Named:</i> <b>OutFreq</b> <b>Duty CHx</b> or <b>Reset CNT</b></p><div><ul><li><b>OutFreq</b> is input value of timer frequency</li><li><b>Duty CHx</b> (x=1..4) is input value of channel x duty cycle (percent value of timer frequency).</li><li><b>Reset CNT</b> is input counter reset for encoder mode.</li></ul></div><p><i>Nb Output:</i> <b>0 to 9</b> <i>Named:</i> <b>IRQ</b> <b>CHx Freq</b> <b>CHx Duty</b> or <b>CNT</b> and <b>DIR</b></p><div><ul><li><b>IRQ</b> is function call output for available interrupts.</li><li><b>CHx Freq</b> (x=1..4) is computed channel frequency</li><li><b>CHx Duty</b> (x=1..4) is computed duty cycle channel (percent of frequency)</li><li><b>CNT</b> is output for encoder counter</li><li><b>DIR</b> is output for encoder direction</li></ul></div><p><img vspace="5" hspace="5" src="TIM\STM32_TIMER_Config.PNG" alt=""> </p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="4">Parameters</h2><p>Timer global information to set or configured from STM32CubeMx</p><p><b>Three</b> groups :</p><div><ul><li>CLOCK: Global timer clock parameters</li><li>OUTPUT CHANNELS: Timer Channel frequency information</li><li>PARAMETERS: Timer processing configuration (mode, interrupts...)</li></ul></div><p><img vspace="5" hspace="5" src="TIM\STM32_TIMER_Config_Param.PNG" alt=""> </p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="6"><i>Timer</i></h2><p>Timer selection. Only Timers configured from STM32CubeMx are available.</p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="8">CLOCK</h2><div><ul><li>APB timer clock</li><li>Internal clock division</li><li>Set timer clock</li><li>Prescaler</li><li>Timer clock</li></ul></div><h2 id="9"><i>APB timer clock</i></h2><p>Read only parameter value from STM32CubeMx : Max frequency of APB the timer is connected to (frequency source).</p><h2 id="10"><i>Internal clock division</i></h2><p>Read only parameter value from STM32CubeMx : Division number for clock frequency source.</p><h2 id="11"><i>Set timer clock</i></h2><p>Not selected : Possible Prescaler value modification Selected : Possible Timer clock value modification</p><h2 id="12"><i>Prescaler</i></h2><p>Timer tick is APB timer clock / (Prescaler + 1)</p><h2 id="13"><i>Timer clock</i></h2><p>Timer tick is 1/(Timer clock value). Automatically compute prescaler.</p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="14">OUTPUT CHANNELS</h2><div><ul><li>Variable output channel frequency</li><li>Set output channel frequency</li><li>Counter period (ARR register)</li><li>Fixed output channel frequency value</li></ul></div><h2 id="15"><i>Variable output channel frequency</i></h2><p>Not selected : Timer output/input capture frequency (for all channels) comes from counter period (ARR) value.</p><p>Selected : Timer output/input capture frequency (for all channels) is a block input port.</p><p><img vspace="5" hspace="5" src="TIM\STM32_TIMER_Config_OutFreq.PNG" alt=""> </p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="17"><i>Set output channel frequency</i></h2><p>Not selected : Possibility to modify counter period (ARR) value.</p><p>Selected : Timer output/input capture frequency value (for all channels) can be modified.</p><h2 id="18"><i>Counter period (ARR register)</i></h2><p>Timer output/input capture frequency comes from ARR value.</p><h2 id="19"><i>Fixed output channel frequency value</i></h2><p>Timer output/input capture frequency value. Compute ARR value.</p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="20">PARAMETERS</h2><div><ul><li>Counter mode</li><li>global DMA</li></ul></div><p><b>INTERRUPT</b></p><div><ul><li>Channel interrupt available</li><li>UP / TRG / COM / BRK</li></ul></div><h2 id="21"><i>Counter mode</i></h2><p>Read only parameter value from STM32CubeMx : One of following modes.</p><p><img vspace="5" hspace="5" src="TIM\STM32_TIMER_Config_Timers_Align.PNG" alt=""> </p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="23"><i>global DMA</i></h2><p>Read only parameter value from STM32CubeMx : DMA configured or not</p><h2 id="24"><i>Channel interrupt available</i></h2><p>Read only parameter value from STM32CubeMx : Interrupt can be used</p><h2 id="25"><i>UP / TRG / COM / BRK</i></h2><p>Function call available for selected interrupt (Update, Trigger, Communication and Break events)</p><p><img vspace="5" hspace="5" src="TIM\STM32_TIMER_Config_Events.PNG" alt=""> </p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="26">Channel configuration</h2><p>Information about CHx (x=1..4)</p><h2 id="27"><i>CHx Enable</i></h2><p>Read only parameter value from STM32CubeMx : Selected if CHx (x=1..4) is used.</p><h2 id="28"><i>CHxN Enable</i></h2><p>Read only parameter value from STM32CubeMx : Selected if CHxN (x=1..4) is used. (CHx complementary value)</p><h2 id="29"><i>Channel mode</i></h2><p>Read only parameter value from STM32CubeMx : Configuration for this channel. It can be input or output direction.</p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><h2 id="30"><i>DMA used</i></h2><p>Read only parameter value from STM32CubeMx : Acquisition or generation is done using DMA.</p><h2 id="31"><i>Enable interrupt</i></h2><p>Acquisition or generation done using interrupt</p><p><b>OUTPUT configuration</b></p><p><img vspace="5" hspace="5" src="TIM\STM32_TIMER_Config_CH_OUT.PNG" alt=""> </p><h2 id="32"><i>Duty cycle is an input port</i></h2><p>Selected : output PWM Duty cycle (percent of frequency) is input of the model.</p><p>Not selected : output PWM Duty cycle (percent of frequency) is fix.</p><p>Initial value of Duty cycle is 50% of PWM frequency.</p><p><img vspace="5" hspace="5" src="TIM\STM32_TIMER_Config_Duty_In.PNG" alt=""> </p><h2 id="33"><i>Set duty cycle</i></h2><p>Selected : Duty cycle value comes from Output duty cycle value.</p><p>Not selected : Default Duty cycle value is 50%</p><h2 id="34"><i>Outpuy duty cycle(%)</i></h2><p>Fixed Duty cycle value.</p><h2 id="35"><i>CHx pulse value</i></h2><p>Read only parameter value : Number of tick timer to reach duty cycle. Computed using Output duty cycle value.</p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><p><b>INPUT configuration</b></p><p><img vspace="5" hspace="5" src="TIM\STM32_TIMER_Config_CH_IN.PNG" alt=""> </p><h2 id="36"><i>Edge</i></h2><p>Read only parameter value from STM32CubeMx : Input edge used as trigger interrupt.</p><h2 id="37"><i>Prescaler Division Ratio</i></h2><p>Read only parameter value from STM32CubeMx : Number of edge before trigger interrupt.</p><p>
+<A HREF="#ANCRES"><p align="right"> top </p></A>
+</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Timers configuration block
+% Block used in the model to set up to 4 channels of STM32 Timers that have been configured from STM32CubeMx.
+% It also enables connection to management of interruption.
+% 
+%%
+%
+% <html>
+% <A NAME="ANCRES"> </A>
+% </html>
+% 
+%% S-Function
+% _Nb Input:_  *0 to 5* _Named:_ *OutFreq* *Duty CHx* or *Reset CNT*
+% 
+% * *OutFreq* is input value of timer frequency
+% * *Duty CHx* (x=1..4) is input value of channel x duty cycle (percent value of timer frequency).
+% * *Reset CNT* is input counter reset for encoder mode.
+%
+% _Nb Output:_ *0 to 9* _Named:_ *IRQ* *CHx Freq* *CHx Duty* or *CNT* and
+% *DIR*
+%
+% * *IRQ* is function call output for available interrupts.
+% * *CHx Freq* (x=1..4) is computed channel frequency
+% * *CHx Duty* (x=1..4) is computed duty cycle channel (percent of
+% frequency)
+% * *CNT* is output for encoder counter 
+% * *DIR* is output for encoder direction
+%
+%%
+% 
+% <<TIM\STM32_TIMER_Config.PNG>>
+% 
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+%% Parameters
+% Timer global information to set or configured from STM32CubeMx
+%
+% *Three* groups :
+%
+% * CLOCK: Global timer clock parameters
+% * OUTPUT CHANNELS: Timer Channel frequency information 
+% * PARAMETERS: Timer processing configuration (mode, interrupts...)
+%
+%%
+% 
+% <<TIM\STM32_TIMER_Config_Param.PNG>>
+% 
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+%% _Timer_
+% Timer selection. Only Timers configured from STM32CubeMx are available.
+%%
+% 
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+%% CLOCK
+% * APB timer clock
+% * Internal clock division
+% * Set timer clock
+% * Prescaler
+% * Timer clock
+%
+%% _APB timer clock_
+% Read only parameter value from STM32CubeMx : Max frequency of APB the timer is connected to (frequency source).
+%% _Internal clock division_
+% Read only parameter value from STM32CubeMx : Division number for clock
+% frequency source.
+%% _Set timer clock_
+% Not selected : Possible Prescaler value modification 
+% Selected : Possible Timer clock value modification 
+%% _Prescaler_
+% Timer tick is APB timer clock / (Prescaler + 1)
+%% _Timer clock_
+% Timer tick is 1/(Timer clock value). Automatically compute prescaler.
+% 
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%% OUTPUT CHANNELS
+% * Variable output channel frequency
+% * Set output channel frequency
+% * Counter period (ARR register)
+% * Fixed output channel frequency value
+%
+%% _Variable output channel frequency_
+%
+% Not selected : Timer output/input capture frequency (for all channels) comes from counter period (ARR) value.
+%
+% Selected : Timer output/input capture frequency (for all channels) is a
+% block input port.
+%%
+% 
+% <<TIM\STM32_TIMER_Config_OutFreq.PNG>>
+% 
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+%% _Set output channel frequency_
+%
+% Not selected : Possibility to modify counter period (ARR) value.
+%
+% Selected : Timer output/input capture frequency value (for all channels) can be
+% modified.
+%% _Counter period (ARR register)_
+% Timer output/input capture frequency comes from ARR value.
+%% _Fixed output channel frequency value_
+% Timer output/input capture frequency value. Compute ARR value.
+% 
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+%% PARAMETERS
+%
+% * Counter mode
+% * global DMA
+%
+% *INTERRUPT*
+%
+% * Channel interrupt available
+% * UP / TRG / COM / BRK
+%
+%% _Counter mode_
+% Read only parameter value from STM32CubeMx : One of following modes.
+%%
+% 
+% <<TIM\STM32_TIMER_Config_Timers_Align.PNG>>
+% 
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+%% _global DMA_
+% Read only parameter value from STM32CubeMx : DMA configured or not
+%% _Channel interrupt available_
+% Read only parameter value from STM32CubeMx : Interrupt can be used
+%% _UP / TRG / COM / BRK_
+% Function call available for selected interrupt (Update, Trigger, Communication and
+% Break events)
+% 
+% <<TIM\STM32_TIMER_Config_Events.PNG>>
+% 
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+
+%% Channel configuration
+% Information about CHx (x=1..4)
+%% _CHx Enable_
+% Read only parameter value from STM32CubeMx : Selected if CHx (x=1..4) is
+% used.
+%% _CHxN Enable_
+% Read only parameter value from STM32CubeMx : Selected if CHxN (x=1..4) is
+% used. (CHx complementary value)
+%% _Channel mode_
+% Read only parameter value from STM32CubeMx : Configuration for this
+% channel. It can be input or output direction.
+% 
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+%% _DMA used_
+% Read only parameter value from STM32CubeMx : Acquisition or generation is
+% done using DMA.
+%% _Enable interrupt_
+% Acquisition or generation done using interrupt
+%
+% *OUTPUT configuration*
+%
+% <<TIM\STM32_TIMER_Config_CH_OUT.PNG>>
+% 
+%% _Duty cycle is an input port_
+%
+% Selected : output PWM Duty cycle (percent of frequency) is input of the model.  
+%
+% Not selected : output PWM Duty cycle (percent of frequency) is fix.
+% 
+% Initial value of Duty cycle is 50% of PWM frequency.
+%
+% <<TIM\STM32_TIMER_Config_Duty_In.PNG>>
+% 
+%% _Set duty cycle_
+%
+% Selected : Duty cycle value comes from Output duty cycle value.
+%
+% Not selected : Default Duty cycle value is 50%
+%% _Outpuy duty cycle(%)_
+% Fixed Duty cycle value.
+%% _CHx pulse value_
+% Read only parameter value : Number of tick timer to reach duty cycle.
+% Computed using Output duty cycle value.
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+% *INPUT configuration*
+%
+% <<TIM\STM32_TIMER_Config_CH_IN.PNG>>
+%
+%% _Edge_
+% Read only parameter value from STM32CubeMx : Input edge used as trigger interrupt.
+%% _Prescaler Division Ratio_
+% Read only parameter value from STM32CubeMx : Number of edge before trigger interrupt.
+%
+% <html>
+% <A HREF="#ANCRES"><p align="right"> top </p></A>
+% </html>
+%
+##### SOURCE END #####
+--></body></html>

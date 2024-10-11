@@ -1,0 +1,110 @@
+%% Abstract: IWDG.tlc
+%%    STM32Fxxx IWDG.tlc generates C Code for STM32 window watchdog IP.
+%%
+%% Copyright 1990-2009 The MathWorks, Inc.
+
+%assign CodeFormat = "Embedded-C"
+%implements IWDG  "C"
+
+%if !EXISTS(::InsertIncludesToIWDG)
+    %assign ::InsertIncludesToIWDG  = TLC_TRUE
+%endif
+
+%if !EXISTS(::InsertIncludesFromIWDG)
+    %assign ::InsertIncludesFromIWDG  = TLC_TRUE
+%endif
+
+
+    %function BlockTypeSetup(block, system) void
+
+        %%model.c and model.h files
+        %assign SrcBaseName = LibGetMdlSrcBaseName()
+        %assign modelH      = LibCreateSourceFile("Header", "Simulink", SrcBaseName)
+        %assign modelC      = LibCreateSourceFile("Source", "Simulink", SrcBaseName)
+
+        %%model_IWDG.h and model_IWDG.c files
+        %assign SrcBaseName_IWDG = "%<SrcBaseName>_IWDG"
+        %assign modelH_IWDG      = LibCreateSourceFile("Header", "Simulink", SrcBaseName_IWDG)
+        %assign modelC_IWDG      = LibCreateSourceFile("Source", "Simulink", SrcBaseName_IWDG)
+
+        %%Include model.h to model_IWDG.c
+        %if EXISTS(::InsertIncludesToIWDG) && (::InsertIncludesToIWDG == TLC_TRUE)
+            %assign ::InsertIncludesToIWDG    = TLC_FALSE
+            %openfile IWDG_Buf
+                #include "%<SrcBaseName>.h"
+                #include "%<SrcBaseName_IWDG>.h"
+            %closefile IWDG_Buf
+            %<LibSetSourceFileSection(modelC_IWDG,"Includes",IWDG_Buf)>
+        %endif
+
+        %%AND Include model_IWDG.h to model.c
+        %if EXISTS(::InsertIncludesFromIWDG) && (::InsertIncludesFromIWDG == TLC_TRUE)
+            %assign ::InsertIncludesFromIWDG    = TLC_FALSE
+            %openfile IWDG_Buf
+                #include "%<SrcBaseName_IWDG>.h"
+            %closefile IWDG_Buf
+            %<LibSetSourceFileSection(modelH,"Includes",IWDG_Buf)>
+
+            %openfile IWDG_Buf
+                #include "STM32_Config.h"
+            %closefile IWDG_Buf
+            %<LibSetSourceFileSection(modelH_IWDG,"Includes",IWDG_Buf)>
+        %endif
+
+
+        %assign Reload = SFcnParamSettings.Reload
+        %assign Custom_Reload = SFcnParamSettings.Custom_Reload
+
+        %openfile IWDG_Buf
+            extern IWDG_HandleTypeDef hiwdg;
+        %closefile IWDG_Buf
+        %<LibSetSourceFileSection(modelH_IWDG,"Declarations",IWDG_Buf)>
+
+
+        %openfile IWDG_Buf
+        %if (ISEQUAL(Custom_Reload, "on"))
+            hiwdg.Init.Reload = %<Reload>;
+
+        %endif
+            /* Checks if the system has resumed from IWDG reset ####################*/
+            if(__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST) != RESET)
+            {
+                /* Clear reset flags */
+                __HAL_RCC_CLEAR_RESET_FLAGS();
+            }
+
+            if(HAL_IWDG_Refresh(&hiwdg) != HAL_OK)
+            {
+                //IWDG_Error_Handler();
+            }
+        %closefile IWDG_Buf
+        %<LibMdlStartCustomCode(IWDG_Buf, "declaration")>
+
+        %openfile IWDG_Buf
+            /* User's IWDG_Error_Handler definition */
+            void IWDG_Error_Handler(void){
+                while(1){} /* TO BE CUSTOMIZED */
+            }
+        %closefile IWDG_Buf
+        %<LibSetSourceFileSection(modelC_IWDG,"UserBottom",IWDG_Buf)>
+
+    %endfunction
+
+
+%% Function: Outputs ==========================================
+%% Abstract:
+%% IWDG.tlc input value depending on pin config
+%%
+    %function Outputs(block, system) Output
+
+        %openfile IWDG_Buf
+        if(HAL_IWDG_Refresh(&hiwdg) != HAL_OK)
+        {
+          //IWDG_Error_Handler();
+        }
+        %closefile IWDG_Buf
+        %<LibSystemOutputCustomCode(system,IWDG_Buf,"trailer")>
+
+   %endfunction
+
+%% [EOF] IWDG.tlc
